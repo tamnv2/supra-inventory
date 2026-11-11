@@ -19,4 +19,6 @@
 5. Source TS/native + tests + D172 shared regression; signed Agent mới + Worker/Web preflight/Production receipt và channel hash. Không sửa APK.
 
 ## Trạng thái
-OWNER CODE/PRODUCTION SCOPE APPROVED; CODE CANDIDATE PR #908; exact source CI, protected main merge, provider release, Windows FIELD, Owner PASS đang chờ bằng chứng.
+OWNER CODE/PRODUCTION SCOPE APPROVED; **SOURCE CI PASS** trên `1066c15011251e32e0afed9645cadaa344eb1af6`: 46 workflow duy nhất (44 SUCCESS, 2 SKIPPED có điều kiện, 0 FAILED). Windows Agent build PASS (run 42947593238); Worker TS + Web Production build + E185 security PASS (run 42947593206); D172 backend và shared-isolation PASS (runs 42947593219, 42947593165). Chứng cứ được pin tại `ops/d173-e185-release-authorization.json`.
+
+**PRODUCTION MERGE, Worker/Web deploy, Agent184 signed OTA, Windows FIELD và OWNER PASS vẫn PENDING.** Không xem CI PASS là RELEASE PASS. Không sửa APK; Reporter PDA mục 8 vẫn backlog.
