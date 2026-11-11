@@ -57,8 +57,8 @@ test("E190 diagnostics do not write screenshot, URL or password", () => {
      agent.indexOf("private void PairLogin()")), /Log\(.*password/);
 });
 
-test("E190 postpones header overlap change until separate Owner deployment", () => {
+test("E192 successful login clears stale auth notice after failed attempt", () => {
   const header = agent.slice(agent.indexOf("private void SetAgentAuthUi(bool authenticated)"),
     agent.indexOf("private void LogoutAgent()"));
-  assert.doesNotMatch(header, /if \(authenticated\) _agentAuthStatus\.Visible = false/);
+  assert.match(header, /if \(authenticated\) _agentAuthStatus\.Visible = false/);
 });
