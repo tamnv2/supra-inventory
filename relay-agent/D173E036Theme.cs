@@ -442,7 +442,7 @@ namespace SupraInventoryRelayAgent
         {
             var text = (button.Text ?? "").Trim();
             return text == "Tìm kiếm" ||
-                text.StartsWith("Chuyển Agent chính", StringComparison.OrdinalIgnoreCase) ||
+                text.StartsWith("Chọn Agent chính", StringComparison.OrdinalIgnoreCase) ||
                 text.StartsWith("Liên hệ nhóm", StringComparison.OrdinalIgnoreCase);
         }
 
