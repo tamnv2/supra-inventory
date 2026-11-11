@@ -3,28 +3,28 @@
   "project_key": "supra-inventory",
   "repository": "tamnv2/supra-inventory",
   "snapshot_kind": "DERIVED_READ_OPTIMIZED_INDEX__VERIFY_AGAINST_LIVE_GITHUB",
-  "as_of_vn": "2026-11-11",
+  "as_of_vn": "2026-11-12",
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E195",
-    "pr": 922,
-    "branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
-    "status": "PR922_AGENT188_FROM_SIGNED_AGENT185_RUNTIME__CODE_CANDIDATE_CI_PENDING__NO_AGENT188_OTA_YET",
+    "checkpoint_id": "D173-E196",
+    "pr": 926,
+    "branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+    "status": "OWNER_AUTHORIZED_AGENT189_ONLY_OTA__NEW_CI_PENDING__FIELD_PENDING",
     "owner_merge_approved": true
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
     "technical_worker_name": "supra-inventory-beta",
     "agent": {
-      "tag": "relay-agent-v185",
-      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v185",
-      "source_change_id": "D173-E187",
-      "ci_release": "PASS",
+      "tag": "relay-agent-v188",
+      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v188",
+      "source_change_id": "D173-E195",
+      "ci_release": "PASS_REPO_RELEASE_TAG_VERIFIED__CHANNEL_MANIFEST_UPDATED",
       "field": "PENDING",
       "owner_pass": "PENDING",
-      "sha256": "87b145e0adb2a820fbe59c6fdc4057430885348d4d3e087c4721172c62eacac2",
-      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/42970510030",
+      "sha256": null,
+      "release_run": null,
       "host_build": 14
     },
     "web": {
@@ -42,7 +42,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "receipt": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
   },
   "d172": {
     "change_id": "D172",
@@ -71,17 +71,18 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
+  "main_source_at_reconciliation": "a8ff7fa267702655558ffcb1acd53b159ff1f2a6",
   "active_implementation": {
-    "id": "D173-E195",
-    "source_main_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
-    "source_tag": "relay-agent-v185",
-    "source_pin": "57c408ba25542ba61612d3ed38b0e9e485cce767",
-    "task": "AGENT188_V185_RESTORE_5_BUTTONS_COMPACT_ROSTER_WEB_LAYOUT_LOG",
-    "source_status": "PR922_CANDIDATE_NATIVE_CI_PENDING",
+    "id": "D173-E196",
+    "source_main_sha": "a8ff7fa267702655558ffcb1acd53b159ff1f2a6",
+    "source_tag": "relay-agent-v188",
+    "source_pin": "eb5a6be9447f9c26a19f5222c04f9d63fe6746bf",
+    "task": "AGENT189_WEB_PROFILE_RESET_VISUAL_REMOTE_CMD_PERF_DIAGNOSTICS",
+    "source_status": "PR926_RELEASE_CANDIDATE_NATIVE_CI_PENDING",
     "signed_release": "NOT_YET_PUBLISHED",
-    "field": "AGENT187_FAIL__AGENT188_UNVERIFIED",
+    "field": "AGENT188_WEB_WHITE_PHYSICAL_FAIL__AGENT189_UNVERIFIED",
     "owner_pass": "PENDING",
-    "release_receipt": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
+    "release_receipt": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md",
+    "host14_ota_unchanged": true
   }
 }
