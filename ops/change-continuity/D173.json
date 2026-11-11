@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e201-agent190-signed-ota-receipt-20261112",
-  "pr": 932,
+  "working_branch": "docs/d173-e202-agent190-field-root-cause-20261112",
+  "pr": 933,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E201",
+    "id": "D173-E203",
     "date_vn": "2026-11-12",
-    "summary": "PR929 merged a92d7a3; Agent190 tag and inventory-channel EXE SHA256 9cc585d951... verified after workflow 43086165497, Host14 unchanged. FIELD remote kick HTTP400 unresolved, Owner PASS pending; PR932 docs-only receipt.",
-    "status": "CODE_CI_SIGNED_RELEASE_PASS__FIELD_FAIL_OWNER_PENDING__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED",
-    "source": "docs/D173_E201_AGENT190_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+    "summary": "Owner authorized D173 Agent-only Agent191 repair and release; source candidate pinned. Remote target login and 1Hz layout guards implemented. Shared stale Picker session authority not changed; FIELD/OWNER FAIL/PENDING.",
+    "status": "AGENT191_SOURCE_CANDIDATE_CI_PENDING__NO_RELEASE__PICKER_SHARED_HOLD__D172_HOLD",
+    "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3728,6 +3728,62 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E202",
+      "date_vn": "2026-11-12",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Agent190 Agent-kick invalid target identity, 1Hz text flicker, stale Picker presence",
+      "status": "FIELD_FAIL__CAUSES_PARTIALLY_VERIFIED__FIX_PROPOSED__NO_RUNTIME_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Admin-PC 02:25:55 remote command denied before Worker: target_valid=true, user_valid=false, action_valid=true; no successful remote issue or claim evidence.",
+        "Code source writes/reads agent_admin_user_id via Firestore Agent presence and allows Kick Agent on rows even when target login is invalid.",
+        "One-second local resource and after-hours timers each invoke UI rendering paths; while relay sleeps the layout recomputation is still called every second, despite E199 TextChanged guard.",
+        "ADMIN-PC server authenticated picker preview is zero; local tombstone clears ten. Newly restarted VPS still reads ten sessions via projection and agent_sync; local memory-only tombstone cannot survive cross-agent startup.",
+        "Agent190 signed release PASS from E201 remains unchanged. FIELD and OWNER PASS false; Worker/Web/APK/Firebase/D172/Stable untouched."
+      ],
+      "assumptions": [
+        "Exact value/form of invalid target user is not logged; blank or improperly normalized presence is plausible, not confirmed.",
+        "Individual control repaint counts were not captured; UI layout/paint repetition is the evidenced candidate cause."
+      ],
+      "next_action": "Owner review minimal Agent-side remote login and layout fixes; separate shared-scope approval and both-module regression before modifying picker projection/Worker authority.",
+      "evidence": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md; signed source main 5c208ca63d18d1ca8586ac71a6bca5dd285a26b9; private Drive logs reviewed but NOT copied into repo",
+      "ci": "NOT_RUN_ANALYSIS_ONLY",
+      "release": "NO_NEW_RELEASE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E203",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent191 scoped remote-target validation and 1s unchanged-layout guard",
+      "status": "AGENT191_CODE_CANDIDATE__CI_PENDING__NO_RELEASE__STALE_PICKER_SHARED_FIX_BLOCKED__D172_HOLD",
+      "owner_approval": true,
+      "release_approved": true,
+      "approved_scope": "D173 Agent-only, signed inventory-channel OTA after protected CI/merge; no Worker/Core/Firebase/Web/APK/D172/Stable mutation",
+      "source_base": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
+      "source_pin": "673a1277ddc1592a4764b2bc57a1da7d3d482a9a",
+      "pr": 933,
+      "version": 191,
+      "facts": [
+        "Local remote command denial before Worker when target login invalid in Agent190; target login is now auth-derived for privileged targets, absent privilege prevents proof dialog",
+        "After-hours layout now skips unchanged geometry while 1s resource clock and schedule remain",
+        "Persistent Picker zero-vs-ten mismatch requires shared session/projection authority change; Agent-only release intentionally cannot close this FIELD FAIL"
+      ],
+      "tests": "tests/d173-e202-agent191-field-regression.test.mjs + Windows x64 native build/smokes + D172 isolation CI",
+      "ci": "PENDING",
+      "release": "NO_NEW_RELEASE_AGENT190_CURRENT",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "PENDING_HOLD_ISOLATED",
+      "stable": "OWNER_GATED",
+      "next_action": "Verify source/native CI and guards, exact protected merge, signed OTA tag/channel SHA; keep Picker projection issue pending shared-scope authorization",
+      "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md",
+      "evidence": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md; PR #933; relay-agent source pin 673a1277ddc1592a4764b2bc57a1da7d3d482a9a"
     }
   ],
   "resume": {
@@ -4503,6 +4559,18 @@
     "release": "PASS",
     "field": "PENDING_REMOTE_FAIL",
     "owner_pass": false,
+    "d172": "INDEPENDENT_HOLD"
+  },
+  "d173_e202_agent190_field_analysis": {
+    "pr": 933,
+    "branch": "docs/d173-e202-agent190-field-root-cause-20261112",
+    "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md",
+    "code": "NO_CODE",
+    "ci": "NOT_APPLICABLE",
+    "release": "AGENT190_UNCHANGED",
+    "field": "FAIL",
+    "owner_pass": false,
+    "owner_code_authorization": false,
     "d172": "INDEPENDENT_HOLD"
   }
 }

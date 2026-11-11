@@ -1952,6 +1952,8 @@ namespace SupraInventoryRelayAgent
             if (control.Bounds != target) control.Bounds = target;
         }
 
+        private string _d173E202AfterHoursGeometry = "";
+
         private void ApplyAfterHoursAgentLayout(bool visible)
         {
             if (InvokeRequired)
@@ -1970,6 +1972,14 @@ namespace SupraInventoryRelayAgent
                 var host = _afterHoursPanel.Parent;
                 var hostWidth = host == null ? 990 : host.ClientSize.Width;
                 var hostHeight = host == null ? 320 : host.ClientSize.Height;
+                // Schedule remains 1 Hz; repeated identical geometry must not
+                // force header measurement and fleet reflow on every tick.
+                var geometry = hostWidth + "|" + hostHeight + "|" + DeviceDpi +
+                    "|" + _d173E182AdaptiveTopReady + "|" + _d173E175NetworkStatus.Bottom +
+                    "|" + _afterHoursContinue.Visible + "|" + _afterHoursStop.Visible +
+                    "|" + _afterHoursCancel.Visible + "|" + _afterHoursEarlyStart.Visible;
+                if (!visibilityChanged && geometry == _d173E202AfterHoursGeometry) return;
+                _d173E202AfterHoursGeometry = geometry;
                 var panelWidth = Math.Max(300, hostWidth - 32);
                 // One Agent header geometry authority: legacy fixed 163px offset
                 // disagreed with E182 responsive header during every schedule
@@ -2026,6 +2036,7 @@ namespace SupraInventoryRelayAgent
             }
             else
             {
+                _d173E202AfterHoursGeometry = "";
                 _agentFleetStatus.Visible = true;
                 ApplyD119AuthenticatedLayout(HasAgentSession());
             }

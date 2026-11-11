@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   source:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e195-agent188-v185-baseline-layout-logs-20261111'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,7 +45,7 @@ jobs:
         run: node --test tests/d172-*.test.mjs
 
   native:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e195-agent188-v185-baseline-layout-logs-20261111'
     needs: source
     runs-on: windows-latest
     permissions:

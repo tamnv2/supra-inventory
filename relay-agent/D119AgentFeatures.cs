@@ -3155,6 +3155,7 @@ namespace SupraInventoryRelayAgent
                         if (ownerSession != null &&
                             IsD165OneTimeAgentLogin(DisplayAgentUsername(ownerSession)) &&
                             !string.IsNullOrWhiteSpace(agent.AgentInstanceId) &&
+                            IsD165OneTimeAgentLogin(agent.AdminUserId) &&
                             !string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal))
                         {
                             var kick = row.Cells["KickUser"] as DataGridViewButtonCell;
@@ -4059,6 +4060,12 @@ namespace SupraInventoryRelayAgent
                     AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=DENIED reason=ROLE");
                     return;
                 }
+                if (!IsD165OneTimeAgentLogin(agent.AdminUserId))
+                {
+                    AgentDiagnostics.Write("D173_E202_AGENT_REMOTE_INPUT result=DENIED target_login_valid=false");
+                    NotifyD173RosterResult("Chưa xác minh được tài khoản Agent đích. Cần đăng nhập lại Agent đích.");
+                    return;
+                }
                 var action = ShowE185RemoteAgentChoice(agent.Machine ?? "Agent");
                 if (string.IsNullOrWhiteSpace(action)) return;
                 AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=CHOICE action=" + action);
@@ -4243,6 +4250,7 @@ namespace SupraInventoryRelayAgent
                     agent.AgentInstanceId ?? "", @"^[A-Za-z0-9._:-]{8,160}$");
                 var validUser = System.Text.RegularExpressions.Regex.IsMatch(
                     agent.AdminUserId ?? "", @"^[A-Za-z0-9._:-]{1,128}$");
+                validUser = validUser && IsD165OneTimeAgentLogin(agent.AdminUserId);
                 var validAction = action == "LOGOUT_USER" || action == "EXIT_AGENT";
                 if (!validTarget || !validUser || !validAction)
                 {
