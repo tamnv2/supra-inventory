@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E193",
-    "pr": 920,
-    "branch": "fix/d173-e193-agent187-ota-exitcode-recovery-20261111",
-    "status": "PR919_AGENT187_SOURCE_MERGED__SOURCE_NATIVE_CI_PASS__PR920_WORKFLOW_RELEASE_RECOVERY_CI_PENDING__NO_TAG_YET",
+    "checkpoint_id": "D173-E195",
+    "pr": 922,
+    "branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
+    "status": "PR922_AGENT188_FROM_SIGNED_AGENT185_RUNTIME__CODE_CANDIDATE_CI_PENDING__NO_AGENT188_OTA_YET",
     "owner_merge_approved": true
   },
   "production": {
@@ -71,16 +71,17 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "e5054bc3dcbc555edd493e2589741e1696460790",
+  "main_source_at_reconciliation": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
   "active_implementation": {
-    "id": "D173-E188",
-    "source_main_sha": "e5054bc3dcbc555edd493e2589741e1696460790",
-    "task": "AGENT186_FOUR_FIELD_REPAIRS",
-    "source_status": "SOURCE_IMMUTABLE__PR915_MERGED_E505__PR916_PSHOST_FIX",
-    "source_ci": "PASS_EXACT_PIN_61C056ED__PREVIOUS_39_SUCCESS_15_SKIP",
-    "signed_release": "RUN43018680679_FAILED_PREBUILD_PS_HOST__PR916_RECOVERY_PENDING",
-    "field": "AGENT185_FIELD_FAIL__186_UNVERIFIED",
+    "id": "D173-E195",
+    "source_main_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
+    "source_tag": "relay-agent-v185",
+    "source_pin": "57c408ba25542ba61612d3ed38b0e9e485cce767",
+    "task": "AGENT188_V185_RESTORE_5_BUTTONS_COMPACT_ROSTER_WEB_LAYOUT_LOG",
+    "source_status": "PR922_CANDIDATE_NATIVE_CI_PENDING",
+    "signed_release": "NOT_YET_PUBLISHED",
+    "field": "AGENT187_FAIL__AGENT188_UNVERIFIED",
     "owner_pass": "PENDING",
-    "release_receipt": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+    "release_receipt": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
   }
 }

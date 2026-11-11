@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e193-agent187-ota-exitcode-recovery-20261111",
-  "pr": 920,
+  "working_branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
+  "pr": 922,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E193",
+    "id": "D173-E195",
     "date_vn": "2026-11-11",
-    "summary": "Agent187 merged fa20f53f, native CI PASS, release job43033142449 failed prebuild due expected missing-tag gh CLI exit1. PR920 repairs only workflow and pins recovery base, no runtime source change. v187 tag/OTA not published.",
-    "status": "PR920_RELEASE_WORKFLOW_RECOVERY_CI_PENDING__AGENT187_NOT_RELEASED__FIELD_PENDING",
-    "source": "docs/D173_E193_AGENT187_RELEASE_WORKFLOW_RECOVERY_2026-11-11.md"
+    "summary": "Owner orders Agent188 from signed Agent185 runtime, new post-login/roster geometry telemetry and exact five controls; Firebase/Apps Script release-injection required after Agent186/187 build regression.",
+    "status": "PR922_SOURCE_CANDIDATE__CI_IN_PROGRESS__RELEASE_NOT_YET_VERIFIED__FIELD_FAIL_OPEN",
+    "source": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4222,5 +4222,29 @@
     "pr": 910,
     "accepted_base_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
     "no_production_or_d172_release": true
+  },
+  "d173_e195_agent188": {
+    "date_vn": "2026-11-11",
+    "change_id": "D173",
+    "owner_code_release_approved": true,
+    "scope": "AGENT188_EXACT_AGENT185_RUNTIME_WITH_DIAGNOSTICS_AND_LAYOUT",
+    "v185_tag_sha": "ca14deee4999f5f31066208c0baa957bec923de7",
+    "base_main_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
+    "source_pin": "57c408ba25542ba61612d3ed38b0e9e485cce767",
+    "pr": 922,
+    "branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
+    "owner_ui": "Chọn Agent chính | Cập nhật | Chạy nền | Đăng xuất Agent | Tắt Agent; remove redundant roster title/status; search first same row, compact labels and measured fit; horizontal toolbar scroll only when physically too narrow",
+    "verified_evidence": "Agent185 signed Host14; v187 exact v188-needed log failures were locally reviewed, no raw log or secrets in public repo; v186/v187 standalone release missed Firebase and Apps Script build injection.",
+    "implementation": "v185 runtime restored for all relay-agent source except 10 explicitly reviewed files; E190 in-process browser files deleted; source-specific geometry and bounded Web visual log added; protective release job added with beta build-injection",
+    "gates": {
+      "code": "CANDIDATE",
+      "source_ci": "IN_PROGRESS",
+      "signed_release": "NOT_YET_VERIFIED",
+      "field": "FAIL_EXISTING_V187",
+      "owner_pass": false
+    },
+    "risks": "v185 Web white after login not demonstrated fixed by source restore; telemetry is intentionally observational; ultra-narrow roster uses horizontal scroll rather than clipping; no unapproved WMS behavior changes",
+    "protected_scope": "AGENT_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_OR_HOST14_MUTATION",
+    "doc": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
   }
 }

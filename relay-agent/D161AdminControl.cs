@@ -27,7 +27,7 @@ namespace SupraInventoryRelayAgent
         private void InitializeD161BulkPickerRevoke(Control pickerCard)
         {
             if (pickerCard == null) return;
-            _d161BulkKickAllButton.Text = "Kích toàn bộ user";
+            _d161BulkKickAllButton.Text = "Kích tất cả";
             _d161BulkKickAllButton.SetBounds(850, 5, 172, 29);
             _d161BulkKickAllButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             _d161BulkKickAllButton.Visible = false;
