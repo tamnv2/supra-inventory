@@ -3518,7 +3518,7 @@
     {
       "id": "D173-E189",
       "date_vn": "2026-11-11",
-      "kind": "OWNER_FIELD_FAIL_AND_SOURCE_FINDING",
+      "kind": "TECHNICAL_FINDING",
       "topic": "Agent186 ordinary login HTTP400, intermittent header overlap, blank Web Confirm; new lightweight browser host requested",
       "status": "OWNER_REPORT_FIELD_FAIL__SOURCE_CORRECTION_PARTIAL_PR918__BROWSER_NOT_BUILT__SOURCE_CI_PENDING",
       "owner_scope": "AGENT_AUTH_UI_DIAGNOSTIC_LAYOUT_BROWSER_REPLACEMENT_CODE_REQUEST__NO_NEW_RELEASE_TAG_OR_PROVIDER_MUTATION",
@@ -3543,7 +3543,8 @@
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "owner_approval": true
     }
   ],
   "resume": {
