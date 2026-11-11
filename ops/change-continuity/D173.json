@@ -3687,6 +3687,40 @@
       "field_pass": false,
       "owner_pass": false
     }
+  ,
+    {
+      "id": "D173-E196-USAGE-REVIEW",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_OPTIMIZATION_REQUEST__TECHNICAL_ANALYSIS",
+      "topic": "Giảm tối đa usage Agent→Picker readiness mà mọi Picker online vẫn realtime biết đổi trạng thái",
+      "status": "PROPOSAL_REVIEW_ONLY__NO_CODE_RULES_OR_RELEASE_APPROVAL",
+      "pr": 925,
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "source_sha": "a8ff7fa267702655558ffcb1acd53b159ff1f2a6",
+      "verified_facts": [
+        "Agent existing PRIMARY Firestore lease writes every 10s; NEXT_A already observes HA freshness. AndroidRealtimeClient uses Cloudflare WebSocket for reporting, but no Agent readiness bridge there.",
+        "Picker RelayPocClient listeners are per-confirmation request or per-locked-Picker state, not shared readiness. Rules disallow Picker GET on coordination/roles and agent_sync.",
+        "Official Firestore listener billing counts initial document read and changes for each connected client; long-lived listeners avoid needless polling."
+      ],
+      "proposal": "One small stateful sanitized Firestore readiness doc, one foreground listener per authorized Picker session regardless of tab, event-only updates on verified WMS/HA state changes; new login accepts server-fresh snapshot; app background removes listener; NO per-PDA polling, NO Agent periodic WMS probe, NO Worker/DO bridge; reuse existing HA lease.",
+      "liveness_tradeoff": "All Agents abrupt outage cannot publish OFFLINE; client must fail closed on staleness. Optional READY-only max 5-minute sparse renewal from authoritative PRIMARY while healthy; detects all-Agent abrupt loss only within approximate expiry bound, not 30s true realtime. Explicit business status transitions remain realtime. No unlimited cached READY.",
+      "estimated_provider_day_40_foreground_17h": {
+        "event_only_four_changes_with_initial": 200,
+        "ready_renew_10min_initial_included": 4120,
+        "ready_renew_5min_initial_included": 8200,
+        "ready_renew_30sec_initial_included": 81640,
+        "existing_10sec_lease_if_exposed_to_40": 244800,
+        "caveat": "Design counts only; excludes reconnect, baseline provider usage, Rules lookups and recovery."
+      },
+      "security": "No Picker access to Agent roles/lease/agent_sync, no WMS content/secrets, only Agent PRIMARY generation-fenced authorized writes; D172 separate shared infrastructure regression required if Rules change.",
+      "approval": "OWNER_REVIEW_PENDING",
+      "evidence": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md; Firebase official Firestore pricing and realtime queries guidance",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    }
   ],
   "resume": {
     "approved": [
