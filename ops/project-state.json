@@ -13439,7 +13439,24 @@
     "test_artifact": "SUPRA-Puzzle-Recorder-V1-win-x64",
     "field": "PENDING",
     "owner_pass": false,
-    "v2": "NOT_STARTED__REQUIRES_V1_FIELD_LOG_REVIEW",
+    "v2": "D173_E200_PR931_CODE_CANDIDATE__CI_FIELD_PENDING",
+    "d172": "INDEPENDENT_HOLD",
+    "stable": "OWNER_GATED"
+  },
+  "d173_e200_puzzle_tester": {
+    "id": "D173-E200",
+    "mode": "CODE_ONLY_STANDALONE_DIAGNOSTIC",
+    "owner_permission_asserted": true,
+    "owner_spec": "ONE_TEST_CLICK_ONE_DRAG_MAX_MANUAL_PASS_FAIL",
+    "branch": "feat/d173-e200-puzzle-test-v2-20261112",
+    "pr": 931,
+    "source": "docs/D173_E200_PUZZLE_TEST_V2_2026-11-12.md",
+    "code": "CANDIDATE",
+    "ci": "PENDING_WINDOWS_SOURCE_AND_NATIVE",
+    "artifact": "NOT_VERIFIED",
+    "field": "PENDING",
+    "owner_pass": false,
+    "production_change": false,
     "d172": "INDEPENDENT_HOLD",
     "stable": "OWNER_GATED"
   }
