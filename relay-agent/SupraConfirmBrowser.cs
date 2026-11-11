@@ -802,7 +802,9 @@ namespace SupraInventoryRelayAgent
                 {
                     if (_process.HasExited) return output;
                     rootPid = _process.Id;
-                    rootStarted = _process.StartTime;
+                    rootStarted = _agentNativeTab && _lastHostStartUtc != DateTime.MinValue
+                        ? _lastHostStartUtc.ToLocalTime()
+                        : _process.StartTime;
                 }
                 catch { return output; }
 
@@ -819,6 +821,13 @@ namespace SupraInventoryRelayAgent
                         using (var process = Process.GetProcessById(pid))
                         {
                             if (process.HasExited) continue;
+                            // Same-process tab: the Agent PID is only our CDP
+                            // liveness anchor. Count the Chromium renderer
+                            // processes, not all Agent CPU/RAM as browser usage.
+                            if (_agentNativeTab &&
+                                !string.Equals(process.ProcessName, "msedgewebview2",
+                                    StringComparison.OrdinalIgnoreCase))
+                                continue;
                             totalCpu += process.TotalProcessorTime;
                             workingSet += Math.Max(0L, process.WorkingSet64);
                             count++;
