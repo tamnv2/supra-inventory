@@ -1,0 +1,67 @@
+name: D173 E196 Agent Web Reset Diagnostics CODE ONLY
+
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "relay-agent-webview2-host/**"
+      - "tests/d173-e196-agent-web-session.test.mjs"
+      - ".github/workflows/d173-e196-agent-code-only.yml"
+      - "ops/change-continuity/D173.json"
+      - "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    if: github.head_ref == 'fix/d173-e196-agent-web-session-diagnostics-20261111'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Source contracts for E196 session, paint, remote kick and roster
+        run: node --test tests/d173-e196-agent-web-session.test.mjs
+      - name: No changes to D172, Worker, Web, Android, Stable or shared Firebase
+        shell: bash
+        run: |
+          git diff --exit-code "$(git merge-base origin/main HEAD)" HEAD -- \
+            service/ web/ android/ obpp1291/ firebase/ functions/ \
+            ops/project-scope.json ops/resource-registry.json
+          echo 'D173_E196_SCOPED_SOURCE_GUARD_PASS'
+      - name: D172 independent source tests without provider operations
+        run: |
+          npm install --prefix service --ignore-scripts --no-audit --no-fund --no-package-lock
+          node --test tests/d172-*.test.mjs
+
+  windows-native:
+    if: github.head_ref == 'fix/d173-e196-agent-web-session-diagnostics-20261111'
+    needs: source
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build Agent and in-tab WebView2 Host x64 without signing or releasing
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64
+          if ($LASTEXITCODE -ne 0) { throw 'E196 Host build failed' }
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64
+          if ($LASTEXITCODE -ne 0) { throw 'E196 Agent build failed' }
+          $exe = (Resolve-Path 'relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe').Path
+          foreach ($arg in @('--startup-smoke','--e100-roster-self-test','--e103-activity-self-test','--d140-sync-safety-self-test')) {
+            $process = Start-Process -FilePath $exe -ArgumentList $arg -PassThru
+            if (-not $process.WaitForExit(15000)) {
+              try { $process.Kill() } catch {}
+              throw "E196 native smoke timeout $arg"
+            }
+            if ($process.ExitCode -ne 0) { throw "E196 native smoke failed $arg" }
+          }
+          Write-Host 'D173_E196_WINDOWS_BUILD_SMOKE_PASS'
