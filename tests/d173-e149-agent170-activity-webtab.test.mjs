@@ -90,7 +90,7 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
 
 test("candidate does not silently claim production release or change D172", () => {
   const version = read("relay-agent/VERSION").trim();
-  assert.ok(["170", "171", "172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183"].includes(version), "Owner-scoped Agent versions through E174 Agent176");
+  assert.ok(["170", "171", "172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184"].includes(version), "Only Owner-scoped Agent versions");
   assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version));
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("0\\." + version + "\\.0\\.0"));
   if (version === "171") {
@@ -107,6 +107,18 @@ test("candidate does not silently claim production release or change D172", () =
     assert.match(state.owner_approval, /CODE_AND_CONDITIONAL/);
     assert.equal(state.owner_pass, false);
     assert.match(read("docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"), /NO automatic deployment|CI\/RELEASE\/FIELD\/OWNER PASS not presumed/);
+  }
+  if (version === "184") {
+    const auth = JSON.parse(read("ops/d173-e185-release-authorization.json"));
+    assert.equal(auth.owner_approval_reference,
+      "OWNER_20261111_ITEMS_1_TO_7_CODE_AND_PRODUCTION_REPORTER_PDA_BACKLOG");
+    assert.equal(auth.agent_target_version, 184);
+    assert.equal(auth.owner_code_approved, true);
+    assert.equal(auth.owner_protected_release_approved, true);
+    assert.equal(auth.d172_pending_hold, true);
+    assert.equal(auth.android_mutation, false);
+    assert.equal(auth.stable_mutation, false);
+    assert.equal(auth.source_ci_verified, false);
   }
   if (version === "183") {
     const auth = JSON.parse(read("ops/d173-e183-agent183-release-authorization.json"));
