@@ -3351,31 +3351,18 @@
       "status": "OWNER_CODE_AND_AGENT185_RELEASE_APPROVED__SOURCE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
       "owner_approval": true,
       "working_branch": "fix/d173-e187-agent185-webview-paint-20261111",
-      "evidence": "Drive manual_agent_ADMIN-PC_20261111_103219_7c1a46ffa28c.log; main a00ba55; docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md",
+      "evidence": "Drive manual_agent_ADMIN-PC_20261111_103219_7c1a46ffa28c.log; main a00ba55; docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md; GitHub Actions 42962237065 / 42962237221 / 42962237099",
       "facts": [
         "Admin-PC CDP WMS DOM READY + popup ATTACHED + native repaint ack, physical view white; VPS main renders and confirms.",
         "Host13 controller-level sync absent and same host-build cache; proof limited to DOM, compositor hypothesis not established.",
         "Agent185 and mandatory Host14 package update, only native WebView2 presentation events; no new Provider ops or WMS transaction changes.",
-        "Exact Owner request authorizes signed Agent185 after source CI/release gate; D172 independent PENDING/HOLD; FIELD and OWNER PASS remain false."
-      ],
-      "next_action": "PR exact-source Windows x64 native+Host14 and D172 isolation CI; pin SHA; protected two-parent merge; signed Agent185+Host14 channel hashes; separate FIELD evidence",
-      "release_boundary": "AGENT185_HOST14_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_WMS_MUTATION"
-    },
-    {
-      "id": "D173-E187-CI1",
-      "date_vn": "2026-11-11",
-      "kind": "TECHNICAL_FINDING",
-      "status": "INITIAL_PR_CI_FAILED_REPAIR_SAME_CHANGE",
-      "owner_approval": true,
-      "facts": [
+        "Exact Owner request authorizes signed Agent185 after source CI/release gate; D172 independent PENDING/HOLD; FIELD and OWNER PASS remain false.",
         "PR911 initial source tests E187 4/4 PASS but Windows native Host14 build CS1061: WinForms WebView2 public API lacks CoreWebView2Controller. Fixed via supported Control native Size one-pixel roundtrip; no WMS navigation or session restart.",
         "E187 release preflight Windows UnicodeDecodeError caused omitted UTF-8 read_text encoding; repaired.",
         "Historical Agent184-only version whitelists in E052/E060/E064 regression tests were extended with exact E187 Owner receipt for 185; D172 isolation remains mandatory."
       ],
-      "evidence": "GitHub Actions run 42962237065 / 42962237221 / 42962237099 and PR911 commits 8acabc5, 72acc8c",
-      "next_action": "Re-run Windows native Host14 and all exact-head source CI before protected release",
-      "field_pass": false,
-      "owner_pass": false
+      "next_action": "PR exact-source Windows x64 native+Host14 and D172 isolation CI; pin SHA; protected two-parent merge; signed Agent185+Host14 channel hashes; separate FIELD evidence",
+      "release_boundary": "AGENT185_HOST14_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_WMS_MUTATION"
     }
   ],
   "resume": {

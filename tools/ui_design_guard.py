@@ -108,6 +108,20 @@ if e182_target == "184":
         e185_ui_receipt.get("android_mutation") is False and
         e185_ui_receipt.get("new_provider_resources") is False
     )
+# E187 carries the same unchanged Agent184 40/60 UX under its own
+# Host14-only Owner grant, without inheriting E185 Worker/Web mutation rights.
+if e182_target == "185":
+    e187_ui = json.loads(read("ops/d173-e187-agent185-release-authorization.json"))
+    E182_UI_APPROVED = (
+        e187_ui.get("owner_code_approved") is True and
+        e187_ui.get("owner_protected_release_approved") is True and
+        e187_ui.get("agent_target_version") == 185 and
+        e187_ui.get("host_target_build") == 14 and
+        e187_ui.get("approved_components") == ["agent", "agent-webview2-host"] and
+        e187_ui.get("stable_mutation") is False and
+        e187_ui.get("obpp_mutation") is False and
+        e187_ui.get("no_new_provider_requests") is True
+    )
 SERVICE_PRIVILEGED_AUTH = read("service/src/privileged-auth.ts")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
 
@@ -260,7 +274,7 @@ checks = {
                 "if (_d128BrowserResourceStatus.Text != browserText)",
             ]) and "_d128AgentResourceStatus.Refresh()" not in RELAY_D119_FEATURES
               and "_d128BrowserResourceStatus.Refresh()" not in RELAY_D119_FEATURES
-            if e182_target in ("182", "183", "184") and E182_UI_APPROVED else
+            if e182_target in ("182", "183", "184", "185") and E182_UI_APPROVED else
             all(token in RELAY_D119_FEATURES for token in [
                 "_d128AgentResourceStatus.Refresh()",
                 "_d128BrowserResourceStatus.Refresh()",
