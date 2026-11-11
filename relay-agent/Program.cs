@@ -3052,10 +3052,8 @@ namespace SupraInventoryRelayAgent
             _d173E182CapabilityTip.SetToolTip(_manualUpdate, reason);
             _d173E182CapabilityTip.SetToolTip(_d167SkuPage, reason);
             RefreshD173E038SidebarSelection();
-            var compact = _manualUpdate.Parent != null && _manualUpdate.Parent.ClientSize.Width < 700;
             _manualUpdate.Text = verifiedBlocked ? "Cập nhật (cần mạng)" :
-                _updateCheckRunning ? "Đang kiểm tra..." :
-                compact ? "Cập nhật" : "Kiểm tra cập nhật";
+                _updateCheckRunning ? "Đang kiểm tra..." : "Cập nhật";
         }
 
         private void QueueWatchdogRefresh()
