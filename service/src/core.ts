@@ -2098,6 +2098,103 @@ export class InventoryCore {
       return response(result);
     }
 
+    // E185: short-lived server-stored command authority. Firestore notification
+    // is only a wake-up hint; recipients must claim this one-time record.
+    if (request.method === "PUT" && url.pathname === "/agent-remote/issue") {
+      const body = (await request.json()) as {
+        command_id?: string; target_agent_id?: string; action?: string;
+        target_agent_user_id?: string; issued_by_user_id?: string;
+      };
+      const commandId = String(body.command_id || "").trim();
+      const target = String(body.target_agent_id || "").trim();
+      const actor = String(body.issued_by_user_id || "").trim();
+      const targetUser = String(body.target_agent_user_id || "").trim();
+      const action = String(body.action || "");
+      if (!/^[a-f0-9-]{36}$/.test(commandId) ||
+          !/^[A-Za-z0-9._:-]{8,160}$/.test(target) ||
+          !/^[A-Za-z0-9._:-]{1,128}$/.test(actor) ||
+          !/^[A-Za-z0-9._:-]{1,128}$/.test(targetUser) ||
+          !["LOGOUT_USER", "EXIT_AGENT"].includes(action))
+        return response({ error: "INVALID_AGENT_CONTROL" }, 400);
+      const now = Date.now();
+      const record = {
+        command_id: commandId, target_agent_id: target, target_agent_user_id: targetUser, action,
+        issued_by_user_id: actor, expires_at_ms: now + 90_000,
+        status: "ISSUED",
+      };
+      this.state.storage.sql.exec(
+        "INSERT INTO app_config(key, value_json, updated_by) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING",
+        "d173_agent_remote:" + commandId, JSON.stringify(record), actor,
+      );
+      return response({ status: "issued", command_id: commandId, expires_at_ms: record.expires_at_ms });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/agent-remote/claim") {
+      const body = (await request.json()) as {
+        command_id?: string; agent_instance_id?: string; claimant_user_id?: string;
+      };
+      const commandId = String(body.command_id || "").trim();
+      const agentId = String(body.agent_instance_id || "").trim();
+      const claimant = String(body.claimant_user_id || "").trim();
+      if (!/^[a-f0-9-]{36}$/.test(commandId) ||
+          !/^[A-Za-z0-9._:-]{8,160}$/.test(agentId) ||
+          !/^[A-Za-z0-9._:-]{1,128}$/.test(claimant))
+        return response({ error: "INVALID_AGENT_CLAIM" }, 400);
+      const key = "d173_agent_remote:" + commandId;
+      const stored = this.state.storage.sql.exec<{ value_json: string }>(
+        "SELECT value_json FROM app_config WHERE key = ? LIMIT 1", key,
+      ).toArray()[0];
+      if (!stored) return response({ error: "AGENT_COMMAND_NOT_FOUND" }, 404);
+      let command: {
+        command_id: string; target_agent_id: string; action: string;
+        issued_by_user_id: string; target_agent_user_id: string;
+        expires_at_ms: number; status: string;
+      };
+      try { command = JSON.parse(stored.value_json) as typeof command; }
+      catch { return response({ error: "AGENT_COMMAND_CORRUPT" }, 500); }
+      if (command.target_agent_id !== agentId || command.command_id !== commandId ||
+          command.target_agent_user_id.toLowerCase() !== claimant.toLowerCase())
+        return response({ error: "AGENT_COMMAND_WRONG_TARGET" }, 403);
+      if (command.expires_at_ms <= Date.now() || command.status !== "ISSUED")
+        return response({ error: "AGENT_COMMAND_EXPIRED_OR_CONSUMED" }, 409);
+      command.status = "CLAIMED";
+      this.state.storage.sql.exec(
+        "UPDATE app_config SET value_json = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?",
+        JSON.stringify(command), key,
+      );
+      return response({ status: "authorized", action: command.action, command_id: commandId });
+    }
+
+    // E185: server-authoritative, generation-fenced logout of one Web session.
+    // Only the Worker may invoke this private DO route after Agent reauthentication.
+    if (request.method === "PUT" && url.pathname === "/auth/revoke-web-session") {
+      const body = (await request.json()) as {
+        user_id?: string; expected_generation?: number; issued_by_user_id?: string;
+      };
+      const userId = String(body.user_id || "").trim();
+      const actor = String(body.issued_by_user_id || "").trim();
+      const expected = Math.trunc(Number(body.expected_generation || 0));
+      if (!/^[A-Za-z0-9._:-]{1,128}$/.test(userId) ||
+          !/^[A-Za-z0-9._:-]{1,128}$/.test(actor) || expected < 1) {
+        return response({ error: "INVALID_WEB_KICK_REQUEST" }, 400);
+      }
+      const current = this.state.storage.sql.exec<{
+        generation: number; device_id: string | null;
+      }>("SELECT web_session_generation AS generation, web_session_device_id AS device_id FROM users WHERE user_id = ? AND status = 'ACTIVE' LIMIT 1",
+        userId).toArray()[0];
+      if (!current || !current.device_id || Number(current.generation) !== expected) {
+        return response({ error: "WEB_SESSION_CHANGED_OR_ENDED" }, 409);
+      }
+      this.state.storage.sql.exec(
+        `UPDATE users SET web_session_generation = web_session_generation + 1,
+            web_session_device_id = NULL, web_session_started_at = NULL,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ? AND web_session_generation = ? AND web_session_device_id = ?`,
+        userId, expected, current.device_id,
+      );
+      return response({ status: "web_session_revoked", revoked_generation: expected, user_id: userId });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/end-session") {
       const body = (await request.json()) as {
         user_id?: string;

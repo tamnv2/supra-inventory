@@ -32,6 +32,27 @@ if version >= 150:
     accepted_index = subprocess.check_output(
         ["git", "show", accepted + ":service/src/index.ts"], text=True)
     import os
+    if version == 184 and os.environ.get("GITHUB_HEAD_REF") == "feat/d173-e185-agent183-field-ui-remote-controls-20261111":
+        # E185 has independent Owner-approved Worker auth for Agent/Web commands.
+        # Preserve email, D172 backend and provider sources byte-for-byte above;
+        # reject changes to every existing OBPP import/route in the shared index.
+        import json
+        auth = json.loads((root / "ops/d173-e185-release-authorization.json").read_text())
+        assert auth["owner_code_approved"] is True
+        assert auth["owner_protected_release_approved"] is True
+        assert auth["d172_pending_hold"] is True
+        assert auth["android_mutation"] is False
+        assert auth["stable_mutation"] is False
+        assert auth["new_provider_resources"] is False
+        subprocess.run(["python3", "tools/d173_e185_release_gate.py",
+                        "--component", "worker", "--preflight"], check=True)
+        current_index = (root / "service/src/index.ts").read_text(encoding="utf-8")
+        for marker in ("obpp1291", "OBPP1291", "OBPP_COORDINATOR", "sendProjectEmail"):
+            baseline = [line.strip() for line in accepted_index.splitlines() if marker in line]
+            candidate = [line.strip() for line in current_index.splitlines() if marker in line]
+            assert candidate == baseline, "E185_EMAIL_OBPP_INDEX_DRIFT:" + marker
+        print("D173_E185_EXISTING_EMAIL_D172_ROUTES_UNCHANGED__NEW_AGENT_WEB_AUTH_SCOPED_PASS")
+        raise SystemExit(0)
     if version == 177 and os.environ.get("GITHUB_HEAD_REF") == "feat/d173-e175-unified-network-logs-ui-20261110":
         # New E175 Owner release scope. Original email/auth/D172 protected files
         # are already byte-compared above; the new gate fences Worker business.

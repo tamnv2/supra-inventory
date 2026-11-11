@@ -65,6 +65,7 @@ namespace SupraInventoryRelayAgent
         internal long ActivityDailyPatches;
         // Sparse event-driven notification, never the authority for a decision.
         internal string CoordinationSignal = "";
+        internal string RemoteAgentCommandsJson = "";
     }
 
     internal sealed class FirestoreAgentSyncClient
@@ -636,6 +637,7 @@ namespace SupraInventoryRelayAgent
             snapshot.ActivityQuotaDay = FieldString(fields, "activity_quota_day");
             snapshot.ActivityDailyPatches = FieldLong(fields, "activity_daily_patches");
             snapshot.CoordinationSignal = FieldString(fields, "coordination_signal");
+            snapshot.RemoteAgentCommandsJson = FieldString(fields, "remote_agent_commands_json");
             Normalize(snapshot);
             return snapshot;
         }
@@ -747,7 +749,8 @@ namespace SupraInventoryRelayAgent
                 ActivityJson = source.ActivityJson ?? "",
                 ActivityQuotaDay = source.ActivityQuotaDay ?? "",
                 ActivityDailyPatches = source.ActivityDailyPatches,
-                CoordinationSignal = source.CoordinationSignal ?? ""
+                CoordinationSignal = source.CoordinationSignal ?? "",
+                RemoteAgentCommandsJson = source.RemoteAgentCommandsJson ?? ""
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
             {

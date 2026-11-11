@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e175-unified-network-logs-ui-20261110",
-  "pr": 889,
+  "working_branch": "feat/d173-e185-agent183-field-ui-remote-controls-20261111",
+  "pr": 908,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E184",
-    "date_vn": "2026-11-10",
-    "summary": "Owner explicitly authorized Agent182 signed OTA release for PR906 Agent181 FIELD FAIL fix. Version182 and independent CI/OTA gates staged. Exact source CI, protected merge, signed release, checksum and FIELD pending. D172 independent HOLD, Stable OWNER-GATED. Exact CI source SHA e460647feec5b7e13bd2e01231e5188127dee210 37 workflow PASS, 1 SKIPPED; Windows Agent and D172 isolation PASS; no new signed OTA yet.",
-    "status": "OWNER_SIGNED_RELEASE_APPROVED__SOURCE_CI_37_PASS_1_SKIPPED__MERGE_RELEASE_PENDING",
-    "source": "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md"
+    "id": "D173-E185",
+    "date_vn": "2026-11-11",
+    "summary": "PR #908 exact source commit 1066c150: 46 unique checks (44 SUCCESS, 2 conditional SKIPPED, 0 FAILED); native Windows Agent build, E185 Worker TS/Web production build, D172 isolated/shared regression PASS. Source pinned in ops/d173-e185-release-authorization.json; production merge and OTA pending, FIELD/OWNER pending.",
+    "status": "SOURCE_CI_PASS__PINNED__PROTECTED_RELEASE_PENDING__D172_HOLD",
+    "source": "ops/d173-e185-release-authorization.json"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3325,6 +3325,23 @@
       "release_boundary": "AGENT182_ONLY_AFTER_PROOF__D172_HOLD__STABLE_OWNER_GATED",
       "evidence": "Owner explicit 2026-11-10 'Yêu cầu phát hành!'; docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md; ops/d173-e182-agent182-release-authorization.json; PR906; exact source SHA e460647feec5b7e13bd2e01231e5188127dee210; native Windows workflow 42864965205 PASSED; CI 37 passed, 1 skipped, D172 isolation passed",
       "next_action": "Protected merge with D173-E182_AGENT182_ONLY_RELEASE: marker; verify signed tag relay-agent-v182 and inventory-channel OTA checksum; FIELD/OWNER remains PENDING."
+    },
+    {
+      "id": "D173-E185",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent183 FIELD FAIL fixes + roster and remote Agent/Web session controls 1–7; Reporter PDA shift logout item 8 backlog only",
+      "status": "OWNER_CODE_PRODUCTION_APPROVED__CODE_CANDIDATE_PR908__CI_RELEASE_FIELD_PENDING__ANDROID_NOT_AUTHORIZED",
+      "owner_approval": true,
+      "facts": [
+        "Owner approves implementing and deploying only numbered items 1–7 from 11/11 Agent183 review; WebView2 remains FIELD FAIL until real Windows paint proof.",
+        "Personnel four columns Contractor, Employee/User, Name, Position auto-fit; hide technical; Agent admin/tamnv2/vps privileged password remote action logout-vs-exit; Agent Web kick with server session revocation and client logout.",
+        "Reporter auto shift logout only on PDA, not Web; item 8 explicitly postponed as D173 backlog, no APK edit/release.",
+        "Agent/Web/Worker/Core changes require D172 regression because Worker Core shared; Stable owner gated, D172 independent HOLD."
+      ],
+      "next_action": "Complete native TypeScript/Web/Agent CI, cross-module regressions; reconcile protected release workflow, deploy Worker/Web/Agent on exact approved SHA only after successful gates, obtain separate Windows FIELD acceptance.",
+      "evidence": "Owner explicit 11/11 command; D173 E185 PR908; docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md",
+      "release_boundary": "D173_E185_ITEMS_1_TO_7_ONLY__NO_ANDROID__D172_HOLD__STABLE_OWNER_GATED__CI_THEN_RELEASE_FIELD_OWNER_SEPARATE"
     }
   ],
   "resume": {
@@ -3842,14 +3859,20 @@
     }
   },
   "d173_e183": {
-    "id": "D173-E183", "date_vn": "2026-11-11",
+    "id": "D173-E183",
+    "date_vn": "2026-11-11",
     "scope": "AGENT183_LAYOUT_GAP_AND_EMBEDDED_WEB_WHITE_SCREEN_ONLY",
-    "owner_code_approved": true, "owner_release_approved": true,
-    "code": "PASS", "ci": "PASS_45_SUCCESS_14_SKIP_0_FAIL", "release": "PENDING",
+    "owner_code_approved": true,
+    "owner_release_approved": true,
+    "code": "PASS",
+    "ci": "PASS_45_SUCCESS_14_SKIP_0_FAIL",
+    "release": "PENDING",
     "source_ci_sha": "86e3ef694d26974297637b23f358478ef157e163",
-    "field": "AGENT182_OWNER_FAIL", "owner_pass": false,
+    "field": "AGENT182_OWNER_FAIL",
+    "owner_pass": false,
     "branch": "fix/d173-e183-agent-layout-webview-visible-20261111",
-    "d172": "INDEPENDENT_PENDING_HOLD", "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
     "doc": "docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md"
   }
 }

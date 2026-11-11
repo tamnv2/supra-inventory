@@ -30,13 +30,14 @@ import { sendProjectEmail } from "./google-mail";
 import {
   PrivilegedAuthError,
   isPrivilegedOneTimeUser,
+  privilegedLoginName,
   sendPrivilegedOneTimeCode,
   verifyPrivilegedProof,
   verifyCurrentAuthenticationProof,
 } from "./privileged-auth";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestLauncherRelease, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestLauncherApk, redirectLatestLauncherChecksum, redirectLatestPdaApk, redirectPublicPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
-import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishAgentRemoteCommand, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePdaRegistryApi, reconcilePdaRegistrySheet } from "./pda-registry";
 import { ensureDailyLauncherPassword, handleLauncherPasswordApi, shouldRetryDailyLauncherPassword } from "./launcher-password";
@@ -414,6 +415,22 @@ async function privilegedAgentLogin(request: Request, env: Env): Promise<Respons
   }
 }
 
+// E185: password/one-time proof is checked by the Worker against the exact
+// authenticated Agent identity. Never trust a client-side confirmation alone.
+async function verifyAgentControlProof(env: Env, operator: InternalUser, proof: string): Promise<boolean> {
+  if (!proof || proof.length > 1024) return false;
+  if (isPrivilegedOneTimeUser(operator)) {
+    const result = await verifyPrivilegedProof(env, operator, proof, true);
+    return result.valid === true;
+  }
+  if (!env.FIREBASE_WEB_API_KEY || !operator.firebase_uid) return false;
+  try {
+    const spec = firebaseUserSpec(operator, operator.firebase_uid);
+    const login = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, effectiveAuthEmail(spec), proof);
+    return login.localId === operator.firebase_uid;
+  } catch { return false; }
+}
+
 async function privilegedAgentReauth(request: Request, env: Env): Promise<Response> {
   const user = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
   if (!isPrivilegedOneTimeUser(user)) return json({ error: "PRIVILEGED_ACCOUNT_REQUIRED" }, 403);
@@ -597,12 +614,12 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
   };
 }
 
-async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID"): Promise<void> {
+async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID", reason = "session-replaced", sessionGeneration = 0): Promise<void> {
   try {
     await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ user_id: userId, client_type: channel || "", reason: "session-replaced" }),
+      body: JSON.stringify({ user_id: userId, client_type: channel || "", reason, session_generation: sessionGeneration }),
     });
   } catch {
     // HTTP auth generation remains authoritative even if an old socket closes on its next lifecycle edge.
@@ -1935,6 +1952,104 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/api/agent/reauth") {
         return privilegedAgentReauth(request, env);
+      }
+
+      // E185: only named privileged operators may remotely control Agents.
+      // Issuing requires a fresh password/OTP on the same authenticated identity.
+      if (request.method === "POST" && url.pathname === "/api/agent/remote-control/issue") {
+        const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        if (!["admin", "tamnv2", "vps"].includes(privilegedLoginName(operator)))
+          return json({ error: "REMOTE_AGENT_CONTROL_FORBIDDEN" }, 403);
+        let body: {
+          target_agent_id?: string; target_agent_user_id?: string;
+          action?: string; proof?: string;
+        } = {};
+        try { body = (await request.json()) as typeof body; }
+        catch { return json({ error: "INVALID_JSON" }, 400); }
+        const target = String(body.target_agent_id || "").trim();
+        const targetUser = String(body.target_agent_user_id || "").trim();
+        const action = String(body.action || "").trim();
+        if (!/^[A-Za-z0-9._:-]{8,160}$/.test(target) ||
+            !/^[A-Za-z0-9._:-]{1,128}$/.test(targetUser) ||
+            !["LOGOUT_USER", "EXIT_AGENT"].includes(action))
+          return json({ error: "INVALID_AGENT_CONTROL" }, 400);
+        let verified = false;
+        try { verified = await verifyAgentControlProof(env, operator, String(body.proof || "")); }
+        catch (error) {
+          if (error instanceof PrivilegedAuthError) return privilegedAuthErrorResponse(error);
+          return json({ error: "AGENT_REAUTH_FAILED" }, 403);
+        }
+        if (!verified) return json({ error: "CURRENT_PASSWORD_INVALID" }, 403);
+        const commandId = crypto.randomUUID();
+        const issued = await coreStub(env).fetch("https://inventory-core.internal/agent-remote/issue", {
+          method: "PUT", headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            command_id: commandId, target_agent_id: target,
+            target_agent_user_id: targetUser, action, issued_by_user_id: operator.user_id,
+          }),
+        });
+        if (!issued.ok) return json(await issued.json(), issued.status);
+        const value = await issued.json() as { expires_at_ms?: number };
+        try {
+          await publishAgentRemoteCommand(env, {
+            command_id: commandId, target_agent_id: target,
+            action, issued_at_ms: Date.now(), expires_at_ms: Number(value.expires_at_ms || 0),
+          });
+        } catch {
+          return json({ error: "AGENT_COMMAND_SIGNAL_NOT_DELIVERED", issued: true }, 502);
+        }
+        return json({ status: "dispatched", command_id: commandId });
+      }
+
+      // Receiver must obtain one-time Core authorization before doing anything
+      // destructive; a forged Firestore hint cannot directly log out or exit.
+      if (request.method === "POST" && url.pathname === "/api/agent/remote-control/claim") {
+        const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        let body: { command_id?: string; agent_instance_id?: string } = {};
+        try { body = (await request.json()) as typeof body; }
+        catch { return json({ error: "INVALID_JSON" }, 400); }
+        const commandId = String(body.command_id || "").trim();
+        const agentId = String(body.agent_instance_id || "").trim();
+        if (!/^[a-f0-9-]{36}$/.test(commandId) ||
+            !/^[A-Za-z0-9._:-]{8,160}$/.test(agentId))
+          return json({ error: "INVALID_AGENT_CLAIM" }, 400);
+        const result = await coreStub(env).fetch("https://inventory-core.internal/agent-remote/claim", {
+          method: "PUT", headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            command_id: commandId, agent_instance_id: agentId, claimant_user_id: privilegedLoginName(operator),
+          }),
+        });
+        return json(await result.json(), result.status);
+      }
+
+      // E185: authenticated Agent controls only the exact Web session shown
+      // in the roster. A later login has a different generation and survives.
+      if (request.method === "POST" && url.pathname === "/api/agent/web-session/kick") {
+        const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        let body: { user_id?: string; session_generation?: number; proof?: string } = {};
+        try { body = (await request.json()) as typeof body; }
+        catch { return json({ error: "INVALID_JSON" }, 400); }
+        const target = String(body.user_id || "").trim();
+        const generation = Math.trunc(Number(body.session_generation || 0));
+        if (!/^[A-Za-z0-9._:-]{1,128}$/.test(target) || generation < 1)
+          return json({ error: "INVALID_WEB_SESSION" }, 400);
+        let verified = false;
+        try { verified = await verifyAgentControlProof(env, operator, String(body.proof || "")); }
+        catch (error) {
+          if (error instanceof PrivilegedAuthError) return privilegedAuthErrorResponse(error);
+          return json({ error: "AGENT_REAUTH_FAILED" }, 403);
+        }
+        if (!verified) return json({ error: "CURRENT_PASSWORD_INVALID" }, 403);
+        const result = await coreStub(env).fetch("https://inventory-core.internal/auth/revoke-web-session", {
+          method: "PUT", headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            user_id: target, expected_generation: generation, issued_by_user_id: operator.user_id,
+          }),
+        });
+        const payload = await result.json() as Record<string, unknown>;
+        if (!result.ok) return json(payload, result.status);
+        await closeUserRealtime(env, target, "WEB", "session-kicked", generation);
+        return json({ status: "web_session_revoked", user_id: target, session_generation: generation });
       }
 
       // D173-E096 exact named privileged logins, read-only usage monitoring.

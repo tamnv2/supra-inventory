@@ -20,7 +20,15 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
   const e167=JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
   const e175 = JSON.parse(read("ops/d173-e175-release-authorization.json"));
   const webE175 = e175.owner_approved_code === true && e175.web_target_version === "3.3.5" && e175.d172_pending_hold === true && e175.no_stable === true;
-  assert.match(web, webE175 ? /WEB_VERSION = "3\.3\.5"/ : e167.log_protocol_approved && e167.web_mutation ? /WEB_VERSION = "3\.3\.4"/ : /WEB_VERSION = "3\.3\.3"/);
+  const e185 = JSON.parse(read("ops/d173-e185-release-authorization.json"));
+  const webE185 = e185.owner_code_approved === true &&
+    e185.owner_protected_release_approved === true &&
+    e185.web_target_version === "3.3.6" &&
+    e185.android_mutation === false && e185.obpp_mutation === false;
+  assert.match(web, webE185 ? /WEB_VERSION = "3\.3\.6"/ :
+    webE175 ? /WEB_VERSION = "3\\.3\\.5"/ :
+    e167.log_protocol_approved && e167.web_mutation ?
+      /WEB_VERSION = "3\\.3\\.4"/ : /WEB_VERSION = "3\\.3\\.3"/);
   assert.match(workflow, /beta-vc/);
   // D170 OAuth Worker config ships through predecessor PR657, never from D171 code-only.
   assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);

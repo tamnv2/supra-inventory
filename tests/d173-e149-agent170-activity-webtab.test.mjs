@@ -49,7 +49,7 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
   assert.ok(begin > 0 && end > begin);
   const embed = form.slice(begin, end);
   const currentAgentVersion = read("relay-agent/VERSION").trim();
-  if (["176","177","178","179","180","181","182","183"].includes(currentAgentVersion)) {
+  if (["176","177","178","179","180","181","182","183","184"].includes(currentAgentVersion)) {
     // E174: once hidden, the 1-second health refresh must not re-activate WebView2.
     assert.match(embed, /_mainTabs.SelectedTab != _wmsWebTab/);
     assert.match(embed, /!Visible/);
@@ -63,10 +63,20 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
   assert.match(form, /_d173E149WmsLoginPromptShown/);
   assert.match(form, /if \(!_wmsTabUserHidden\)/);
   assert.match(browser, /window_visibility=AWAIT_EMBED/);
-  assert.match(host, /if \(options.ProtectedDefault\)/);
-  assert.match(host, /ShowInTaskbar = false/);
-  assert.match(host, /Location = new System.Drawing.Point\(-32000, -32000\)/);
-  if (["176","177","178","179","180","181","182","183"].includes(currentAgentVersion)) {
+  if (currentAgentVersion === "184") {
+    const owner = JSON.parse(read("ops/d173-e185-release-authorization.json"));
+    assert.equal(owner.owner_code_approved, true);
+    assert.equal(owner.agent_target_version, 184);
+    assert.equal(owner.android_mutation, false);
+    assert.match(host, /ShowInTaskbar = !options\.ProtectedDefault/);
+    assert.match(host, /StartPosition = FormStartPosition\.CenterScreen/);
+    assert.doesNotMatch(host, /Location = new System\.Drawing\.Point\(-32000, -32000\)/);
+  } else {
+    assert.match(host, /if \(options\.ProtectedDefault\)/);
+    assert.match(host, /ShowInTaskbar = false/);
+    assert.match(host, /Location = new System\.Drawing\.Point\(-32000, -32000\)/);
+  }
+  if (["176","177","178","179","180","181","182","183","184"].includes(currentAgentVersion)) {
     assert.match(browser, /ShowWindow\(host, visible && attached \? SW_SHOWNOACTIVATE : SW_HIDE\)/);
     assert.match(browser, /SWP_NOACTIVATE/);
   } else {
@@ -80,7 +90,7 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
 
 test("candidate does not silently claim production release or change D172", () => {
   const version = read("relay-agent/VERSION").trim();
-  assert.ok(["170", "171", "172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183"].includes(version), "Owner-scoped Agent versions through E174 Agent176");
+  assert.ok(["170", "171", "172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184"].includes(version), "Only Owner-scoped Agent versions");
   assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version));
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("0\\." + version + "\\.0\\.0"));
   if (version === "171") {
@@ -97,6 +107,19 @@ test("candidate does not silently claim production release or change D172", () =
     assert.match(state.owner_approval, /CODE_AND_CONDITIONAL/);
     assert.equal(state.owner_pass, false);
     assert.match(read("docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"), /NO automatic deployment|CI\/RELEASE\/FIELD\/OWNER PASS not presumed/);
+  }
+  if (version === "184") {
+    const auth = JSON.parse(read("ops/d173-e185-release-authorization.json"));
+    assert.equal(auth.owner_approval_reference,
+      "OWNER_20261111_ITEMS_1_TO_7_CODE_AND_PRODUCTION_REPORTER_PDA_BACKLOG");
+    assert.equal(auth.agent_target_version, 184);
+    assert.equal(auth.owner_code_approved, true);
+    assert.equal(auth.owner_protected_release_approved, true);
+    assert.equal(auth.d172_pending_hold, true);
+    assert.equal(auth.android_mutation, false);
+    assert.equal(auth.stable_mutation, false);
+    assert.equal(auth.field_pass, false);
+    assert.equal(auth.owner_pass, false);
   }
   if (version === "183") {
     const auth = JSON.parse(read("ops/d173-e183-agent183-release-authorization.json"));

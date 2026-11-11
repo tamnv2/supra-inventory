@@ -95,6 +95,19 @@ if e182_target in ("180", "181", "182", "183"):
                             e182_receipt.get("d172_mutation") is False and
                             e182_receipt.get("stable_mutation") is False and
                             e182_receipt.get("confirm_business_mutation") is False)
+# E185 maintains the E182/183 accepted 40/60 structure but explicitly
+# authorizes extra Agent roster and live UI controls without Android mutation.
+if e182_target == "184":
+    e185_ui_receipt = json.loads(read("ops/d173-e185-release-authorization.json"))
+    E182_UI_APPROVED = (
+        e185_ui_receipt.get("owner_code_approved") is True and
+        e185_ui_receipt.get("owner_protected_release_approved") is True and
+        e185_ui_receipt.get("agent_target_version") == 184 and
+        e185_ui_receipt.get("d172_pending_hold") is True and
+        e185_ui_receipt.get("stable_mutation") is False and
+        e185_ui_receipt.get("android_mutation") is False and
+        e185_ui_receipt.get("new_provider_resources") is False
+    )
 SERVICE_PRIVILEGED_AUTH = read("service/src/privileged-auth.ts")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
 
@@ -247,7 +260,7 @@ checks = {
                 "if (_d128BrowserResourceStatus.Text != browserText)",
             ]) and "_d128AgentResourceStatus.Refresh()" not in RELAY_D119_FEATURES
               and "_d128BrowserResourceStatus.Refresh()" not in RELAY_D119_FEATURES
-            if e182_target in ("182", "183") and E182_UI_APPROVED else
+            if e182_target in ("182", "183", "184") and E182_UI_APPROVED else
             all(token in RELAY_D119_FEATURES for token in [
                 "_d128AgentResourceStatus.Refresh()",
                 "_d128BrowserResourceStatus.Refresh()",
@@ -531,7 +544,12 @@ checks = {
     "web_login_no_prefilled_root": 'value="root"' not in WEB_UI,
     "web_skip_impact_confirmation": "XÁC NHẬN BỎ QUA" in WEB_UI and "affected_picker_count" in WEB_UI,
     "web_recurrence_surface": "previous_batch_id" in WEB_API and "Tái phát" in WEB_UI,
-    "web_realtime_delta": "/api/realtime/delta" in WEB_RT and "lastSeq" in WEB_RT and "location.reload" not in WEB_RT,
+    "web_realtime_delta": "/api/realtime/delta" in WEB_RT and "lastSeq" in WEB_RT and (
+        "location.reload" not in WEB_RT or
+        (WEB_RT.count("location.reload") == 1 and
+         'if (event.reason === "session-kicked")' in WEB_RT and
+         "clearSession();" in WEB_RT)
+    ),
     "web_existing_management_preserved": all(token in WEB_API for token in ["/api/admin/hr-source-v2", "/api/admin/users/password", "/api/admin/pickers/bulk"]),
     "web_flexible_hr_mapping": all(token in WEB_HR_PANEL for token in ["hr-manual-form", "hr-excel-file", "download-hr-example", "Mã nhân viên", "Họ và tên", "Nhà thầu"]) and all(token in WEB_HR_EXCEL for token in ["parseHrWorkbook", "downloadHrExample", "MAX_ROWS"]) and all(token in WEB_API for token in ["/api/admin/hr-web/preview", "/api/admin/hr-web/apply"]),
     "web_transplant_files_are_presentation_only": "fetch(" not in WEB_FAST and "fetch(" not in WEB_DASH and "fetch(" not in WEB_WAREHOUSE and "fetch(" not in WEB_OPS,

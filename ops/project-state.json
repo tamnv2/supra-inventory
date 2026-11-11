@@ -7525,17 +7525,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "feat/d173-e175-unified-network-logs-ui-20261110",
-    "pr": 889,
-    "latest_checkpoint_id": "D173-E175",
+    "working_branch": "feat/d173-e185-agent183-field-ui-remote-controls-20261111",
+    "pr": 908,
+    "latest_checkpoint_id": "D173-E185",
     "checkpoint_date_vn": "2026-11-10",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E175_EXACT_SOURCE_CI__SHARED_D172_REGRESSION__PROTECTED_SIGNED_PRODUCTION__STABLE_OWNER_GATED",
+    "owner_release_gate": "D173_E185_PINNED_44_OF_44_CI__NATIVE_WEB_WORKER_D172_PASS__PROTECTED_RELEASE_PENDING__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 889,
-    "active_working_branch": "feat/d173-e175-unified-network-logs-ui-20261110"
+    "working_pr": 908,
+    "active_working_branch": "feat/d173-e185-agent183-field-ui-remote-controls-20261111"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13172,13 +13172,41 @@
     "source_ci_run": 42864965205
   },
   "d173_e183": {
-    "id": "D173-E183", "date_vn": "2026-11-11",
+    "id": "D173-E183",
+    "date_vn": "2026-11-11",
     "scope": "AGENT183_UI_SPACING_AND_EMBEDDED_WEBVIEW2_WHITE_SCREEN",
-    "owner_code_approved": true, "owner_release_approved": true,
-    "code": "PASS", "ci": "PASS_45_SUCCESS_14_SKIP_0_FAIL", "release": "PENDING",
+    "owner_code_approved": true,
+    "owner_release_approved": true,
+    "code": "PASS",
+    "ci": "PASS_45_SUCCESS_14_SKIP_0_FAIL",
+    "release": "PENDING",
     "source_ci_sha": "86e3ef694d26974297637b23f358478ef157e163",
-    "field_pass": false, "owner_pass": false,
-    "d172": "INDEPENDENT_PENDING_HOLD", "stable": "OWNER_GATED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
     "document": "docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md"
+  },
+  "d173_e185": {
+    "change_id": "D173-E185",
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "scope": "AGENT_WEB_WORKER_ITEMS_1_TO_7_ONLY",
+    "pr": 908,
+    "branch": "feat/d173-e185-agent183-field-ui-remote-controls-20261111",
+    "code": "SOURCE_CI_VERIFIED",
+    "ci": "PASS_44_OF_44_REQUIRED__2_CONDITIONAL_SKIPPED__0_FAILED",
+    "source_ci_sha": "1066c15011251e32e0afed9645cadaa344eb1af6",
+    "release": "PROTECTED_MERGE_PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "reporter_pda_auto_logout": {
+      "scope": "ANDROID_PDA_ONLY",
+      "status": "BACKLOG_DEFERRED_NO_APK_CHANGE",
+      "web_automatic_logout": false
+    },
+    "d172": "INDEPENDENT_HOLD",
+    "stable": "OWNER_GATED",
+    "receipt": "docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md"
   }
 }

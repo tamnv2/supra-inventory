@@ -24,13 +24,25 @@ const between = (s, first, last) => {
 
 test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation", () => {
   const version = src("relay-agent/VERSION").trim();
-  assert.ok(["172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183"].includes(version));
+  assert.ok(["172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184"].includes(version));
   if (version === "177") {
     const e175=JSON.parse(src("ops/d173-e175-release-authorization.json"));
     assert.equal(e175.agent_target_version,177);
     assert.equal(e175.owner_approved_code,true);
     assert.equal(e175.d172_pending_hold,true);
     assert.equal(e175.no_stable,true);
+  }
+  if (version === "184") {
+    const e185 = JSON.parse(src("ops/d173-e185-release-authorization.json"));
+    assert.equal(e185.owner_approval_reference,
+      "OWNER_20261111_ITEMS_1_TO_7_CODE_AND_PRODUCTION_REPORTER_PDA_BACKLOG");
+    assert.equal(e185.agent_target_version, 184);
+    assert.equal(e185.owner_code_approved, true);
+    assert.equal(e185.owner_protected_release_approved, true);
+    assert.equal(e185.d172_pending_hold, true);
+    assert.equal(e185.android_mutation, false);
+    assert.equal(e185.stable_mutation, false);
+    assert.equal(e185.new_provider_resources, false);
   }
   if (version === "183") {
     const auth = JSON.parse(src("ops/d173-e183-agent183-release-authorization.json"));
@@ -153,7 +165,7 @@ test("Web monitor is observable for all sessions, toggle only exact Owner/VPS op
 
 test("Office respects real WMS/Firestore, disables only unavailable Internet requests", () => {
   const currentAgent = src("relay-agent/VERSION").trim();
-  if (["177","178","179","180","181","182","183"].includes(currentAgent)) {
+  if (["177","178","179","180","181","182","183","184"].includes(currentAgent)) {
     const grant = JSON.parse(src("ops/d173-e175-release-authorization.json"));
     assert.equal(grant.checkpoint_id, "D173-E175");
     assert.equal(grant.owner_approved_code, true);
@@ -166,7 +178,7 @@ test("Office respects real WMS/Firestore, disables only unavailable Internet req
   } else {
     assert.match(network, /string\.Equals\(profile, "\.Office@MSN"/);
   }
-  if (["177","178","179","180","181","182","183"].includes(currentAgent)) {
+  if (["177","178","179","180","181","182","183","184"].includes(currentAgent)) {
     // E175 only disables updates after an authenticated Worker capability
     // probe establishes lack of Internet, never on SSID alone.
     assert.match(form, /verifiedBlocked = _d173E175ClassificationVerified && !_d173E175WorkerVerified/);

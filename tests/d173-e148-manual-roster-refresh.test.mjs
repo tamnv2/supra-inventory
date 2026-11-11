@@ -16,7 +16,16 @@ test("manual refresh button is on the existing roster toolbar immediately before
   assert.match(ui, /InitializeD173E148ManualRefresh\(\)/);
   assert.match(ui, /_d173RosterToolbar\.Controls\.Add\(action\)/);
   assert.match(ui, /_d173RosterTech,\s*_d173E148ManualRefreshButton, _d173E140CloseAllCalls/);
-  if (["178", "179", "180", "181", "182", "183"].includes(read("relay-agent/VERSION").trim())) {
+  if (read("relay-agent/VERSION").trim() === "184") {
+    const grant = JSON.parse(read("ops/d173-e185-release-authorization.json"));
+    assert.equal(grant.owner_code_approved, true);
+    assert.equal(grant.agent_target_version, 184);
+    assert.equal(grant.d172_pending_hold, true);
+    assert.equal(grant.android_mutation, false);
+    assert.equal(grant.stable_mutation, false);
+    assert.match(ui, /new Control\[\] \{\s*_d173E148ManualRefreshButton,\s*_d173E140CloseAllCalls/);
+    assert.match(ui, /_d173RosterToolbar\.AutoScrollMinSize = Size.Empty/);
+  } else if (["178", "179", "180", "181", "182", "183"].includes(read("relay-agent/VERSION").trim())) {
     const version=read("relay-agent/VERSION").trim();
     const grant=JSON.parse(read(version === "183" ?
       "ops/d173-e183-agent183-release-authorization.json" : version === "182" ?

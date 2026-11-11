@@ -272,7 +272,7 @@ namespace SupraInventoryRelayAgent
             var actionTop = resourceTop + resourceHeight + 5;
             var actionX = left;
             var actions = new Control[] {
-                _logout, _manualUpdate, _background, _d150PrimaryTakeoverButton, _agentExit
+                _logout, _manualUpdate, _d150PrimaryTakeoverButton, _background, _agentExit
             }.Where(control => control.Visible).ToArray();
             foreach (var control in actions)
             {
@@ -345,28 +345,45 @@ namespace SupraInventoryRelayAgent
                 TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 4);
             SetD173BoundsIfChanged(_supraCardTitle, 12, 3, inner, headerHeight);
             var firstTop = 6 + headerHeight;
-            var half = (inner - 6) / 2;
-            SetD173BoundsIfChanged(_wmsCapture, 12, firstTop, half, 25);
+            var buttonFlags = TextFormatFlags.SingleLine | TextFormatFlags.NoPadding;
+            var firstMin = TextRenderer.MeasureText(_wmsCapture.Text ?? "",
+                _wmsCapture.Font, new Size(1000, 40), buttonFlags).Width + 22;
+            var secondMin = TextRenderer.MeasureText(_wmsDesktop.Text ?? "",
+                _wmsDesktop.Font, new Size(1000, 40), buttonFlags).Width + 22;
+            var half = Math.Max(firstMin, Math.Min(inner - secondMin - 6, (inner - 6) / 2));
+            SetD173BoundsIfChanged(_wmsCapture, 12, firstTop, Math.Max(70, half), 27);
             SetD173BoundsIfChanged(_wmsDesktop, 18 + half, firstTop,
-                Math.Max(70, inner - half - 6), 25);
-            var secondTop = firstTop + 28;
+                Math.Max(70, inner - half - 6), 27);
+            var secondTop = firstTop + 32;
             var buttons = new Control[] {
                 _wmsTest, _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder
             };
-            var weights = new[] { 0.17, 0.28, 0.30, 0.25 };
+            var gap = 6;
+            var desired = buttons.Select(button => Math.Max(72,
+                TextRenderer.MeasureText(button.Text ?? "", button.Font,
+                    new Size(1000, 40), buttonFlags).Width + 22)).ToArray();
+            var needsWrap = desired.Sum() + gap * (buttons.Length - 1) > inner;
             var x = 12;
-            var available = Math.Max(150, inner - 18);
+            var y = secondTop;
+            var room = inner;
+            var extra = needsWrap ? 0 : Math.Max(0,
+                (inner - desired.Sum() - gap * (buttons.Length - 1)) / buttons.Length);
             for (var i = 0; i < buttons.Length; i++)
             {
-                var w = i == buttons.Length - 1 ? Math.Max(38, width - 12 - x)
-                    : Math.Max(38, (int)Math.Floor(available * weights[i]));
-                SetD173BoundsIfChanged(buttons[i], x, secondTop, w, 23);
-                // The original Agent177 layout may intentionally hide the
-                // diagnostic button. Keep other action visibility unchanged.
+                var w = desired[i] + extra;
+                if (needsWrap && x > 12 && w > room)
+                {
+                    y += 31;
+                    x = 12;
+                    room = inner;
+                }
+                w = Math.Min(room, w);
+                SetD173BoundsIfChanged(buttons[i], x, y, Math.Max(45, w), 27);
                 if (i > 0 && !buttons[i].Visible) buttons[i].Visible = true;
-                x += w + 6;
+                x += w + gap;
+                room = Math.Max(0, width - 12 - x);
             }
-            var progressTop = secondTop + 32;
+            var progressTop = y + 36;
             SetD173BoundsIfChanged(_browserBundleProgress, 12, progressTop,
                 inner, 5);
             var lineTop = progressTop + 10;
@@ -414,23 +431,22 @@ namespace SupraInventoryRelayAgent
                 grid.ScrollBars = ScrollBars.Vertical;
                 grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
                 var names = new[] {
-                    "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
-                    "D173SummaryActivity", "D173SummaryState", "D173SummaryTech",
+                    "D173SummaryContractor", "D173SummaryEmployee",
+                    "D173SummaryName", "D173SummaryRole",
+                    "D173SummaryClient", "D173SummaryTime",
+                    "D173SummaryActivity", "D173SummaryState",
                     "KickUser", "CallSpecialist", "ResolveContact"
                 };
-                var minimums = new[] { 128, 122, 97, 160, 148, 90, 78, 110, 68 };
-                var maximums = new[] { 530, 295, 157, 620, 450, 190, 100, 137, 90 };
-                var weights = new[] { 3, 2, 1, 5, 3, 1, 0, 0, 0 };
-                var tech = _d173RosterTech.Checked;
+                var minimums = new[] { 65, 100, 90, 63, 105, 85, 130, 130, 75, 100, 65 };
+                var maximums = new[] { 210, 255, 330, 170, 275, 140, 590, 385, 105, 140, 95 };
+                var weights = new[] { 1, 2, 3, 1, 2, 1, 5, 3, 0, 0, 0 };
                 var active = new List<DataGridViewColumn>();
                 var indexes = new List<int>();
                 for (var i = 0; i < names.Length; i++)
                 {
                     var column = grid.Columns[names[i]];
                     if (column == null) continue;
-                    var show = i != 5 || tech;
-                    if (column.Visible != show) column.Visible = show;
-                    if (!show) continue;
+                    if (!column.Visible) column.Visible = true;
                     if (column.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
                         column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                     active.Add(column);
@@ -524,7 +540,7 @@ namespace SupraInventoryRelayAgent
                     }
                     // Any residual space is shared by readable text fields.
                     // Buttons never become oversized filler columns.
-                    var preferred = new[] { 3, 0, 4, 1 };
+                    var preferred = new[] { 6, 2, 7, 1, 4 };
                     for (var pass = 0; pass < 4 && remaining > 0; pass++)
                     {
                         var moved = 0;

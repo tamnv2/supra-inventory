@@ -1,5 +1,5 @@
 import { WEB_VERSION } from "./web-version";
-import { authorizedFetch, getAuthSessionSnapshot, getCommandSessionOwner, readJson, type StoredSession } from "./api";
+import { authorizedFetch, clearSession, getAuthSessionSnapshot, getCommandSessionOwner, readJson, type StoredSession } from "./api";
 import { acceptCommandResponse, configureCommandTransport, resetCommandTransport } from "./d173-command-transport";
 import { audienceCoversGap, audienceSessionScope, sameAudienceSession } from "./d173-audience-coverage";
 
@@ -465,6 +465,13 @@ async function ensureRealtime(): Promise<void> {
       if (socket === next) socket = null;
       connecting = false;
       connectedUserId = "";
+      if (event.reason === "session-kicked") {
+        // E185: server revoked only this Web generation; abandon its local
+        // profile and reload to the login screen, without a logout API retry.
+        clearSession();
+        window.location.reload();
+        return;
+      }
       scheduleReconnect();
     };
   } catch {

@@ -1,0 +1,48 @@
+name: D173 E185 Owner Scoped Agent184 Web336 Worker Source
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "relay-agent-webview2-host/**"
+      - "service/src/**"
+      - "web/src/**"
+      - "web/package.json"
+      - "tests/d173-e185-agent184-web-kick.test.mjs"
+      - "tools/d173_e185_release_gate.py"
+      - "ops/d173-e185-release-authorization.json"
+      - ".github/workflows/d173-e185-source.yml"
+permissions:
+  contents: read
+jobs:
+  e185-owner-scope:
+    if: github.head_ref == 'feat/d173-e185-agent183-field-ui-remote-controls-20261111'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Exact E185 Owner scope and Android/D172 isolation
+        run: |
+          python3 tools/d173_e185_release_gate.py --component worker --preflight
+          python3 tools/d173_e185_release_gate.py --component web --preflight
+          python3 tools/d173_e185_release_gate.py --component agent --preflight
+      - name: Agent roster and remote control security contracts
+        run: node --test tests/d173-e185-agent184-web-kick.test.mjs
+      - name: Worker TypeScript contract
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Web TypeScript and Production build
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Assert no APK, D172 or Stable mutation
+        shell: bash
+        run: |
+          git diff --exit-code "$(git merge-base origin/main HEAD)" HEAD -- android/ obpp1291/ firebase/ pda-management/ functions/ ops/project-scope.json ops/resource-registry.json
+          echo 'D173_E185_OWNER_SCOPE_SOURCE_PASS__PRODUCTION_RELEASE_NOT_INFERRED'

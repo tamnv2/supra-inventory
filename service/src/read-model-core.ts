@@ -444,16 +444,17 @@ async function connectRealtime(
 }
 
 async function closeRealtimeUser(state: DurableObjectState, request: Request): Promise<Response> {
-  let body: { user_id?: string; client_type?: string; reason?: string } = {};
+  let body: { user_id?: string; client_type?: string; reason?: string; session_generation?: number } = {};
   try {
-    body = (await request.json()) as { user_id?: string; client_type?: string; reason?: string };
+    body = (await request.json()) as { user_id?: string; client_type?: string; reason?: string; session_generation?: number };
   } catch {
     body = {};
   }
   const userId = String(body.user_id || "").trim();
   const clientType = String(body.client_type || "").trim().toUpperCase();
+  const generation = Math.trunc(Number(body.session_generation || 0));
   // Keep the established role-change close reason while D098 also scopes same-channel replacement.
-  const allowedCloseReasons = new Set(["role-changed", "session-replaced", "session-changed"]);
+  const allowedCloseReasons = new Set(["role-changed", "session-replaced", "session-changed", "session-kicked"]);
   const requestedReason = String(body.reason || "session-changed").trim().slice(0, 64) || "session-changed";
   const reason = allowedCloseReasons.has(requestedReason) ? requestedReason : "session-changed";
   if (!/^[A-Za-z0-9._:-]{1,128}$/.test(userId)) return response({ error: "INVALID_USER_ID" }, 400);
@@ -463,6 +464,7 @@ async function closeRealtimeUser(state: DurableObjectState, request: Request): P
     const attachment = socket.deserializeAttachment() as RealtimeAttachment | null;
     if (attachment?.user_id !== userId) continue;
     if (clientType && attachment.client_type !== clientType) continue;
+    if (generation > 0 && Number(attachment.session_generation || 0) !== generation) continue;
     try {
       socket.close(1000, reason);
       closed += 1;

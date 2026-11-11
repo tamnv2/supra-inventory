@@ -28,16 +28,16 @@ test("overview remains balanced with network status and refresh on Agent card", 
   assert.ok(/RowStyle\\(SizeType\\.Percent, 60F\\)/.test(agent) ||
     (agent.includes('InstallD173E179NoScrollTop(') &&
       (agent.includes('RowStyle(SizeType.Percent, 50F)') ||
-       (['179','180','181','182','183'].includes(read('relay-agent/VERSION').trim()) &&
+       (['179','180','181','182','183','184'].includes(read('relay-agent/VERSION').trim()) &&
         agent.includes('RowStyle(SizeType.Percent, 40F)') &&
         agent.includes('RowStyle(SizeType.Percent, 60F)')))));
   assert.ok(/RowStyle\\(SizeType\\.Percent, 40F\\)/.test(agent) ||
     agent.includes('InstallD173E179NoScrollTop('));
   const version = read('relay-agent/VERSION').trim();
-  const owner182 = version === '182' || version === '183';
+  const owner182 = ['182','183','184'].includes(version);
   const topSource = read('relay-agent/D173E179OverviewNoScroll.cs');
   if (owner182) {
-    const receipt = JSON.parse(read(version === '183' ? 'ops/d173-e183-agent183-release-authorization.json' : 'ops/d173-e182-agent182-release-authorization.json'));
+    const receipt = JSON.parse(read(version === '184' ? 'ops/d173-e185-release-authorization.json' : version === '183' ? 'ops/d173-e183-agent183-release-authorization.json' : 'ops/d173-e182-agent182-release-authorization.json'));
     assert.equal(receipt.owner_protected_release_approved, true);
     assert.equal(receipt.agent_target_version, Number(version));
     assert.ok(topSource.includes('threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));'));

@@ -5232,3 +5232,6 @@ Owner: "Bỏ Thêm 200 bản ghi vào Production để kiểm thử"; "Đồng �
 
 ## D173-E183 — 11/11/2026 Agent182 FIELD FAIL, Owner yêu cầu sửa/phát hành Agent183
 Owner phê duyệt sửa **hai lỗi Agent182**: bố cục/khoảng cách không đều và WebView2 báo DOM OK nhưng màn hình trắng ngay cả khi mở khóa; phát hành bản Agent mới qua branch→PR→CI→protected merge→signed OTA. Không thay đổi nghiệp vụ WMS/Confirm, Worker, Web, APK, D172, Stable. FIELD/OWNER PASS chỉ sau test trực tiếp. Chi tiết: `docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md`.
+
+## D173-E185 — Owner phê duyệt mục 1–7 Agent183 FIELD FAIL và quản trị phiên (11/11/2026)
+Owner yêu cầu code+triển khai Production mục 1–7 gồm WebView2 Web trắng, bốn cột nhân sự auto-fit, bỏ cột kỹ thuật, admin/tamnv2/vps kích Agent khác bằng xác thực (chọn logout User giữ Agent chạy hoặc tắt Agent không logout), sửa nút Agent/Supra, Agent kích Web đúng phiên với mật khẩu và Web tự đăng xuất. **Mục 8 Reporter tự logout theo giờ chỉ áp dụng PDA, không áp dụng Web, hoãn vào D173 backlog, chưa code và không phát hành APK**. Agent+Service/Worker+Web được phép thay đổi qua branch→PR→exact-source CI→protected merge→production receipts; D172 độc lập HOLD và cross-module regression, Stable OWNER-GATED, không suy diễn FIELD/OWNER PASS. Xem docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md.

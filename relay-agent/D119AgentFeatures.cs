@@ -97,6 +97,8 @@ namespace SupraInventoryRelayAgent
         private D173ReporterPresenceClient _d173ReporterClient;
         private DateTime _d173ReporterLastAttemptUtc = DateTime.MinValue;
         private int _d173ReporterRefreshRunning;
+        private readonly object _e185RemoteAgentGate = new object();
+        private readonly HashSet<string> _e185RemoteAgentHandled = new HashSet<string>(StringComparer.Ordinal);
         private string _pickerOnlineRenderSignature = "";
         private int _d165PickerNoticeGeneration;
         private bool? _d119AuthenticatedState;
@@ -287,7 +289,8 @@ namespace SupraInventoryRelayAgent
                 _pickerOnlineGrid.Columns["D173SummaryTech"].Visible = _d173RosterTech.Checked;
                 RenderPickerOnlineSnapshot();
             };
-            pickerCard.Controls.Add(_d173RosterTech);
+            // E185: technical details remain internal; no technical display toggle.
+            _d173RosterTech.Visible = false;
             UpdateD173RosterFilterColors();
             InitializeD161BulkPickerRevoke(pickerCard);
 
@@ -404,7 +407,20 @@ namespace SupraInventoryRelayAgent
             // Compact grouped view; preserve existing named hidden cells for RBAC/action handlers.
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
                 Name = "D173SummaryIdentity", HeaderText = "Nhân sự", Width = 260,
-                MinimumWidth = 190, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+                MinimumWidth = 190, Visible = false
+            });
+            // E185: explicit personnel columns, measured by the same roster fitter.
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryContractor", HeaderText = "Nhà thầu", Width = 106, MinimumWidth = 70
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryEmployee", HeaderText = "Mã nhân viên / User", Width = 155, MinimumWidth = 100
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryName", HeaderText = "Họ và tên", Width = 185, MinimumWidth = 95
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryRole", HeaderText = "Vị trí", Width = 100, MinimumWidth = 65
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
                 Name = "D173SummaryClient", HeaderText = "Phiên bản / Kênh", Width = 176,
@@ -431,14 +447,18 @@ namespace SupraInventoryRelayAgent
             });
             foreach (DataGridViewColumn column in _pickerOnlineGrid.Columns)
                 if (!new[] { "KickUser", "CallSpecialist", "ResolveContact",
-                    "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
-                    "D173SummaryActivity", "D173SummaryState", "D173SummaryTech" }.Contains(column.Name))
+                    "D173SummaryContractor", "D173SummaryEmployee",
+                    "D173SummaryName", "D173SummaryRole",
+                    "D173SummaryClient", "D173SummaryTime",
+                    "D173SummaryActivity", "D173SummaryState" }.Contains(column.Name))
                     column.Visible = false;
             // DisplayIndex, not insertion order: personnel/time/status must appear
             // before buttons; hidden legacy field names remain intact for commands.
             foreach (var item in new[] {
-                "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
-                "D173SummaryActivity", "D173SummaryState", "D173SummaryTech", "KickUser",
+                "D173SummaryContractor", "D173SummaryEmployee",
+                "D173SummaryName", "D173SummaryRole",
+                "D173SummaryClient", "D173SummaryTime",
+                "D173SummaryActivity", "D173SummaryState", "KickUser",
                 "CallSpecialist", "ResolveContact"
             }.Select((name, index) => new { name, index }))
                 _pickerOnlineGrid.Columns[item.name].DisplayIndex = item.index;
@@ -450,12 +470,14 @@ namespace SupraInventoryRelayAgent
                 if (e.RowIndex < 0 || e.RowIndex >= _pickerOnlineGrid.Rows.Count) return;
                 var row = _pickerOnlineGrid.Rows[e.RowIndex];
                 var fields = new[] {
-                    "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
+                    "D173SummaryContractor", "D173SummaryEmployee",
+                    "D173SummaryName", "D173SummaryRole",
+                    "D173SummaryClient", "D173SummaryTime",
                     "D173SummaryActivity", "D173SummaryState"
                 };
                 var labels = new[] {
-                    "Nhân sự", "Phiên bản / Kênh", "Đăng nhập",
-                    "Hoạt động gần nhất", "Trạng thái"
+                    "Nhà thầu", "Mã nhân viên / User", "Họ và tên", "Vị trí",
+                    "Phiên bản / Kênh", "Đăng nhập", "Hoạt động gần nhất", "Trạng thái"
                 };
                 var details = fields.Select((name, i) =>
                     labels[i] + ": " + (Convert.ToString(row.Cells[name].Value) ?? "—"));
@@ -1331,6 +1353,7 @@ namespace SupraInventoryRelayAgent
                     snapshot.CoordinationSignal, StringComparison.Ordinal);
             _agentSyncSnapshot = snapshot;
             if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
+            HandleE185RemoteAgentSignals(snapshot.RemoteAgentCommandsJson);
             if (coordinationChanged && _leaderCoordinator != null)
             {
                 var coordinator = _leaderCoordinator;
@@ -2774,6 +2797,19 @@ namespace SupraInventoryRelayAgent
                 // narrower than the measured preferred width (no horizontal scroll).
                 if (cell.ToolTipText != value) cell.ToolTipText = value;
             }
+            var personnelNames = new[] {
+                "D173SummaryContractor", "D173SummaryEmployee",
+                "D173SummaryName", "D173SummaryRole"
+            };
+            var sourceNames = new[] { "ContractorName", "EmployeeCode", "DisplayName", "Role" };
+            for (var i = 0; i < personnelNames.Length; i++)
+            {
+                var content = (Convert.ToString(row.Cells[sourceNames[i]].Value) ?? "").Trim();
+                if (content.Length == 0) content = "—";
+                var cell = row.Cells[personnelNames[i]];
+                if (!Equals(cell.Value, content)) cell.Value = content;
+                if (cell.ToolTipText != content) cell.ToolTipText = content;
+            }
             if (row.Height != 31) row.Height = 31;
         }
 
@@ -3064,6 +3100,17 @@ namespace SupraInventoryRelayAgent
                         cell.Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
                         cell.Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
                     }
+                    // E185: Web has server-side session generations and may be
+                    // revoked by a password-proven Agent; Reporter PDA stays read-only.
+                    if (reporter.Channel == "WEB" && reporter.SessionGeneration > 0 &&
+                        !string.IsNullOrWhiteSpace(reporter.UserId))
+                    {
+                        var kick = row.Cells["KickUser"] as DataGridViewButtonCell;
+                        kick.Value = "Kích User";
+                        kick.ReadOnly = false;
+                        kick.Style.BackColor = Color.Empty;
+                        kick.Style.ForeColor = Color.Empty;
+                    }
                 }
 
                 // Existing Firestore HA fleet already supplies bounded, Office-safe
@@ -3109,6 +3156,19 @@ namespace SupraInventoryRelayAgent
                             cell.ReadOnly = true;
                             cell.Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
                             cell.Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
+                        }
+                        AgentSession ownerSession = null;
+                        try { ownerSession = SnapshotSession(); } catch { }
+                        if (ownerSession != null &&
+                            IsD165OneTimeAgentLogin(DisplayAgentUsername(ownerSession)) &&
+                            !string.IsNullOrWhiteSpace(agent.AgentInstanceId) &&
+                            !string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal))
+                        {
+                            var kick = row.Cells["KickUser"] as DataGridViewButtonCell;
+                            kick.Value = "Kích Agent";
+                            kick.ReadOnly = false;
+                            kick.Style.BackColor = Color.Empty;
+                            kick.Style.ForeColor = Color.Empty;
                         }
                     }
                 }
@@ -3966,9 +4026,47 @@ namespace SupraInventoryRelayAgent
         private void PickerOnlineGridCellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            var column = _pickerOnlineGrid.Columns[e.ColumnIndex].Name;
+            var web = _pickerOnlineGrid.Rows[e.RowIndex].Tag as ReporterOnlineView;
+            if (web != null && column == "KickUser" && web.Channel == "WEB")
+            {
+                if (web.SessionGeneration <= 0 || string.IsNullOrWhiteSpace(web.UserId)) return;
+                var session = SnapshotSession();
+                if (session == null) return;
+                using (var dialog = new AgentPasswordVerificationDialog(
+                    DisplayAgentUsername(session), "Kích User Web",
+                    "Nhập mật khẩu hoặc mã một lần của Agent để đăng xuất đúng phiên Web đã chọn.",
+                    "Kích User"))
+                {
+                    if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return;
+                    var proof = dialog.PasswordValue;
+                    Task.Run(() => KickWebSession(web, proof));
+                }
+                return;
+            }
+            var agent = _pickerOnlineGrid.Rows[e.RowIndex].Tag as AgentPresenceView;
+            if (agent != null && column == "KickUser")
+            {
+                if (string.IsNullOrWhiteSpace(agent.AgentInstanceId) ||
+                    string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal)) return;
+                var session = SnapshotSession();
+                if (session == null ||
+                    !IsD165OneTimeAgentLogin(DisplayAgentUsername(session))) return;
+                var action = ShowE185RemoteAgentChoice(agent.Machine ?? "Agent");
+                if (string.IsNullOrWhiteSpace(action)) return;
+                using (var dialog = new AgentPasswordVerificationDialog(
+                    DisplayAgentUsername(session), "Kích Agent",
+                    "Nhập mật khẩu hoặc mã một lần để thực hiện thao tác trên Agent đích.",
+                    "Xác nhận"))
+                {
+                    if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return;
+                    var proof = dialog.PasswordValue;
+                    Task.Run(() => IssueE185RemoteAgentCommand(agent, action, proof));
+                }
+                return;
+            }
             var picker = _pickerOnlineGrid.Rows[e.RowIndex].Tag as PickerPresenceView;
             if (picker == null) return;
-            var column = _pickerOnlineGrid.Columns[e.ColumnIndex].Name;
 
             if (column == "KickUser")
             {
@@ -4040,6 +4138,170 @@ namespace SupraInventoryRelayAgent
                     MessageBoxIcon.Question) != DialogResult.Yes) return;
                 Task.Run(() => ResolvePickerContact(picker));
             }
+        }
+
+        private string ShowE185RemoteAgentChoice(string targetMachine)
+        {
+            using (var dialog = new Form())
+            {
+                dialog.Text = "Kích Agent · " + targetMachine;
+                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dialog.StartPosition = FormStartPosition.CenterParent;
+                dialog.ShowInTaskbar = false;
+                dialog.MinimizeBox = false;
+                dialog.MaximizeBox = false;
+                dialog.ClientSize = new Size(440, 166);
+                dialog.Font = Font;
+                dialog.Controls.Add(new Label {
+                    Left = 14, Top = 12, Width = 412, Height = 42,
+                    Text = "Chọn thao tác đối với Agent đích. Hai thao tác độc lập, không thực hiện đồng thời."
+                });
+                var logout = new Button {
+                    Left = 14, Top = 65, Width = 197, Height = 43,
+                    Text = "Kích User đăng xuất", DialogResult = DialogResult.Yes
+                };
+                var exit = new Button {
+                    Left = 229, Top = 65, Width = 197, Height = 43,
+                    Text = "Kích Agent tự động tắt", DialogResult = DialogResult.No
+                };
+                dialog.Controls.Add(logout);
+                dialog.Controls.Add(exit);
+                dialog.Controls.Add(new Button {
+                    Left = 338, Top = 123, Width = 88, Height = 30,
+                    Text = "Hủy", DialogResult = DialogResult.Cancel
+                });
+                var choice = dialog.ShowDialog(this);
+                return choice == DialogResult.Yes ? "LOGOUT_USER" :
+                    choice == DialogResult.No ? "EXIT_AGENT" : "";
+            }
+        }
+
+        private void IssueE185RemoteAgentCommand(AgentPresenceView agent, string action, string proof)
+        {
+            try
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                int status;
+                var result = D165PostJson(
+                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/remote-control/issue",
+                    new Dictionary<string, object> {
+                        { "target_agent_id", agent.AgentInstanceId },
+                        { "target_agent_user_id", agent.AdminUserId },
+                        { "action", action }, { "proof", proof }
+                    },
+                    session.IdToken, out status);
+                var ok = status >= 200 && status < 300 &&
+                    string.Equals(MapString(result, "status"), "dispatched", StringComparison.OrdinalIgnoreCase);
+                Ui(() => _pickerOnlineStatus.Text = ok
+                    ? "Đã gửi lệnh tới Agent đích; chờ xác nhận tiếp nhận."
+                    : "Không gửi được lệnh kích Agent: " + MapString(result, "error"));
+                if (ok) RecordD173LocalAgentActivity("Gửi lệnh kích Agent");
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _pickerOnlineStatus.Text = "Kích Agent thất bại: " + SafeMessage(ex));
+            }
+            finally { proof = null; }
+        }
+
+        private void HandleE185RemoteAgentSignals(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw) || !HasAgentSession()) return;
+            object[] items;
+            try { items = _json.DeserializeObject(raw) as object[]; }
+            catch { return; }
+            if (items == null) return;
+            foreach (var item in items)
+            {
+                var entry = item as Dictionary<string, object>;
+                if (entry == null) continue;
+                object targetObject, commandObject, actionObject, expiresObject;
+                if (!entry.TryGetValue("target_agent_id", out targetObject) ||
+                    !entry.TryGetValue("command_id", out commandObject) ||
+                    !entry.TryGetValue("action", out actionObject) ||
+                    !entry.TryGetValue("expires_at_ms", out expiresObject)) continue;
+                var target = Convert.ToString(targetObject);
+                var id = Convert.ToString(commandObject);
+                var action = Convert.ToString(actionObject);
+                long expires;
+                if (!long.TryParse(Convert.ToString(expiresObject), out expires) ||
+                    expires < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() ||
+                    !string.Equals(target, _agentInstanceId, StringComparison.Ordinal) ||
+                    string.IsNullOrWhiteSpace(id) ||
+                    (action != "LOGOUT_USER" && action != "EXIT_AGENT")) continue;
+                lock (_e185RemoteAgentGate)
+                {
+                    if (!_e185RemoteAgentHandled.Add(id)) continue;
+                }
+                Task.Run(() => ClaimAndExecuteE185AgentCommand(id, action));
+            }
+        }
+
+        private void ClaimAndExecuteE185AgentCommand(string id, string expectedAction)
+        {
+            try
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                int status;
+                var result = D165PostJson(
+                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/remote-control/claim",
+                    new Dictionary<string, object> {
+                        { "command_id", id }, { "agent_instance_id", _agentInstanceId }
+                    },
+                    session.IdToken, out status);
+                var confirmed = status >= 200 && status < 300 &&
+                    string.Equals(MapString(result, "status"), "authorized", StringComparison.Ordinal) &&
+                    string.Equals(MapString(result, "action"), expectedAction, StringComparison.Ordinal);
+                if (!confirmed)
+                {
+                    Log("E185 AGENT_REMOTE_CLAIM rejected status=" + status);
+                    return;
+                }
+                Log("E185 AGENT_REMOTE_CLAIM authorized action=" + expectedAction);
+                if (expectedAction == "LOGOUT_USER") LogoutAgent();
+                else Ui(() => {
+                    AgentRuntimeGuard.MarkPlannedExit();
+                    _allowExit = true;
+                    Close();
+                });
+            }
+            catch (Exception ex)
+            {
+                Log("E185 AGENT_REMOTE_CLAIM fail_type=" + ex.GetType().Name);
+                lock (_e185RemoteAgentGate) _e185RemoteAgentHandled.Remove(id);
+            }
+        }
+
+        private void KickWebSession(ReporterOnlineView target, string proof)
+        {
+            try
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                int status;
+                var result = D165PostJson(
+                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/web-session/kick",
+                    new Dictionary<string, object> {
+                        { "user_id", target.UserId },
+                        { "session_generation", target.SessionGeneration },
+                        { "proof", proof }
+                    },
+                    session.IdToken, out status);
+                var succeeded = status >= 200 && status < 300 &&
+                    string.Equals(MapString(result, "status"), "web_session_revoked",
+                        StringComparison.OrdinalIgnoreCase);
+                Ui(() => _pickerOnlineStatus.Text = succeeded
+                    ? "Đã thu hồi đúng phiên Web; trình duyệt được yêu cầu tự đăng xuất."
+                    : "Không kích được phiên Web: " + MapString(result, "error"));
+                if (succeeded) RecordD173LocalAgentActivity("Kích User Web");
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _pickerOnlineStatus.Text = "Kích User Web thất bại: " + SafeMessage(ex));
+            }
+            finally { proof = null; }
         }
 
         private void KickPickerUser(PickerPresenceView picker)
