@@ -7,12 +7,12 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E201",
-    "pr": 932,
-    "branch": "docs/d173-e201-agent190-signed-ota-receipt-20261112",
-    "status": "AGENT190_SIGNED_RELEASE_PASS__PR932_DOCS_RECEIPT_ONLY__FIELD_OWNER_PENDING",
-    "owner_merge_approved": true,
-    "owner_release_approved": true
+    "checkpoint_id": "D173-E202",
+    "pr": 933,
+    "branch": "docs/d173-e202-agent190-field-root-cause-20261112",
+    "status": "AGENT190_FIELD_FAIL_TRIAGE_DOCS_ONLY__PR933_DRAFT__NO_CODE_RELEASE",
+    "owner_merge_approved": false,
+    "owner_release_approved": false
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
@@ -22,7 +22,7 @@
       "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v190",
       "source_change_id": "D173-E199",
       "ci_release": "PASS_SIGNED_TAG_CHANNEL_SHA_MATCH__FIELD_OWNER_PENDING",
-      "field": "PENDING_REMOTE_AGENT_KICK_FAIL",
+      "field": "FAIL_AGENT_KICK_INVALID_ID__TEXT_FLICKER__PICKER_STALE",
       "owner_pass": "PENDING",
       "sha256": "9cc585d951ff48272b8ae5f96c8c7311e2c9ad04701825696d7e00fef1bc0819",
       "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43086165497",
@@ -72,7 +72,7 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "a92d7a30007493ba31f82da3c1e608b87c69491c",
+  "main_source_at_reconciliation": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
   "active_implementation": {
     "id": "D173-E201",
     "source_main_sha": "a92d7a30007493ba31f82da3c1e608b87c69491c",
@@ -95,5 +95,15 @@
     "host_build": 14,
     "remote_agent_kick": "HTTP400_FIELD_FAIL_UNRESOLVED",
     "scope": "AGENT_ONLY__NO_WORKER_WEB_APK_D172_STABLE"
+  },
+  "active_field_analysis": {
+    "id": "D173-E202",
+    "pr": 933,
+    "doc": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md",
+    "agent_tag": "relay-agent-v190",
+    "remote": "USER_VALID_FALSE_PRE_WORKER",
+    "picker": "SERVER_ZERO_VS_PROJECTION_TEN",
+    "ui": "1S_LAYOUT_REENTRY",
+    "status": "REVIEW_ONLY_NO_RUNTIME_CHANGE"
   }
 }
