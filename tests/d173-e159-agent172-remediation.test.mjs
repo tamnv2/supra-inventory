@@ -142,7 +142,7 @@ test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation"
   }
   assert.match(src("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version + ";"));
   assert.match(src("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp(String.raw`0\.` + version + String.raw`\.0\.0`));
-  assert.match(src("relay-agent/AgentBrowserBundle.cs"), version === "185" ? /RequiredHostBuild = 14;/ : /RequiredHostBuild = 13;/);
+  assert.match(src("relay-agent/AgentBrowserBundle.cs"), ["185", "186"].includes(version) ? /RequiredHostBuild = 14;/ : /RequiredHostBuild = 13;/);
 });
 
 test("regular WebView2 tray and session health preserve the actual browser page", () => {
