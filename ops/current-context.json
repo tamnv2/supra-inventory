@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E18801",
-    "pr": 914,
-    "branch": "docs/d173-e187-agent185-field-fail-review-20261111",
-    "status": "E188_AGENT186_EXACT_SOURCE_CI_PASS__PINNED_61C056ED__SIGNED_OTA_PENDING",
+    "checkpoint_id": "D173-E18802",
+    "pr": 915,
+    "branch": "fix/d173-e188-agent186-ota-recovery-20261111",
+    "status": "OWNER_APPROVED_AGENT186_RELEASE_RECOVERY__PR915_PENDING_NATIVE_RELEASE_CI",
     "owner_merge_approved": true
   },
   "production": {
@@ -71,16 +71,16 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "8048dab31c0318774926c3d8cdbbf900b26ec76e",
+  "main_source_at_reconciliation": "6de3aed4465563a9818652afe03ee1203efd4188",
   "active_implementation": {
     "id": "D173-E188",
-    "source_main_sha": "8048dab31c0318774926c3d8cdbbf900b26ec76e",
+    "source_main_sha": "6de3aed4465563a9818652afe03ee1203efd4188",
     "task": "AGENT186_FOUR_FIELD_REPAIRS",
-    "source_status": "PR914_CI_PINNED_CODE_READY",
-    "source_ci": "PASS_39_SUCCESS_15_CONDITIONAL_SKIP_SHA_61c056edba95597ce76a2fd6978c615958060754",
-    "signed_release": "GATED_PENDING",
+    "source_status": "MERGED_MAIN_6DE3__RECOVERY_PR915_OPEN",
+    "source_ci": "PASS_EXACT_PIN_61C056ED__PREVIOUS_39_SUCCESS_15_SKIP",
+    "signed_release": "PR915_WORKFLOW_RECOVERY_PENDING",
     "field": "AGENT185_FIELD_FAIL__186_UNVERIFIED",
     "owner_pass": "PENDING",
-    "release_receipt": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md"
+    "release_receipt": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
   }
 }

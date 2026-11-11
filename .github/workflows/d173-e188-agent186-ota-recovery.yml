@@ -1,0 +1,181 @@
+name: D173 E188 Agent186 exact-source OTA recovery
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e188-agent186-ota-recovery.yml"
+      - "tools/d173_e188_agent186_ota_recovery_gate.py"
+      - "ops/d173-e188-agent186-ota-recovery-authorization.json"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/d173-e188-agent186-ota-recovery.yml"
+permissions:
+  contents: write
+
+jobs:
+  source:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Pin immutable Agent186 source and D172 isolation
+        run: |
+          python3 tools/d173_e188_agent186_ota_recovery_gate.py --preflight
+          node --test tests/d173-e188-agent186-field.test.mjs tests/d173-e187-agent185-webview2-paint.test.mjs tests/d169-agent-web-tab-canary.test.mjs
+
+  agent186-ota:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E188_AGENT186_OTA_RECOVERY:')
+    runs-on: windows-latest
+    environment: beta
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Protected two-parent release, prior source CI, Host14 and channel guard
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python3 tools/d173_e188_agent186_ota_recovery_gate.py
+          if ($LASTEXITCODE -ne 0) { throw 'E188 exact-source two-parent Owner release denied' }
+          $base = Join-Path $env:RUNNER_TEMP 'e188-host14-existing'
+          New-Item -ItemType Directory -Force -Path $base | Out-Null
+          gh release download inventory-channel --repo $env:GITHUB_REPOSITORY --pattern agent-browser-latest.json --pattern agent-latest.json --dir $base
+          if ($LASTEXITCODE -ne 0) { throw 'E188 existing channel manifest missing' }
+          $host = Get-Content (Join-Path $base 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+          $expected = 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2'
+          if ([int]$host.host_build -ne 14 -or [string]$host.host_arch -ne 'x64' -or
+              ([string]$host.sha256).ToLowerInvariant() -ne $expected) { throw 'E188 Host14 manifest drift' }
+          $digest = (gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/inventory-channel" --jq '.assets[] | select(.name=="Agent.WebView2.FixedRuntime.x64.zip") | .digest').Trim()
+          if ($LASTEXITCODE -ne 0 -or $digest -ne "sha256:$expected") { throw 'E188 existing Host14 ZIP digest drift' }
+          $last = Get-Content (Join-Path $base 'agent-latest.json') -Raw | ConvertFrom-Json
+          if ($last.tag -notin @('relay-agent-v185','relay-agent-v186')) { throw 'E188 refuse to replace an unrelated/newer Agent channel' }
+          Write-Host 'E188_OWNER_SHA_SOURCE_AND_HOST14_CHANNEL_PASS'
+
+      - name: Build and smoke-test unchanged Agent186 + Host14 source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64
+          if ($LASTEXITCODE -ne 0) { throw 'E188 Host14 build failed' }
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 build failed' }
+          $exe = (Resolve-Path 'relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe').Path
+          foreach ($arg in @('--startup-smoke','--e100-roster-self-test','--e103-activity-self-test',
+                             '--d134-grpc-native-self-test','--d140-sync-safety-self-test')) {
+            $process = Start-Process -FilePath $exe -ArgumentList $arg -PassThru
+            if (-not $process.WaitForExit(15000)) {
+              try { $process.Kill() } catch {}
+              throw "E188 native smoke timeout $arg"
+            }
+            if ($process.ExitCode -ne 0) { throw "E188 native smoke failed $arg" }
+          }
+          New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
+          Copy-Item $exe 'relay-agent/dist/Agent Auto Confirm Pick Pack.exe' -Force
+          Copy-Item $exe 'relay-agent/dist/SUPRA-Inventory-Relay-Test.exe' -Force
+          Copy-Item 'relay-agent/README.md' 'relay-agent/dist/README.md' -Force
+          foreach ($file in @('Agent Auto Confirm Pick Pack.exe','SUPRA-Inventory-Relay-Test.exe')) {
+            $path = Join-Path 'relay-agent/dist' $file
+            (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant() |
+              Set-Content "$path.sha256" -Encoding utf8
+          }
+          Write-Host 'E188_AGENT186_NATIVE_BUILD_SMOKE_AND_SHA_PASS'
+
+      - name: Publish only Agent186 prerelease and OTA alias, verify SHA readback
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python3 tools/d173_e188_agent186_ota_recovery_gate.py
+          if ($LASTEXITCODE -ne 0) { throw 'E188 release authorization changed after build' }
+          $tag = 'relay-agent-v186'
+          $primary = 'relay-agent/dist/Agent Auto Confirm Pick Pack.exe'
+          $primaryShaFile = "$primary.sha256"
+          $localHash = (Get-FileHash $primary -Algorithm SHA256).Hash.ToLowerInvariant()
+          $recorded = (Get-Content $primaryShaFile -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          if ($localHash -ne $recorded) { throw 'E188 local EXE SHA mismatch' }
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          $exists = $LASTEXITCODE -eq 0
+          if (-not $exists) {
+            gh release create $tag `
+              "$primary#Agent Auto Confirm Pick Pack.exe" `
+              "$primaryShaFile#Agent Auto Confirm Pick Pack.exe.sha256" `
+              'relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe' `
+              'relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256' `
+              'relay-agent/dist/README.md#README.md' `
+              --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA `
+              --title 'Agent Auto Confirm Pick Pack v186' `
+              --notes 'D173-E188 Agent186: fix WebView2 white tab with Agent-owned Host14 window; HD/HD+ layout, 5 ordered controls and roster overlap. WMS/Provider/D172 unchanged. FIELD/OWNER PASS pending.' `
+              --prerelease
+            if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 release create failed' }
+          }
+          $tagSha = (gh api "repos/$env:GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.sha').Trim()
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($tagSha)) { throw 'E188 tag missing' }
+          $tagTree = (gh api "repos/$env:GITHUB_REPOSITORY/git/commits/$tagSha" --jq '.tree.sha').Trim()
+          $currentTree = (gh api "repos/$env:GITHUB_REPOSITORY/git/commits/$env:GITHUB_SHA" --jq '.tree.sha').Trim()
+          $tagAgent = (gh api "repos/$env:GITHUB_REPOSITORY/git/trees/$tagTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+          $currentAgent = (gh api "repos/$env:GITHUB_REPOSITORY/git/trees/$currentTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+          if (!$tagAgent -or $tagAgent -ne $currentAgent) { throw 'E188 release tag Agent source tree drift' }
+          $readback = Join-Path $env:RUNNER_TEMP 'e188-agent186-tag-readback'
+          New-Item -ItemType Directory -Force -Path $readback | Out-Null
+          gh release download $tag --repo $env:GITHUB_REPOSITORY --pattern 'Agent.Auto.Confirm.Pick.Pack.exe' --pattern 'Agent.Auto.Confirm.Pick.Pack.exe.sha256' --dir $readback
+          if ($LASTEXITCODE -ne 0) { throw 'E188 release EXE/SHA readback missing' }
+          $releaseExe = Join-Path $readback 'Agent.Auto.Confirm.Pick.Pack.exe'
+          $releaseSha = Join-Path $readback 'Agent.Auto.Confirm.Pick.Pack.exe.sha256'
+          $tagHash = (Get-FileHash $releaseExe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($tagHash -ne (Get-Content $releaseSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()) {
+            throw 'E188 published release SHA mismatch'
+          }
+          $channelExe = 'relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe'
+          $channelSha = "$channelExe.sha256"
+          Copy-Item $releaseExe $channelExe -Force
+          Copy-Item $releaseSha $channelSha -Force
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = 'beta'
+            tag = $tag
+            name = 'Agent Auto Confirm Pick Pack v186'
+            published_at = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+            source = $tagSha
+            asset_name = 'Agent.Auto.Confirm.Pick.Pack.exe'
+            size_bytes = (Get-Item $channelExe).Length
+            sha256 = $tagHash
+            release_notes = @(
+              'Agent186: sửa hiển thị WebView2 bằng cửa sổ Agent-owned, Host14 giữ nguyên.'
+              'Sửa bố cục HD/HD+, đúng thứ tự 5 nút, không chồng nút danh sách phiên.'
+              'Không thay đổi WMS/HA/Worker/Web/Android/D172/Stable. FIELD/OWNER PASS đang chờ.'
+            )
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content 'relay-agent/dist/agent-latest.json' -Encoding utf8
+          # Publish alias EXE and checksum first, then switch manifest last.
+          gh release upload inventory-channel $channelExe $channelSha --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'E188 OTA alias publication failed' }
+          gh release upload inventory-channel 'relay-agent/dist/agent-latest.json' --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'E188 OTA manifest publication failed' }
+          $channelRead = Join-Path $env:RUNNER_TEMP 'e188-agent186-channel-readback'
+          New-Item -ItemType Directory -Force -Path $channelRead | Out-Null
+          gh release download inventory-channel --repo $env:GITHUB_REPOSITORY --pattern 'Agent.Auto.Confirm.Pick.Pack.exe' --pattern 'Agent.Auto.Confirm.Pick.Pack.exe.sha256' --pattern 'agent-latest.json' --dir $channelRead
+          if ($LASTEXITCODE -ne 0) { throw 'E188 OTA channel readback incomplete' }
+          $remoteManifest = Get-Content (Join-Path $channelRead 'agent-latest.json') -Raw | ConvertFrom-Json
+          $remoteExe = Join-Path $channelRead 'Agent.Auto.Confirm.Pick.Pack.exe'
+          $remoteSha = (Get-Content (Join-Path $channelRead 'Agent.Auto.Confirm.Pick.Pack.exe.sha256') -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          $remoteHash = (Get-FileHash $remoteExe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($remoteManifest.tag -ne $tag -or $remoteManifest.sha256 -ne $remoteHash -or
+              $remoteSha -ne $remoteHash -or $remoteHash -ne $tagHash -or
+              [int64]$remoteManifest.size_bytes -ne (Get-Item $remoteExe).Length) {
+            throw 'E188 Agent186 OTA manifest/EXE/hash readback mismatch'
+          }
+          Write-Host "E188_AGENT186_SIGNED_OTA_RELEASE_AND_CHANNEL_SHA_PASS tag=$tag sha256=$remoteHash host14=UNCHANGED field=UNVERIFIED"

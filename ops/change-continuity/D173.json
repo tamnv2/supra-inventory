@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
-  "pr": 914,
+  "working_branch": "fix/d173-e188-agent186-ota-recovery-20261111",
+  "pr": 915,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E18801",
+    "id": "D173-E18802",
     "date_vn": "2026-11-11",
-    "summary": "PR914 Agent186 exact source SHA 61c056edba95597ce76a2fd6978c615958060754 CI 39 SUCCESS 15 conditional SKIPPED 0 FAIL; exact pin and protected signed OTA pending; FIELD/OWNER pending.",
-    "status": "SOURCE_CI_PASS__SIGNED_AGENT186_RELEASE_PENDING__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md"
+    "summary": "Owner orders Agent186 release completion; PR914 merged 6de3 but release workflow 43014322209 zero jobs and OTA still v185. Recovery PR915 isolated CI/OTA, original source pinned 61c056ed, field/owner pending.",
+    "status": "PR915_AGENT186_OTA_RELEASE_RECOVERY_CI_PENDING",
+    "source": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3470,6 +3470,28 @@
       "next_action": "Pin exact source_sha 61c056edba95597ce76a2fd6978c615958060754 in E188 authorization; rerun exact post-pin PR CI; protected two-parent merge with D173-E188_AGENT186_ONLY_RELEASE marker; then verify signed Agent186 channel hash/Host14. FIELD/OWNER separately pending.",
       "evidence": "PR914 GitHub commit 61c056edba95597ce76a2fd6978c615958060754 check-runs; ops/d173-e188-agent186-release-authorization.json; docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
       "release_boundary": "AGENT186_SIGNED_ONLY__HOST14_REUSE__NO_D172_STABLE_WORKER_WEB_ANDROID",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E18802",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner orders completion of Agent186 after main merge did not create signed OTA",
+      "status": "PR915_PROTECTED_RELEASE_WORKFLOW_RECOVERY__CI_PENDING__OTA_185",
+      "owner_approval": true,
+      "owner_command_vn": "Chưa phát hành agent 186? Xử lí done cho anh.",
+      "working_branch": "fix/d173-e188-agent186-ota-recovery-20261111",
+      "pr": 915,
+      "facts": [
+        "PR914 merged main SHA 6de3aed4465563a9818652afe03ee1203efd4188; source SHA 61c056edba95597ce76a2fd6978c615958060754 was green 39 success 15 conditional skipped 0 failed.",
+        "GitHub Actions main run 43014322209 for verify-relay-agent.yml failed before job scheduling (0 jobs). Precise workflow initialization cause unverified.",
+        "GitHub Release relay-agent-v186 absent (404); inventory-channel Agent assets and manifest remained v185 SHA256 87b145e0adb2a820fbe59c6fdc4057430885348d4d3e087c4721172c62eacac2.",
+        "Owner explicitly orders completion, approves narrow protected release recovery without changing runtime source/provider; PR915 adds isolated workflow+source gate only.",
+        "Existing Host14 SHA256 f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2 retained; D172 HOLD and Stable OWNER-GATED unchanged."
+      ],
+      "next_action": "PR915 source CI -> protected 2-parent merge marker D173-E188_AGENT186_OTA_RECOVERY -> Windows build/native smoke -> tag relay-agent-v186 and 3 OTA assets SHA readback -> record immutable release receipt, FIELD/OWNER still PENDING.",
+      "evidence": "GitHub main SHA 6de3aed4, Actions run 43014322209 no jobs, GET /releases/tags/relay-agent-v186=404, inventory-channel release assets; docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
       "field_pass": false,
       "owner_pass": false
     }
