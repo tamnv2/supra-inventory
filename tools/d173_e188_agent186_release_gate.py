@@ -33,6 +33,7 @@ ALLOW = {
     "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tests/d173-e161-agent173-webview-recovery.test.mjs",
     "tests/d173-e159-agent172-remediation.test.mjs",
+    "tests/d173-e141-agent-ha-web-shield.test.mjs",
     "tools/d173_e188_agent186_release_gate.py",
     "ops/d173-e188-agent186-release-authorization.json",
     "ops/change-continuity/D173.json",
