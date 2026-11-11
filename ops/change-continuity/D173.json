@@ -7,11 +7,11 @@
   "pr": 910,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E186",
+    "id": "D173-E187",
     "date_vn": "2026-11-11",
-    "summary": "Repo-first/AI response discipline and strict D172 firewall approved; PR910 governance-only, current release evidence Agent184/Web3.3.6 Android vc128 reconciled, CI verification pending; E185 FIELD/OWNER still pending.",
-    "status": "E186_OWNER_MERGE_APPROVED__CI_PR_LIFECYCLE_CHECK_GITHUB__D172_HOLD",
-    "source": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md"
+    "summary": "Agent185 OTA early-return fixed in PR912: exact source CI 21 SUCCESS 0 FAIL, source runtime immutable; protected merge and signed OTA readback pending.",
+    "status": "R1_CI_PASS__PROTECTED_MERGE_AGENT185_RELEASE_PENDING",
+    "source": "docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3348,10 +3348,10 @@
       "date_vn": "2026-11-11",
       "kind": "OWNER_COMMAND",
       "topic": "Owner Agent184 FIELD FAIL: ADMIN-PC embedded WMS white after login; fix and signed Agent185",
-      "status": "SOURCE_CI_PASS__OWNER_RELEASE_AUTHORIZED__MERGE_SIGNED_OTA_PENDING",
+      "status": "AGENT185_HOST14_RELEASED__R1_CI_21_PASS__PROTECTED_MERGE_SIGNED_OTA_PENDING",
       "owner_approval": true,
       "working_branch": "fix/d173-e187-agent185-webview-paint-20261111",
-      "evidence": "Drive manual_agent_ADMIN-PC_20261111_103219_7c1a46ffa28c.log; main a00ba55; docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md; GitHub Actions 42962237065 / 42962237221 / 42962237099; GitHub Actions source SHA 79551cd63c8f5fbae5960f9059ddeed29f859cb5 runs 42964476392, 42964476455, 42964476465, 42964476654",
+      "evidence": "Drive manual_agent_ADMIN-PC_20261111_103219_7c1a46ffa28c.log; main a00ba55; docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md; GitHub Actions 42962237065 / 42962237221 / 42962237099; GitHub Actions source SHA 79551cd63c8f5fbae5960f9059ddeed29f859cb5 runs 42964476392, 42964476455, 42964476465, 42964476654; GitHub release inventory-channel assets timestamps 05:24/03:04; missing relay-agent-v185 tag (404); GitHub run 42965200003; main compare 7dde..6f533; exact workflow 3916-3983.; PR912 CI source 8a9572c747c6580e3eaa695bc0a8701b27b38256, run 42969748008 (Agent/Host native and release-flow regression), Repo Authority 42969747699, Project State 42969747889, UI 42969747703, D172 isolated 42969747964.",
       "facts": [
         "Admin-PC CDP WMS DOM READY + popup ATTACHED + native repaint ack, physical view white; VPS main renders and confirms.",
         "Host13 controller-level sync absent and same host-build cache; proof limited to DOM, compositor hypothesis not established.",
@@ -3360,10 +3360,17 @@
         "PR911 initial source tests E187 4/4 PASS but Windows native Host14 build CS1061: WinForms WebView2 public API lacks CoreWebView2Controller. Fixed via supported Control native Size one-pixel roundtrip; no WMS navigation or session restart.",
         "E187 release preflight Windows UnicodeDecodeError caused omitted UTF-8 read_text encoding; repaired.",
         "Historical Agent184-only version whitelists in E052/E060/E064 regression tests were extended with exact E187 Owner receipt for 185; D172 isolation remains mandatory.",
-        "Exact source SHA 79551cd63c8f5fbae5960f9059ddeed29f859cb5 passed 36 workflow runs: 34 SUCCESS, 2 conditional SKIPPED, 0 FAILED; native Agent/Host14 Windows, D172 isolation, UI/state/authority and HA guards passed."
+        "Exact source SHA 79551cd63c8f5fbae5960f9059ddeed29f859cb5 passed 36 workflow runs: 34 SUCCESS, 2 conditional SKIPPED, 0 FAILED; native Agent/Host14 Windows, D172 isolation, UI/state/authority and HA guards passed.",
+        "PR911 merged as main 7ddecb85bc7d96dc3512ed6a0a07031715485a5d; exact original Agent185 source CI 34 SUCCESS and 2 SKIPPED.",
+        "GitHub Actions main run 42965200003 concluded SUCCESS and published 321797691-byte Host14 x64 ZIP to inventory-channel on 2026-11-11 05:24:27 UTC.",
+        "Same workflow Publish dedicated Agent prerelease returns after Host14 manifest readback; tag relay-agent-v185 does not exist and inventory-channel agent-latest.json and EXE remain v184 (2026-11-11 03:04:31 UTC).",
+        "New D173-E186 governance-only main 6f533c0e53c7279a6e93748a799149f8ef8ec568 changed no Agent/Host/Worker/Android/D172 business source compared with E187 merge.",
+        "Recovery PR912 exact-source SHA 8a9572c747c6580e3eaa695bc0a8701b27b38256 CI 21/21 SUCCESS, 0 FAILED; Host14-source E187 regression, D172 isolation, state/authority and UI workflow SUCCESS. Authorize existing Owner-specified Agent185-only recovery after two-parent merge; FIELD/OWNER remain PENDING."
       ],
-      "next_action": "Protected two-parent merge with E187 marker; signed Agent185 release + Host14 bundle + exact channel checksum; FIELD/OWNER pending",
-      "release_boundary": "AGENT185_HOST14_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_WMS_MUTATION"
+      "next_action": "Protected PR912 merge exact marker; signed Release relay-agent-v185 and inventory-channel Agent hash readback; FIELD/OWNER still pending",
+      "release_boundary": "AGENT185_HOST14_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_WMS_MUTATION",
+      "recovery_branch": "fix/d173-e187-agent185-ota-recovery-20261111",
+      "recovery_main_base_sha": "6f533c0e53c7279a6e93748a799149f8ef8ec568"
     },
     {
       "id": "D173-E186",

@@ -13229,7 +13229,7 @@
     "owner_signed_release_approved": true,
     "source": "MAIN_A00BA55_AGENT184_RELEASED__ADMIN_PC_FIELD_WHITE",
     "source_ci": "PASS_34_SUCCESS_2_CONDITIONAL_SKIPPED_0_FAILED_SHA_79551cd63c8f5fbae5960f9059ddeed29f859cb5",
-    "release": "PENDING_SIGNED_AGENT185_HOST14",
+    "release": "HOST14_RELEASED__R1_CI_21_PASS__AGENT185_SIGNED_OTA_PENDING",
     "field": "ADMIN_PC_WHITE_SCREEN_FAIL__HOST14_RETEST_PENDING",
     "owner_pass": false,
     "unchanged": [

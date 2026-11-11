@@ -8,6 +8,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "a00ba55b15748edd4393a15092c0c786b30b294e"
+RESUME_BASE = "6f533c0e53c7279a6e93748a799149f8ef8ec568"
+SOURCE_MERGE = "7ddecb85bc7d96dc3512ed6a0a07031715485a5d"
+RESUME_ALLOWED = {
+    ".github/workflows/verify-relay-agent.yml",
+    "tools/d173_e187_agent185_release_gate.py",
+    "tests/d173-e187-agent185-ota-release-flow.test.mjs",
+    "ops/d173-e187-agent185-release-authorization.json",
+    "ops/change-continuity/D173.json",
+    "ops/project-state.json",
+    "docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md",
+}
 MARKER = "D173-E187_AGENT185_ONLY_RELEASE:"
 AUTH = ROOT / "ops/d173-e187-agent185-release-authorization.json"
 ALLOW = {
@@ -83,10 +94,19 @@ def main():
         baseline=parents[1]
         if git("rev-parse","--abbrev-ref","HEAD")!="HEAD" and git("rev-parse","--abbrev-ref","HEAD")!="main":
             deny("NOT_MAIN")
-    if baseline!=BASE: deny("BASE_CHANGED_REVIEW_REQUIRED")
+    if baseline not in (BASE, RESUME_BASE): deny("BASE_CHANGED_REVIEW_REQUIRED")
     changed=set(git("diff","--name-only",baseline,"HEAD").splitlines())
-    if not CODE.issubset(changed): deny("INCOMPLETE_HOST14_AGENT185_IMPLEMENTATION")
-    extra=changed-ALLOW
+    if baseline == BASE:
+        if not CODE.issubset(changed): deny("INCOMPLETE_HOST14_AGENT185_IMPLEMENTATION")
+        extra=changed-ALLOW
+    else:
+        if a.get("recovery_base_main_sha") != RESUME_BASE or a.get("recovery_existing_source_merge_sha") != SOURCE_MERGE:
+            deny("RECOVERY_SOURCE_SCOPE_PIN")
+        git("merge-base","--is-ancestor",SOURCE_MERGE,"HEAD")
+        # Only CI/release-flow code and bookkeeping may change after proven Agent185 Host14 code.
+        extra=changed-RESUME_ALLOWED
+        code_drift=git("diff","--name-only",SOURCE_MERGE,"HEAD","--","relay-agent/","relay-agent-webview2-host/","service/","web/","android/","obpp1291/","firebase/")
+        if code_drift: deny("RUNTIME_OR_D172_CHANGED_AFTER_AGENT185_SOURCE_PASS")
     if extra: deny("OUT_OF_SCOPE:" + ",".join(sorted(extra))[:300])
     if args.preflight:
         print("D173_E187_AGENT185_SOURCE_SCOPE_PASS__CI_RELEASE_PENDING")
@@ -101,8 +121,19 @@ def main():
     git("merge-base","--is-ancestor",pin,"HEAD")
     if git("diff","--name-only",pin,"HEAD","--","relay-agent/","relay-agent-webview2-host/"):
         deny("SOURCE_CHANGED_AFTER_CI")
-    if git("diff","--name-only",pin,"HEAD","--",".github/workflows/verify-relay-agent.yml"):
-        deny("RELEASE_WORKFLOW_CHANGED_AFTER_CI")
+    if baseline == RESUME_BASE:
+        if a.get("recovery_ci_verified") is not True or a.get("recovery_ci_failed") != 0:
+            deny("RECOVERY_CI_NOT_PASS")
+        recovery_pin=a.get("recovery_ci_sha")
+        if not isinstance(recovery_pin,str) or not re.fullmatch(r"[a-f0-9]{40}",recovery_pin):
+            deny("RECOVERY_CI_SHA_MISSING")
+        git("merge-base","--is-ancestor",recovery_pin,"HEAD")
+        if git("diff","--name-only",recovery_pin,"HEAD","--",".github/workflows/verify-relay-agent.yml",
+               "tools/d173_e187_agent185_release_gate.py","tests/d173-e187-agent185-ota-release-flow.test.mjs"):
+            deny("RECOVERY_RELEASE_LOGIC_CHANGED_AFTER_CI")
+    else:
+        if git("diff","--name-only",pin,"HEAD","--",".github/workflows/verify-relay-agent.yml"):
+            deny("RELEASE_WORKFLOW_CHANGED_AFTER_CI")
     print("D173_E187_AGENT185_EXACT_SIGNED_RELEASE_AUTHORIZED")
 
 if __name__=="__main__": main()
