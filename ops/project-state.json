@@ -13451,13 +13451,18 @@
     "branch": "feat/d173-e200-puzzle-test-v2-20261112",
     "pr": 931,
     "source": "docs/D173_E200_PUZZLE_TEST_V2_2026-11-12.md",
-    "code": "CANDIDATE",
-    "ci": "PENDING_WINDOWS_SOURCE_AND_NATIVE",
-    "artifact": "NOT_VERIFIED",
-    "field": "PENDING",
+    "code": "PASS_SOURCE_NATIVE_WINDOWS",
+    "ci": "PASS_SOURCE_WINDOWS_NATIVE_AND_OPENCV_SYNTHETIC_SMOKE",
+    "artifact": "SUPRA-Puzzle-Tester-V2-win-x64",
+    "field": "PENDING_REAL_WMS_AND_OWNER_PASS_FAIL",
     "owner_pass": false,
     "production_change": false,
     "d172": "INDEPENDENT_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "ci_run": 43087848416,
+    "ci_source_sha": "c82ad0f233eb8516b984d513ed5fd03bdcf89bc4",
+    "artifact_id": 13886588654,
+    "artifact_zip_sha256": "4fba71e7991c92542f4c358b4ff3f8f39a61d69f1f9ef995a6758f017870d1d1",
+    "artifact_bytes": 103305003
   }
 }
