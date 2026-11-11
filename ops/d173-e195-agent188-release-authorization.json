@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "project": "supra-inventory",
+  "change": "D173-E195",
+  "owner_instruction": "OWNER_20261111_AGENT188_FROM_AGENT185_BASE_WITH_WEB_LAYOUT_LOGS_AND_SINGLE_ROW_ROSTER",
+  "owner_release_approved": true,
+  "component": "agent",
+  "target_version": 188,
+  "source_tag": "relay-agent-v185",
+  "main_base_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
+  "verified_source_sha": "43eb0fd130f423ad40f42542770ecd5e08bac660",
+  "existing_fixed_host_build": 14,
+  "restore_runtime_from_tag": true,
+  "build_injection_required": [
+    "FIREBASE_API_KEY_BETA",
+    "AGENT_LOG_GATEWAY_URL_BETA"
+  ],
+  "host_mutation": false,
+  "worker_mutation": false,
+  "web_mutation": false,
+  "android_mutation": false,
+  "d172_mutation": false,
+  "stable_mutation": false,
+  "wms_business_mutation": false,
+  "new_provider_resources": false,
+  "release_marker": "D173-E195_AGENT188_RELEASE:",
+  "field_pass": false,
+  "owner_pass": false
+}
