@@ -1,3 +1,11 @@
+## D173-E196 — Owner 11/11/2026: reset riêng phiên WMS, chẩn đoán Web trắng, kích Agent và tối ưu theo bằng chứng
+
+Owner yêu cầu bổ sung nút **Xoá phiên** cùng dòng **Bảo vệ Web / Giám sát Web**, hộp thoại xác nhận; chỉ làm mới dữ liệu trình duyệt WMS của Web Agent để người dùng đăng nhập lại, không xoá tài khoản Agent, dữ liệu nghiệp vụ hay profile Web Desktop. Bổ sung log chứng minh/loại trừ Web trắng sau đăng nhập, sửa **Kích Agent** dựa trên luồng xác thực/nhận lệnh thực tế, chuẩn hoá nhãn **Chọn Agent chính**, giữ nguyên giao diện/nghiệp vụ và chỉ tối ưu điểm nóng có phép đo, tránh refactor toàn cục. Web Confirm **phải tiếp tục nhúng trong tab Agent**, không dùng cửa sổ ngoài.
+
+Quyền Owner hiện hành: **CODE + kiểm thử source/native trong nhánh/PR độc lập**. **Không suy diễn quyền merge/phát hành phiên bản mới** từ yêu cầu hiện tại. Host WebView2 thêm callback-state để đối chiếu với thống kê điểm ảnh; tính năng mới chỉ vận hành sau khi cả Agent và Host đã được phát hành tương thích có kiểm chứng. D172 độc lập HOLD, Stable OWNER-GATED, Worker/Web/Android không thay đổi. FIELD/OWNER PASS tiếp tục PENDING. Đặc tả: `docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md`.
+
+---
+
 ## D173-E192 — Owner 11/11/2026: Agent187 sửa lỗi phiên hoạt động và phát hành có điều kiện kiểm chứng
 
 Owner báo Agent186 vẫn chồng nút danh sách phiên như từ Agent185, yêu cầu sửa triệt để cùng lỗi Web trắng, đăng nhập và tiêu đề Agent, đồng thời **phát hành Agent187**. D173 Agent-only, không sửa WMS API/Worker/Web/Android/D172/Stable; giữ D172 HOLD và Stable OWNER-GATED. Chấp thuận CODE + PR/CI native + phát hành Agent187 qua quy trình bảo vệ khi PASS gate; **không suy diễn FIELD hoặc OWNER PASS** từ build/release. Theo `docs/D173_E192_AGENT187_ROSTER_WEB_AUTH_RELEASE_2026-11-11.md` và PR #919; version trước là Agent186, giữ làm rollback.
