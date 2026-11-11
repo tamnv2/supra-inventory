@@ -7,10 +7,10 @@
   "pr": 919,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E190",
+    "id": "D173-E191",
     "date_vn": "2026-11-11",
-    "summary": "Owner approves more sanitized logs and a genuinely native Agent Web browser rebuild; overlap UI remains proposal only. Draft PR919 includes WebView2 in-tab control/CDP bridge and log; CI/native/field unverified; v186 production preserved.",
-    "status": "PR919_CODE_ONLY__NATIVE_BUILD_PENDING__NO_RELEASE__FIELD_NOTPASS",
+    "summary": "PR919 E190 source tests + Windows x64 native EXE compiled PASS at SHA 92b387bc/run43028471737; aggregate CI still FAIL on historical E149/E175 release gates and 2 empty-job workflows. New native Web browser not released nor FIELD/OWNER PASS; header overlap remains proposal only.",
+    "status": "PR919_DRAFT__NATIVE_SOURCE_CI_PASS__AGGREGATE_CI_FAIL_LEGACY__RELEASE_UNCHANGED_V186__FIELD_PENDING",
     "source": "docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
@@ -3546,6 +3546,32 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E191",
+      "date_vn": "2026-11-11",
+      "kind": "TEST",
+      "topic": "Agent in-tab browser E190 isolated native source CI and legacy workflow attribution",
+      "status": "SOURCE_WINDOWS_NATIVE_CI_PASS_AT_CODE_SHA_92B387B__AGGREGATE_LEGACY_GATES_FAIL__RELEASE_FIELD_OWNER_NOTPASS",
+      "owner_approval": true,
+      "working_branch": "feat/d173-e190-native-tab-browser-log-20261111",
+      "pr": 919,
+      "facts": [
+        "GitHub Actions native code-only run 43028471737 at exact browser code SHA 92b387bc0df1e279481a808f67ea951725a3a394 completed SUCCESS. Jobs source and Windows native-build both SUCCESS; Windows output EXE exists. No signing, release tag, OTA update or provider action.",
+        "Same SHA: GitHub repo authority guard PASS, project state guard PASS and D173/D172 business isolation guard PASS.",
+        "Overall legacy CI remains NOTPASS: E149 historical version guard rejects Agent186 as 'Unapproved version for E149/E152' (run 43028472070), E175 production preflight bound to old release scope denies current files as OUT_OF_SCOPE (run 43028473066). No unapproved guard broadening.",
+        "verify-relay-agent.yml run 43028464019 and verify-d171-agent-code-only.yml run 43028462313 fail without scheduling any jobs (GET run jobs count 0), not evidence of WebView2 source compile failure.",
+        "Native CI is not physical render proof or WMS login/Confirm field PASS. Browser retains fail-closed input shield, no provider changes. Header overlap remains deferred/proposal only."
+      ],
+      "next_action": "Preserve PR919 DRAFT/code only and signed v186 production; obtain real 3-Agent visual login/WMS/Confirm/DPI/RDP/long-running field proof. Reconcile historical release gates only within separately authorized, evidence-pinned merge/release scope.",
+      "evidence": "GitHub Actions 43028471737 success (source + native build); 43028471942 authority guard; 43028472727 project state; 43028472070 E149 fail; 43028473066 E175 release scope mismatch; runs 43028464019 and 43028462313 empty-job failures; PR919 code SHA 92b387bc.",
+      "ci_source": "PASS",
+      "ci_windows_native": "PASS",
+      "ci_aggregate": "FAIL_HISTORICAL_GATES",
+      "release": "UNCHANGED_SIGNED_AGENT186",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD"
     }
   ],
   "resume": {
