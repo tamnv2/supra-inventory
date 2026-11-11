@@ -70,7 +70,10 @@ test('Tabler role-preserving collapsible sidebar restored after E043 Web UI roll
   const grant=JSON.parse(read('ops/d173-e165-agent174-release-authorization.json'));
   const e175=JSON.parse(read('ops/d173-e175-release-authorization.json'));
   const authorizedE175=e175.owner_approved_code === true && e175.web_target_version === '3.3.5' && e175.no_stable && e175.d172_pending_hold;
-  assert.equal(pkg.version, authorizedE175 ? '3.3.5' : grant.log_protocol_approved && grant.web_mutation ? '3.3.4' : '3.3.3');
+  const e185=JSON.parse(read('ops/d173-e185-release-authorization.json'));
+  const authorizedE185=e185.owner_code_approved === true && e185.owner_protected_release_approved === true &&
+    e185.web_target_version === '3.3.6' && e185.android_mutation === false && e185.stable_mutation === false;
+  assert.equal(pkg.version, authorizedE185 ? '3.3.6' : authorizedE175 ? '3.3.5' : grant.log_protocol_approved && grant.web_mutation ? '3.3.4' : '3.3.3');
   assert.match(ui,/d173-tabler-sidebar/);
   assert.match(ui,/canAccessSection/);
   assert.match(ui,/localStorage\.setItem\("d173:sidebar-compact"/);
