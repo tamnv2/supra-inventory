@@ -6,6 +6,10 @@
 - Agent189 signed OTA release exists, but FIELD PASS and OWNER PASS remain unverified; no release, merge or stable authorization is implied by this repair.
 - Do not change Worker, D172, Web, APK, Firebase, shared data, any credential, or production infrastructure under this change.
 
+## Owner deployment instruction (2026-11-12)
+
+Owner explicitly approved executing the scoped Agent repair and protected signed Agent190 OTA flow after review. Authorization: `ops/d173-e199-agent190-release-authorization.json`, source pin `18c3c0cc2367937c8649250a4e5d4f34d3df2ec0`, prior tag `relay-agent-v189`, Host14 unchanged. Release is allowed only with exact source/native CI, independent D172 guard, protected two-parent PR merge and OTA SHA readback; it is **not** approval to mutate shared Worker/Core or claim all eight defects FIELD PASS. Remote Agent HTTP400 remains a tracked incomplete finding.
+
 ## New Owner FIELD findings (not historical PASS)
 1. Agent panel text flickers in cadence with local Desktop resource sampling.
 2. Remote **Kích Agent** fails on VPS and ADMIN-PC.
@@ -41,6 +45,6 @@
 6. OWNER PASS separate; no automatic merge/OTA/stable release.
 
 ## Current checkpoint
-- CODE: Draft/partial implementation. CI: under review (see PR #929 checks).
-- RELEASE: unchanged Agent189; no Agent190 or other release.
+- CODE: Agent190 candidate pinned; CI: verify live PR #929 source/native and release gate before merge.
+- RELEASE: Owner approved Agent190 **conditional on exact protected gate**; until release run + tag/channel readback, Agent189 remains current.
 - FIELD: FAIL/PENDING; OWNER PASS: PENDING.
