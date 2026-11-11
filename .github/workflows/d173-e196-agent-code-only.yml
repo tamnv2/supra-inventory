@@ -31,7 +31,18 @@ jobs:
         run: |
           git diff --exit-code "$(git merge-base origin/main HEAD)" HEAD -- \
             service/ web/ android/ obpp1291/ firebase/ functions/ \
-            ops/project-scope.json ops/resource-registry.json
+            ops/project-scope.json
+          python3 - <<'PY'
+          import json, subprocess
+          previous = json.loads(subprocess.check_output(
+              ["git", "show", "origin/main:ops/resource-registry.json"], text=True))
+          current = json.load(open("ops/resource-registry.json", encoding="utf-8"))
+          marker = "relay-agent-v188__D173_E195_SIGNED_RELEASE_PASS__FIELD_OWNER_PENDING"
+          assert current["environments"]["beta"]["relay_agent_release"] == marker
+          previous["environments"]["beta"]["relay_agent_release"] = marker
+          assert previous == current, "Unexpected resource registry changes"
+          print("D173_E196_AGENT188_REGISTRY_METADATA_ONLY_PASS")
+          PY
           echo 'D173_E196_SCOPED_SOURCE_GUARD_PASS'
       - name: D172 independent source tests without provider operations
         run: |
