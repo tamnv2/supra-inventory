@@ -21,3 +21,16 @@ Owner directed signed Agent188 based on actual Agent185 runtime, with logging to
 
 ## Checkpoint policy
 Only non-sensitive version, workflow, hash and test facts retained. No WMS page contents, personal data, tokens, URLs carrying credentials or raw log ZIP in public repository.
+
+## VPS field-log review — 22:29–22:57 Vietnam time, 11/11/2026
+
+**Evidence (Owner-supplied log uploaded through existing Google Drive, sanitized semantic summary only):**
+- VPS installed `relay-agent-v188` at 22:29:31 with release SHA prefix `822a705fe1d0`; log upload `GOOGLE_APPS_SCRIPT` returned PASS at 22:29:45 and 22:29:49. No raw identifiers, URLs or log content are copied here.
+- 22:29:53 login/dashboard popup flowed into WMS Confirm; `dom_ready=1 data_hydrated=1`. 22:30:00 `confirm_reload=PASS` and `state=READY`: backend navigation/data/authenticated DOM is available, but not proof of visible pixels.
+- 22:30:04 `embedded_tab=ATTACHED host_owned=true` followed by `embed_visual_wake=NATIVE_PASS host_controller_sync=REQUESTED paint_proof=UNVERIFIED`.
+- 22:32–22:56 repeated `state=READY dom_ready=1 data_hydrated=1 window_found=1 parented=1 visible=0 viewport=1793x897`. **Caveat:** `IsWindowVisible` also returns false when an ancestor tab is hidden. The same interval shows Agent action count returning to 5 at 22:30:06, consistent with switching away from Web. Thus `visible=0` alone does NOT establish the root cause. 22:57:08 a new `NATIVE_PASS` was logged on Web activation (method precondition checks visibility); actual painted pixels still unverified.
+- `frames=0` is the reported DOM iframe count in the readiness result, **not GPU-composited frame count**; do not interpret as zero rendered frames.
+- Agent188 still uses Agent185's separate-process Host14 exact source (both same Git blob SHA `633fb968ca9fcc2066587db889a82333c5ed371c`). `SupraConfirmBrowser.TryEmbedAgentWindow` rewrites top-level HWND to child and calls cross-process `SetParent`; Host14 `PresentationSyncMessage` immediately acknowledges **queue acceptance**, with actual `BeginInvoke` repaint callback guarded by `Visible`, `_activeWeb`, controller readiness and view dimensions, with no result ACK. The best-supported technical suspect for user-visible white content is **WebView2 compositor/presentation lost after HWND reparenting and popup transition**, not WMS login, Confirm DOM, or Drive delivery.
+- **Not proven:** the exact cause inside CoreWebView2 compositor (including hidden ancestor, DPI mode, disabled input shield or GPU failure), or whether Host14 repaint callback ran and displayed actual pixels. A positive native ACK does not certify visual render. No device screenshot/per-frame verification is present in this log.
+
+**Scope decision:** read-only analysis. Do not code or release based on this review alone. To prove the last causal step, instrument Host14's post-`BeginInvoke` repaint completion/skips plus effective parent-tab visibility/DPI and an on-device visual check; preserve WMS session, RBAC, input shield, and D172 isolation. FIELD/OWNER PASS stays pending.
