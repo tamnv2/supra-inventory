@@ -1,4 +1,4 @@
-name: D173 E199 Puzzle Recorder V1 (isolated Windows diagnostic)
+name: D173 E200 Puzzle Tester V2 (code only)
 on:
   pull_request:
     paths:
