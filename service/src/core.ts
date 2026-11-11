@@ -2153,7 +2153,7 @@ export class InventoryCore {
       try { command = JSON.parse(stored.value_json) as typeof command; }
       catch { return response({ error: "AGENT_COMMAND_CORRUPT" }, 500); }
       if (command.target_agent_id !== agentId || command.command_id !== commandId ||
-          command.target_agent_user_id !== claimant)
+          command.target_agent_user_id.toLowerCase() !== claimant.toLowerCase())
         return response({ error: "AGENT_COMMAND_WRONG_TARGET" }, 403);
       if (command.expires_at_ms <= Date.now() || command.status !== "ISSUED")
         return response({ error: "AGENT_COMMAND_EXPIRED_OR_CONSUMED" }, 409);
