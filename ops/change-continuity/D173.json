@@ -9,9 +9,9 @@
   "last_checkpoint": {
     "id": "D173-E185",
     "date_vn": "2026-11-11",
-    "summary": "PR #908 exact source commit 1066c150: 46 unique checks (44 SUCCESS, 2 conditional SKIPPED, 0 FAILED); native Windows Agent build, E185 Worker TS/Web production build, D172 isolated/shared regression PASS. Source pinned in ops/d173-e185-release-authorization.json; production merge and OTA pending, FIELD/OWNER pending.",
-    "status": "SOURCE_CI_PASS__PINNED__PROTECTED_RELEASE_PENDING__D172_HOLD",
-    "source": "ops/d173-e185-release-authorization.json"
+    "summary": "Owner-approved E185 items 1–7: 44/44 mandatory source CI success, protected PR908 merge e7707273, Worker/Web 3.3.6 Production SUCCESS 42949993804, Agent184 signed Release and OTA inventory-channel SUCCESS 42949993537, EXE SHA256 cross-match. Real Windows FIELD and Owner acceptance PENDING; Reporter PDA item8 backlog, D172 HOLD.",
+    "status": "CODE_CI_RELEASE_AGENT184_OTA_AND_WEB336_WORKER_PRODUCTION_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3874,5 +3874,23 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md"
+  },
+  "d173_e185_release_receipt": {
+    "change_id": "D173-E185",
+    "date_vn": "2026-11-11",
+    "merge_sha": "e770727370ba3aafcbd9565a920f11572b332e49",
+    "worker_web_run_id": 42949993804,
+    "agent_ota_run_id": 42949993537,
+    "agent_tag": "relay-agent-v184",
+    "sha256": "09b9cafa550e8222f81806597cb46842b79cea257850aba70196ddf0b1a500e6",
+    "signed_ota_channel": "inventory-channel",
+    "code": "PASS",
+    "source_ci": "PASS",
+    "release": "PASS",
+    "field": "PENDING",
+    "owner_pass": false,
+    "android_mutation": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "document": "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   }
 }
