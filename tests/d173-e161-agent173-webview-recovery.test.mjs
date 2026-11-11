@@ -100,6 +100,14 @@ test("No new Host13 release or cross-module provider mutation", () => {
   assert.ok(current >= 174);
   assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + current + ";"));
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("0\\." + current + "\\.0\\.0"));
+  if (current === 186) {
+    const grant = JSON.parse(read("ops/d173-e188-agent186-release-authorization.json"));
+    assert.equal(grant.agent_target_version, 186);
+    assert.equal(grant.host_target_build, 14);
+    assert.deepEqual(grant.approved_components, ["agent"]);
+    assert.equal(grant.obpp_mutation, false);
+    assert.equal(grant.no_new_provider_requests, true);
+  }
   if (current === 185) {
     const grant = JSON.parse(read("ops/d173-e187-agent185-release-authorization.json"));
     assert.equal(grant.agent_target_version, 185);
@@ -109,6 +117,6 @@ test("No new Host13 release or cross-module provider mutation", () => {
     assert.equal(grant.no_new_provider_requests, true);
   }
   assert.match(read("relay-agent/AgentBrowserBundle.cs"),
-    current === 185 ? /RequiredHostBuild = 14;/ : /RequiredHostBuild = 13;/);
+    current >= 185 ? /RequiredHostBuild = 14;/ : /RequiredHostBuild = 13;/);
   assert.match(read("ops/project-scope.json"), /OWNER_GATED/);
 });
