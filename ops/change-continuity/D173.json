@@ -3627,6 +3627,38 @@
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
     }
+  ,
+    {
+      "id": "D173-E196",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_IDEA__ANALYSIS_PROPOSAL_ONLY",
+      "topic": "APK Picker tab Xác nhận đơn: báo Agent/WMS availability, login required, no qualified Agent, HA switching; không báo xanh chỉ vì Agent online",
+      "status": "PROPOSED_NOT_OWNER_CODE_OR_RELEASE_APPROVED",
+      "verified_facts": [
+        "main a8ff7fa267702655558ffcb1acd53b159ff1f2a6 Android PickerController/RelayPocClient currently only reports WMS relay errors after request, no proactive readiness indicator.",
+        "Agent coordinator has WmsReady, PRIMARY generation/lease and degraded receiver; WMS login indicator exists in SupraConfirmBrowser; Firestore Rules deny Picker reads of Agent coordination documents.",
+        "PR922 merged Agent188; relay-agent-v188 signed tag published; FIELD and OWNER acceptance not verified."
+      ],
+      "proposed_state_enum": [
+        "READY",
+        "LOGIN_REQUIRED",
+        "OFFLINE",
+        "SWITCHING",
+        "INITIALIZING",
+        "UNKNOWN"
+      ],
+      "safety_and_usage": "Sanitized Picker GET-only projection + one foreground tab listener + event-first update and bounded heartbeat; no raw Agent/roles WMS disclosure; unknown on stale; cannot promise 30s on HA or abrupt power loss; 40 always-watching PDAs * 17h * 30s=81600, 120s=20400, 180s=13600 delivered doc changes/day excluding existing baseline; provider budget must be validated.",
+      "impact": "Android Picker UI plus Agent state publisher and Firebase Firestore Rules only after explicit Owner approval; Worker/Web/DO/D172/Stable untouched; default display-only, no change to confirm/HA/WMS decision.",
+      "reference": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "pr": null,
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Owner reviews state wording, freshness-vs-Firestore budget and permits/refuses implementation; no behavior change or deployment."
+    }
   ],
   "resume": {
     "approved": [
