@@ -92,16 +92,59 @@ body[data-theme="dark"] .d173-tabler-shell .d173-ops-toolbar .workspace-tab.acti
 .d173-tabler-shell .result-audit-table tbody tr.d173-skip-auto > td {
   background:#fff0d6 !important;
 }
-.d173-tabler-shell .result-audit-table tbody tr.d173-skip-human > td {
-  background:#eaf3ff !important;
-}
 body[data-theme="dark"] .d173-tabler-shell .result-audit-table tbody tr.d173-skip-auto > td {
   background:#3e3021 !important;
-}
-body[data-theme="dark"] .d173-tabler-shell .result-audit-table tbody tr.d173-skip-human > td {
-  background:#203851 !important;
 }
 @media (max-width:780px) {
   .d173-tabler-shell .d173-ops-toolbar { top:0; }
   .d173-tabler-shell #ops-sku-suffix { width:206px; min-width:206px; flex-basis:206px; }
+}
+
+/* D173-E230: compact five-tab Reporter workspace; keep all other pages unchanged. */
+.d173-tabler-shell > .d173-page-content:has(.ops-business-workspace) {
+  padding:10px 12px 24px !important;
+}
+.d173-tabler-shell .ops-business-workspace .d173-ops-toolbar {
+  padding:4px 0;
+  margin-bottom:5px;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+.d173-tabler-shell .ops-business-workspace .d173-ops-toolbar > .workspace-tabs {
+  padding:0 !important;
+  border:0 !important;
+  border-radius:4px !important;
+}
+.d173-tabler-shell .ops-business-workspace .ops-panel {
+  padding:6px 4px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+.d173-tabler-shell .ops-business-workspace .ops-panel-title { margin-bottom:6px !important; }
+.d173-tabler-shell .ops-business-workspace .table-wrap {
+  border:0 !important;
+  border-radius:0 !important;
+  max-height:calc(100dvh - 190px);
+}
+.d173-tabler-shell .ops-business-workspace .table-wrap :is(th,td) { padding:6px 7px !important; }
+.d173-tabler-shell .ops-business-workspace .business-summary-grid {
+  gap:6px !important;
+  margin-bottom:6px !important;
+}
+.d173-tabler-shell .ops-business-workspace .business-summary-card {
+  min-height:72px !important;
+  padding:8px 10px !important;
+  border-radius:5px !important;
+  box-shadow:none !important;
+}
+.d173-tabler-shell .ops-business-workspace .fast-workspace { gap:7px; min-height:0; }
+.d173-tabler-shell .ops-business-workspace :is(.fast-list,.fast-detail) {
+  border:0 !important;
+  border-radius:4px !important;
+}
+.d173-tabler-shell .ops-business-workspace .fast-detail { padding:10px !important; }
+.d173-tabler-shell .ops-business-workspace :is(.workspace-tab,.btn,#ops-sku-suffix,#recent-day) {
+  border-radius:4px !important;
 }
