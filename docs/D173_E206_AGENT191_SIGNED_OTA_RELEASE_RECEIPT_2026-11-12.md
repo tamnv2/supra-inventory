@@ -1,0 +1,13 @@
+# D173-E206 — Agent191 signed OTA release receipt (12/11/2026)
+
+## Kết quả đã kiểm chứng
+- **CODE:** PASS. Agent191 implementation PR [#933](https://github.com/tamnv2/supra-inventory/pull/933), merged main `637d9d384e2472945d87e2a43d9203e7ace10622`; exact Agent source pin `673a1277ddc1592a4764b2bc57a1da7d3d482a9a`.
+- **CI:** PASS. PR934 source/native release gate recovery on push [run 43124360671](https://github.com/tamnv2/supra-inventory/actions/runs/43124360671): source/authority/change-continuity tests; 3/3 targeted Agent tests; 74/74 independent D172 tests; Windows Host14/Agent191 x64 build and startup/safety smoke succeeded.
+- **Protected merge:** PR [#934](https://github.com/tamnv2/supra-inventory/pull/934), commit `c96e59a060614fdcd873acf4d4bc27ece4b88775`, merge title prefix `D173-E202_AGENT191_ONLY_RELEASE:`. Corrected OTA trigger and preserved checked Agent191 source tree.
+- **Signed release:** [`relay-agent-v191`](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v191) published 2026-11-12 00:06:28 UTC, `prerelease=true`; Windows EXE `Agent.Auto.Confirm.Pick.Pack.exe` size 8,924,672 bytes, **SHA-256 `6cebc31af550a90b7200bffced6c3b2dacff01e71a3f65641c88ec8d08b8c00f`**.
+- **OTA:** [run 43124630949](https://github.com/tamnv2/supra-inventory/actions/runs/43124630949) completed SUCCESS, log `E202_AGENT191_TECHNICAL_OTA_SHA_PASS tag=relay-agent-v191 sha256=6cebc31af550a90b7200bffced6c3b2dacff01e71a3f65641c88ec8d08b8c00f FIELD_PENDING`. Independent GitHub API readback: `inventory-channel` Agent EXE asset SHA-256 is byte-identical to tag EXE and same size. Manifest `agent-latest.json` updated in channel at 2026-11-12 00:06:31 UTC.
+- **Existing shared browser Host14:** unchanged (no new Host, Worker, Firebase, Web, Android, D172, Stable or provider resources). Previous Agent190 signed EXE is retained in its own tag.
+- **FIELD:** NOT PASS. Remote Agent command/claim against two real machines, full 60-second no-flicker observation, and stale authenticated Picker vs Firestore projection after restart are **not** proven fixed. Picker cross-Agent stale presence needs separate shared Worker/Core/Firebase approval and D172+D173 impact/regression before mutation. **Owner PASS:** false/pending. **D172:** independent PENDING/HOLD.
+
+## Evidence and limits
+This receipt establishes **CODE, CI, RELEASE and OTA technical PASS only**. It does not certify that all installed Agents auto-updated, remote control executed, stale Picker sessions disappeared or Owner accepted the field result. Secret-bearing logs, tokens and WMS/private user data were not committed.
