@@ -6,6 +6,8 @@ const source = (path) => readFileSync(new URL("../" + path, import.meta.url), "u
 const web = source("web/src/operational-app.ts");
 const api = source("web/src/api.ts");
 const core = source("service/src/operational-v2-core.ts");
+const readApi = source("service/src/read-api.ts");
+const businessApi = source("service/src/business-api.ts");
 
 test("E209: suffix-only search, no prefix or middle match, numeric minimum 3", () => {
   const match = (sku, term) => /^\d{3,32}$/.test(term) && sku.endsWith(term);
@@ -68,4 +70,11 @@ test("E209: date range retains first_report_at, no Apply button or report redire
   assert.doesNotMatch(web, /id="recent-open-report"/);
   assert.doesNotMatch(web, /type="submit">Áp dụng<\/button>/);
   assert.match(web, /showFirstReport \? "<th>Thời gian báo hàng đầu tiên<\/th>"/);
+});
+
+test("E209: Worker adapters forward suffix and picker-row params without opening mutation paths", () => {
+  assert.match(readApi, /params\.set\("sku_suffix"/);
+  assert.match(readApi, /params\.set\("picker_rows", "1"\)/);
+  assert.match(businessApi, /\["limit", "offset", "sku_suffix"\]/);
+  assert.match(web, /firstAt = String\(realtimeSnapshotRecord\(row\)\?\.first_report_at/);
 });
