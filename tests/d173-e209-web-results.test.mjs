@@ -58,7 +58,7 @@ test("E209: no extra picker-fetch and no mutation-read-model overwrite", () => {
   assert.match(web, /prefetchBatchDetails\(batchId\);/);
   assert.match(web, /expandedRecentPickerBatches\.has\(batchId\)/);
   assert.match(web, /recentFilter === "CLOSED" \|\| opsSkuSuffix\.length >= 3/);
-  assert.match(web, /read_model contains no suffix/);
+  assert.match(web, /read model contains no suffix/);
 });
 
 test("E209: date range retains first_report_at, no Apply button or report redirect", () => {
