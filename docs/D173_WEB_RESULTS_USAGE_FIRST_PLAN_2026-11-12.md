@@ -59,3 +59,9 @@ Các câu hỏi trên là **cần chốt để code**, không phải thiếu d�
 
 ## Ranh giới
 Code **NOT STARTED**; CI **NOT RUN**; Production **UNCHANGED**; Field **NOT TESTED**; 3 lựa chọn trước đã được Owner chốt, 2 điểm phía trên chờ quyết định; **chưa có quyền triển khai**. Không khẳng định mức giảm usage/cost khi chưa đo.
+
+## Owner chốt bổ sung và lệnh triển khai 12/11/2026
+- Điểm F1: **A**, badge/KPI Picker thu hồi = số batch/đợt SKU theo source hiện tại; danh sách/phân trang = số dòng picker. Tuyệt đối không lấy số picker nhân lên thành số đợt.
+- Điểm F2: **A**, một picker trong mỗi batch chỉ một dòng, lấy `MAX(withdrawn_at)` khi có nhiều ticket đã rút trong đợt. Dữ liệu lịch sử vẫn nguyên.
+- Owner cấp quyền triển khai Web **3.3.7** và API Worker D173 liên quan theo phương án đã chốt, sau exact code/CI, D172 isolation, bảo vệ protected main, owner-specific release gate. Không chạm Agent/APK/Firebase/Stable/D172 data hay cấp FIELD/OWNER PASS.
+- Source ứng viên hiện tại trong PR #942, không tuyên bố CODE/CI/RELEASE PASS khi chưa kiểm. Nguồn kiểm chứng là GitHub Actions + SHA khi hoàn thành.
