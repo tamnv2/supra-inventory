@@ -11,7 +11,7 @@
     "web_target_version": "3.3.12",
     "code": "PASS_SCOPED",
     "ci": "PASS_4_SCOPED",
-    "release": "OWNER_APPROVED_PROTECTED_MERGE_PENDING",
+    "release": "PASS_TECHNICAL",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -21,7 +21,12 @@
       43219951289,
       43219950603,
       43219950981
-    ]
+    ],
+    "release_main_sha": "8dc91e50a31c3f547b4e1b16819f492c5da1fa65",
+    "release_run": 43220864308,
+    "worker_version_id_at_deploy": "d42062b6-2f9a-4203-b5ec-eec52339e79d",
+    "receipt_doc": "docs/D173_E229_WEB3312_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "receipt_pr": 956
   },
   "d173_e223_web3311_release": {
     "change_id": "D173",
@@ -83,12 +88,12 @@
     "doc": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
   },
   "current_status": {
-    "beta": "D173_E224_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "beta": "D173_E229_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D173_E224_WEB_3_3_11_WORKER_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "web": "D173_E229_WEB_3_3_12_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
     "android": "SIGNED_ANDROID_VC128_CHANNEL_RELEASE_PASS__FLEET_INSTALL_UNVERIFIED",
     "latest_beta_apk": "beta-vc128__SIGNED_APK_RELEASE_PUBLISHED__PHYSICAL_FLEET_INSTALL_UNVERIFIED",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
@@ -7597,18 +7602,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e227-web3312-eight-ui-fixes-20261112",
-    "pr": 955,
-    "latest_checkpoint_id": "D173-E228",
+    "working_branch": "docs/d173-e229-web3312-production-receipt-20261112",
+    "pr": 956,
+    "latest_checkpoint_id": "D173-E229",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E228_WEB3312_SCOPED_CI_PASS_RELEASE_PINNED__PROTECTED_MERGE_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E229_WEB3312_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 955,
-    "active_working_branch": "fix/d173-e227-web3312-eight-ui-fixes-20261112",
-    "working_pr_lifecycle": "PR955_OPEN_DRAFT_WEB3312_SOURCE_CI_4_PASS__PROTECTED_MERGE_PENDING"
+    "working_pr": 956,
+    "active_working_branch": "docs/d173-e229-web3312-production-receipt-20261112",
+    "working_pr_lifecycle": "PR956_OPEN_DOCS_ONLY_WEB3312_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
