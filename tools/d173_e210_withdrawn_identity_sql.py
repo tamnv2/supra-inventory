@@ -15,20 +15,20 @@ db.executescript("""
 CREATE TABLE page_ids(batch_id TEXT, picker_employee_code TEXT, withdrawn_at TEXT);
 CREATE TABLE report_tickets(ticket_id TEXT PRIMARY KEY,batch_id TEXT,picker_user_id TEXT,picker_employee_code TEXT,status TEXT,withdrawn_at TEXT);
 CREATE TABLE users(user_id TEXT PRIMARY KEY,employee_code TEXT,display_name TEXT);
-INSERT INTO page_ids VALUES ('b1','45284','2026-11-12T09:45:00Z');
+INSERT INTO page_ids VALUES ('b1','999999','2026-11-12T09:45:00Z');
 INSERT INTO users VALUES
-('u_old','EXPIRED-45284','Người báo phiếu cũ'),
-('u_new','REPLACED-45284','Tên Picker lần thu hồi mới nhất'),
-('u_fallback','45284','Tên từ mã hiện tại');
+('u_old','EXPIRED-999999','Người báo phiếu cũ'),
+('u_new','REPLACED-999999','Tên Picker lần thu hồi mới nhất'),
+('u_fallback','999999','Tên từ mã hiện tại');
 INSERT INTO report_tickets VALUES
-('t_old','b1','u_old','45284','WITHDRAWN','2026-11-12T09:00:00Z'),
-('t_new','b1','u_new','45284','WITHDRAWN','2026-11-12T09:45:00Z'),
-('t_pending','b1','u_old','45284','RESOLVED','2026-11-12T09:59:00Z');
+('t_old','b1','u_old','999999','WITHDRAWN','2026-11-12T09:00:00Z'),
+('t_new','b1','u_new','999999','WITHDRAWN','2026-11-12T09:45:00Z'),
+('t_pending','b1','u_old','999999','RESOLVED','2026-11-12T09:59:00Z');
 """)
 sql = """SELECT page.picker_employee_code,
  COALESCE(NULLIF(withdrawn_user.display_name, ''), code_user.display_name, ''),
  page.withdrawn_at
  FROM page_ids page """ + joins
 rows = db.execute(sql).fetchall()
-assert rows == [('45284','Tên Picker lần thu hồi mới nhất','2026-11-12T09:45:00Z')], rows
+assert rows == [('999999','Tên Picker lần thu hồi mới nhất','2026-11-12T09:45:00Z')], rows
 print("D173_E210_WITHDRAWN_ACTOR_LATEST_TICKET_SQL_PASS")
