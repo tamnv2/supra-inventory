@@ -155,7 +155,8 @@
     "current_d173_e233_web3313_field_review": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md",
     "current_d173_e234_web3314_owner_code_release": "docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md",
     "current_d173_e236_web3314_production_receipt": "docs/D173_E236_WEB3314_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
-    "current_d173_e237_web3315": "docs/D173_E237_WEB3315_GLOBAL_LAYOUT_CODE_ONLY_2026-11-12.md"
+    "current_d173_e237_web3315": "docs/D173_E237_WEB3315_GLOBAL_LAYOUT_CODE_ONLY_2026-11-12.md",
+    "current_d173_e241_web3315": "docs/D173_E241_WEB3315_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -242,9 +243,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 961,
-    "ref_rule": "D173_E237_WEB3315_CODE_ONLY_PR961__WEB3314_STILL_PRODUCTION__D172_HOLD",
-    "freshness": "2026_11_12_E237_WEB3315_CODE_ONLY",
+    "active_working_pr": 962,
+    "ref_rule": "D173_E241_WEB3315_PRODUCTION_TECH_PASS_PR962_DOCS_ONLY_NO_NEW_PROVIDER_MUTATION__D172_HOLD",
+    "freshness": "2026_11_12_E241_WEB3315_PRODUCTION_RELEASE_RECEIPT",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -374,7 +375,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
+    "active_working_branch": "docs/d173-e241-web3315-production-receipt-20261112",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,
@@ -453,7 +454,7 @@
       "stable": "OWNER_GATED",
       "owner_command": "2026-11-10_YEU_CAU_PHAT_HANH"
     },
-    "working_pr_lifecycle": "PR961_OPEN_DRAFT_WEB3315_CODE_ONLY__CI_PENDING__RELEASE_NOT_AUTHORIZED"
+    "working_pr_lifecycle": "PR962_DOCS_ONLY__WEB3315_TECH_RELEASE_PASS_FIELD_OWNER_PENDING"
   },
   "bootstrap_read_policy": {
     "mode": "CURRENT_ESSENTIALS_ONLY__HISTORY_ON_DEMAND",
