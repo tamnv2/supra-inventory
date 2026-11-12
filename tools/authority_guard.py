@@ -133,6 +133,14 @@ def main() -> None:
                 or proof.get("main_merge_sha") != "c96e59a060614fdcd873acf4d4bc27ece4b88775"
                 or proof.get("field_pass") is not False or proof.get("owner_pass") is not False):
             fail("latest verified D173-E206 Agent191 release proof mismatch")
+    elif agent == "relay-agent-v192":
+        proof = state.get("d173_e208_agent192_release_receipt", {}).get("release_evidence", {})
+        if (proof.get("tag") != agent or proof.get("exe_sha256") != production.get("agent", {}).get("sha256")
+                or proof.get("exe_sha256") != "38dbabe22ef470e90dff8fa2012d65115da230fed17d0d637d8fa3000c725675"
+                or proof.get("host_build") != 14 or proof.get("run_id") != 43136512050
+                or proof.get("main_merge_sha") != "7cb0037af96d57e650bdad371d9b7ffa663f185e"
+                or proof.get("field_pass") is not False or proof.get("owner_pass") is not False):
+            fail("latest verified D173-E208 Agent192 release proof mismatch")
     elif state.get("d173_e185", {}).get("agent_release_tag") != agent:
         fail("latest verified D173-E185 historical Agent release proof mismatch")
     if not web_version or f"WEB_{web_version.replace('.', '_')}" not in cs.get("web", ""):
