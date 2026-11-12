@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e230-web3313-field-density-skip-20261112",
-  "pr": 957,
+  "working_branch": "docs/d173-e232-web3313-production-receipt-20261112",
+  "pr": 958,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E231",
+    "id": "D173-E232",
     "date_vn": "2026-11-12",
-    "summary": "Owner approved Web3.3.13. Four scoped CI checks PASS at b287887e (UI/Web build, D172, Repo Authority and Project State); exact SHA release auth pinned. Protected PR957 merge and Production release pending.",
-    "status": "WEB3313_OWNER_APPROVED__SOURCE_CI_4_OF_4_SCOPED_PASS__PROTECTED_MERGE_RELEASE_PENDING",
-    "source": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
-    "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
-    "pr": 957
+    "summary": "Web3.3.13 PR957 protected main 69542d49, exact Production Worker/Web run43227915003 SUCCESS, 3 Web assets uploaded, /health/SQLite/auth/OAuth PASS. PR958 docs-only receipt; FIELD/OWNER pending, D172 independent.",
+    "status": "WEB3313_PRODUCTION_TECH_PASS__PR958_DOCS_ONLY__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "branch": "docs/d173-e232-web3313-production-receipt-20261112",
+    "pr": 958
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4526,6 +4526,39 @@
         43227189717,
         43227189801
       ]
+    },
+    {
+      "id": "D173-E232",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Web3.3.13 official Production technical release exact source and health verified",
+      "status": "WEB3313_PRODUCTION_TECH_PASS__PR958_DOCS_ONLY__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "source_pr": 957,
+      "pr": 958,
+      "branch": "docs/d173-e232-web3313-production-receipt-20261112",
+      "source_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
+      "final_source_ci_sha": "da8854c706b9071bd6902a6c145461bcaef5aabe",
+      "release_run_id": 43227915003,
+      "worker_version_id_at_deploy": "c5352328-5955-4884-bf12-8945d71d2835",
+      "facts": [
+        "Owner E231 approved deploy of E230 three Web UI corrections, PR957 merged protected two-parent to main 69542d49bc658231d50374aaf590e488792a5fce.",
+        "Four final exact-PR-head scoped checks success: UI build/E231 preflight 43227626521, D172 43227627011, authority 43227626703, state 43227627062; unrelated legacy UI design guard remains baseline-failing.",
+        "Production Worker/Web workflow 43227915003 completed SUCCESS for exact main SHA; D173 E230 Owner release and D172/Gateway unchanged gates passed.",
+        "Wrangler 3 Web assets uploaded; Worker version ID at deploy c5352328-5955-4884-bf12-8945d71d2835; official health HTTP200 source exact, SQLite17, business schema7 and Auth/Worker/Web shell/OAuth probes PASS.",
+        "Runtime business/API/DO/SQLite/Agent/Android/Firebase/Gateway/D172-specific assets unchanged; docs-only receipt cannot trigger Worker deploy.",
+        "Signed-in FIELD (HD/HD+, light/dark, scroll, date/search) and explicit Owner PASS remain unverified; D172 PENDING/HOLD; Stable OWNER-GATED."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/957; https://github.com/tamnv2/supra-inventory/actions/runs/43227915003; docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+      "next_action": "Merge PR958 documentation-only after Repo Authority/State/continuity CI; no Production redeploy and no FIELD/Owner PASS until physical UI review.",
+      "code": "PASS",
+      "ci": "PASS_4_SCOPED",
+      "release": "PASS_TECHNICAL",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
