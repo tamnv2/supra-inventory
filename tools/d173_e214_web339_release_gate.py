@@ -19,6 +19,8 @@ RUNTIME = {
 }
 CODE_GUARD = RUNTIME | {".github/workflows/deploy-beta.yml", "tools/d173_e214_web339_release_gate.py"}
 ALLOWED = CODE_GUARD | {
+    "tests/d167-web-ux-consistency.test.mjs",
+    "tests/d173-e032-ui-code-only.test.mjs",
     "tests/d173-e209-web-results.test.mjs",
     "tests/d173-e214-web339-field-six-issues.test.mjs",
     "tools/d173_e210_withdrawn_identity_sql.py",
