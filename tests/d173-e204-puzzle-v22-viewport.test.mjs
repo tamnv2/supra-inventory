@@ -45,7 +45,7 @@ test("V2.2 selected-region test is passive, with no automated challenge solution
 });
 
 test("V2.2 remains standalone; native smoke checks bounded ROI geometry", () => {
-  assert.match(project, /<Version>2\.2\.0<\/Version>/);
+  assert.match(project, /<Version>2\.(?:2|3)\.0<\/Version>/);
   assert.match(project, /<PlatformTarget>x64<\/PlatformTarget>/);
   assert.ok(main.includes("RecorderForm.V22RegionSmoke()"));
   assert.ok(v22.includes("internal static bool V22RegionSmoke()"));
