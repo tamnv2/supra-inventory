@@ -41,6 +41,11 @@ namespace SupraPuzzleRecorder
         private readonly string _profileRoot = Path.Combine(Path.GetTempPath(), "SUPRA-V23-DragLab", Guid.NewGuid().ToString("N"));
         private Rectangle _roi = Rectangle.Empty;
         private Size _imageSize = Size.Empty;
+        private readonly bool _smokeMode;
+        private readonly Stopwatch _startupClock = Stopwatch.StartNew();
+        private readonly List<Dictionary<string, object>> _startupEvents = new List<Dictionary<string, object>>();
+        private Timer _smokeTimer;
+        internal bool SmokePassed { get; private set; }
         private bool _ready;
         private bool _busy;
         private bool _tested;
@@ -49,8 +54,9 @@ namespace SupraPuzzleRecorder
         private const int RoiPadding = 16;
         private const int MaxTests = 8;
 
-        internal V23BrowserDragLab()
+        internal V23BrowserDragLab(bool smokeMode = false)
         {
+            _smokeMode = smokeMode;
             Text = "SUPRA V2.3 — Kéo thật bằng WebView2 trên trang thử nghiệm offline";
             Size = new Size(1230, 780);
             MinimumSize = new Size(900, 500);
@@ -78,14 +84,70 @@ namespace SupraPuzzleRecorder
             _test.Click += async (sender, args) => await TestOnceAsync();
             _export.Click += (sender, args) => Export();
             Shown += async (sender, args) => await InitializeAsync();
+            if (_smokeMode)
+            {
+                _smokeTimer = new Timer { Interval = 20000 };
+                _smokeTimer.Tick += (sender, args) =>
+                {
+                    TraceStartup("SMOKE", "TIMEOUT");
+                    Close();
+                };
+                _smokeTimer.Start();
+            }
+        }
+
+        private void TraceStartup(string phase, string code)
+        {
+            if (_startupEvents.Count >= 40) return;
+            _startupEvents.Add(new Dictionary<string, object>
+            {
+                ["phase"] = phase, ["code"] = code,
+                ["elapsed_ms"] = _startupClock.ElapsedMilliseconds
+            });
+        }
+
+        private async Task VerifySceneAsync(bool navigationSucceeded, string browserError)
+        {
+            TraceStartup("NAVIGATION_COMPLETED", navigationSucceeded ? "SUCCESS" : browserError);
+            if (!navigationSucceeded) { _status.Text = "Không tải được trang mẫu: " + browserError; _export.Enabled = true; return; }
+            try
+            {
+                // A successful about:blank navigation does not prove the canvas is available.
+                var marker = await _browser.CoreWebView2.ExecuteScriptAsync(
+                    "Boolean(document.getElementById('board') && document.getElementById('board').getContext('2d'))");
+                if (marker != "true")
+                {
+                    TraceStartup("DOM_VERIFY", "CANVAS_NOT_READY");
+                    _status.Text = "Trang tải nhưng chưa có vùng mẫu. Bấm Mẫu mới hoặc xuất log khởi tạo.";
+                    _export.Enabled = true;
+                    _next.Enabled = true;
+                    return;
+                }
+                TraceStartup("DOM_VERIFY", "CANVAS_READY");
+                _ready = true;
+                _select.Enabled = !_busy;
+                _test.Enabled = !_roi.IsEmpty && !_tested && !_busy;
+                _next.Enabled = !_busy && _reports.Count < MaxTests;
+                _status.Text = "Trang offline đã tạo. Nhấn Chọn vùng, sau đó Kéo thật 1 lần.";
+                if (_smokeMode) { SmokePassed = true; Close(); }
+            }
+            catch (Exception ex)
+            {
+                TraceStartup("DOM_VERIFY_ERROR", ex.GetType().Name + "_" + ex.HResult.ToString("X8"));
+                _status.Text = "Lỗi kiểm tra trang mẫu. Bấm Lưu ZIP chẩn đoán để gửi mã lỗi.";
+                _export.Enabled = true;
+                _next.Enabled = true;
+            }
         }
 
         private async Task InitializeAsync()
         {
             _next.Enabled = false;
+            TraceStartup("INITIALIZE", "START");
             try
             {
                 await _browser.EnsureCoreWebView2Async();
+                TraceStartup("INITIALIZE", "WEBVIEW2_READY");
                 _browser.ZoomFactor = 1;
                 _browser.CoreWebView2.Profile.IsPasswordAutosaveEnabled = false;
                 _browser.CoreWebView2.Profile.IsGeneralAutofillEnabled = false;
@@ -94,20 +156,21 @@ namespace SupraPuzzleRecorder
                 {
                     // NavigateToString is about:blank. Never permit navigation to the WMS or any site.
                     if (!string.Equals(args.Uri, "about:blank", StringComparison.OrdinalIgnoreCase))
+                    {
                         args.Cancel = true;
+                        TraceStartup("NAVIGATION_BLOCKED", "NON_LOCAL_PAGE");
+                    }
                 };
-                _browser.CoreWebView2.NavigationCompleted += (sender, args) =>
-                {
-                    _ready = args.IsSuccess;
-                    _select.Enabled = _ready && !_busy;
-                    _test.Enabled = _ready && !_roi.IsEmpty && !_tested && !_busy;
-                };
-                _next.Enabled = true;
+                _browser.CoreWebView2.NavigationCompleted += async (sender, args) =>
+                    await VerifySceneAsync(args.IsSuccess, args.WebErrorStatus.ToString());
                 NewSample();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _status.Text = "Không tạo được trang thử offline WebView2; không gửi thao tác chuột.";
+                TraceStartup("INITIALIZE_ERROR", ex.GetType().Name + "_" + ex.HResult.ToString("X8"));
+                _status.Text = "Không tạo được trang thử offline. Bấm Lưu ZIP chẩn đoán để gửi mã lỗi.";
+                _export.Enabled = true;
+                _next.Enabled = _browser.CoreWebView2 != null;
             }
         }
 
@@ -119,13 +182,22 @@ namespace SupraPuzzleRecorder
             _pieceY = 215 + _random.Next(0, 20);
             _ready = false;
             _tested = false;
-            _test.Enabled = false;
-            _select.Enabled = false;
-            _browser.CoreWebView2.NavigateToString(SampleHtml
-                .Replace("__SOURCE_X__", _sourceX.ToString(CultureInfo.InvariantCulture))
-                .Replace("__TARGET_X__", _targetX.ToString(CultureInfo.InvariantCulture))
-                .Replace("__PIECE_Y__", _pieceY.ToString(CultureInfo.InvariantCulture)));
-            _status.Text = "Mẫu thử mới. Chọn vùng chứa ô xanh, ô cam và đường kéo; sai lệch nhỏ sẽ được bù biên.";
+            _next.Enabled = _test.Enabled = _select.Enabled = false;
+            TraceStartup("NEW_SAMPLE", "NAVIGATION_REQUESTED");
+            try
+            {
+                _browser.CoreWebView2.NavigateToString(SampleHtml
+                    .Replace("__SOURCE_X__", _sourceX.ToString(CultureInfo.InvariantCulture))
+                    .Replace("__TARGET_X__", _targetX.ToString(CultureInfo.InvariantCulture))
+                    .Replace("__PIECE_Y__", _pieceY.ToString(CultureInfo.InvariantCulture)));
+                _status.Text = "Đang tạo mẫu offline; vùng chọn có thể sai lệch tối đa 16 px.";
+            }
+            catch (Exception ex)
+            {
+                TraceStartup("NEW_SAMPLE_ERROR", ex.GetType().Name + "_" + ex.HResult.ToString("X8"));
+                _status.Text = "Không tạo được mẫu. Lưu ZIP chẩn đoán hoặc nhấn Mẫu mới.";
+                _next.Enabled = _export.Enabled = true;
+            }
         }
 
         // All pixels and input belong to this fixed, synthetic test page.
@@ -422,7 +494,7 @@ canvas{display:block;width:1178px;height:600px}</style></head>
 
         private void Export()
         {
-            if (_busy || _reports.Count == 0) return;
+            if (_busy || (_reports.Count == 0 && _startupEvents.Count == 0)) return;
             using (var dialog = new SaveFileDialog
             {
                 Filter = "ZIP chẩn đoán (*.zip)|*.zip",
@@ -441,7 +513,9 @@ canvas{display:block;width:1178px;height:600px}</style></head>
                             ["real_browser_mouse_input"] = true,
                             ["actual_wms_auth_challenge"] = false,
                             ["test_count"] = _reports.Count,
-                            ["tests"] = _reports
+                            ["tests"] = _reports,
+                            ["startup_events"] = _startupEvents,
+                            ["canvas_ready"] = _ready
                         };
                         WriteZip(zip, "puzzle-browser-drag-v23.json",
                             Encoding.UTF8.GetBytes(_json.Serialize(data)));
@@ -468,6 +542,8 @@ canvas{display:block;width:1178px;height:600px}</style></head>
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
+            _smokeTimer?.Stop();
+            _smokeTimer?.Dispose();
             _images.Clear();
             _reports.Clear();
             _browser.Dispose();
