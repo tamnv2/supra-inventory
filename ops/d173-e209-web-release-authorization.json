@@ -20,7 +20,9 @@
     "web/src/operational-app.ts",
     "web/src/d173-tabler.css",
     "web/src/web-version.ts",
-    "web/package.json"
+    "web/package.json",
+    "service/src/read-api.ts",
+    "service/src/business-api.ts"
   ],
   "d172_pending_hold": true,
   "d172_cross_regression_required": true,
