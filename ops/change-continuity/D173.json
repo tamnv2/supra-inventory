@@ -7,11 +7,11 @@
   "pr": 940,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R12",
+    "id": "D173-E204-R13",
     "date_vn": "2026-11-12",
-    "summary": "Proposed real one-shot WebView2 drag in sanctioned WMS test page with V2.2 ROI tolerance, offline labeled precision metrics, no auto retries. No live CAPTCHA bypass or code; PR940 V2.3 remains unmet.",
-    "status": "PROPOSAL_ONLY__NO_NEW_CODE__NO_RELEASE__FIELD_OWNER_PENDING",
-    "source": "PR940 + Owner request for exact V2.3 work plan"
+    "summary": "PR940 V2.3 isolated real WebView2 mouse input on built-in offline page: run43144848346 21/21 source+native PASS, artifact13911063141 SHA 76242fe7... CRC21 PASS. ZIP has before/after+CDP trace. Real WMS CAPTCHA not implemented, FIELD/OWNER pending.",
+    "status": "V23_BROWSER_OFFLINE_REAL_INPUT_CODE_CI_ARTIFACT_PASS__LIVE_WMS_UNCHANGED__FIELD_OWNER_PENDING",
+    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43144848346"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4270,6 +4270,44 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R13",
+      "date_vn": "2026-11-12",
+      "kind": "V23_REAL_BROWSER_OFFLINE_LAB_CI_AND_ARTIFACT_RECEIPT",
+      "topic": "Owner-requested V2.3 one-shot actual WebView2 mouse drag diagnostic with complete sanitized logs",
+      "status": "V23_BROWSER_OFFLINE_REAL_INPUT_CODE_CI_ARTIFACT_PASS__LIVE_WMS_UNCHANGED__FIELD_OWNER_PENDING",
+      "scope": "D173 isolated standalone diagnostics PR940 only, stacked on PR938. Browser acts ONLY on built-in local HTML test page; not actual WMS CAPTCHA.",
+      "facts_verified": [
+        "Live PR940 Draft remains open; source head aa542e0c284273ecb46863c0e1467a8cc0c21db9 passed scoped GitHub Actions run 43144848346.",
+        "21/21 Node source checks PASS, 0 failed; cross-module file-change guard PASS.",
+        "Windows x64 native .NET build SUCCESS, 0 warnings/0 errors, startup smoke includes OpenCV ROI ±15 synthetic reference.",
+        "GitHub Actions artifact ID13911063141, SUPRA-Puzzle-Diagnostic-V23-win-x64, 103330308 bytes, ZIP 21 entries, CRC all PASS, SHA256 76242fe7dc5061b4c7b6eedbe507b02a109718783b2992482755c6eff3ea826d matches downloaded bytes.",
+        "V2.3 UI exposes 'Phòng thử kéo thật (offline)': self-contained browser NavigateToString sample; source/target recognized from captured pixel colors inside manually selected ROI + 16px margin; CDP Input.dispatchMouseEvent mouse press/24 moves/release sent only in that lab.",
+        "Each one-shot attempt records before/after synthetic screenshots, pixel source/target, predicted vs known reference delta, CDP acknowledged input path kind/x/y/ms, after-image observed piece position, error, status/reason; local ZIP export, max 8 scenes and one drag per scene.",
+        "Standalone lab prohibits navigation outside about:blank and new windows; no direct WMS browser input or CAPTCHA solving, no Agent Production/Host/Worker/Web/APK/Firebase/D172/Stable changes."
+      ],
+      "limitations": [
+        "Native CI/synthetic smoke is not proof actual interactive WinForms WebView2 drag works on Owner Windows device; Owner FIELD pending.",
+        "Live WMS challenge recognition/drag/login/Confirm has not been implemented or tested; Owner original intended WMS end-to-end automation remains unmet.",
+        "Direct sandbox ZIP download previously had client-side issues around 99MiB; GitHub Actions artifact link is alternate verified route."
+      ],
+      "evidence": {
+        "pr": "https://github.com/tamnv2/supra-inventory/pull/940",
+        "ci": "https://github.com/tamnv2/supra-inventory/actions/runs/43144848346",
+        "artifact": "https://github.com/tamnv2/supra-inventory/actions/runs/43144848346/artifacts/13911063141",
+        "source_sha": "aa542e0c284273ecb46863c0e1467a8cc0c21db9",
+        "sha256": "76242fe7dc5061b4c7b6eedbe507b02a109718783b2992482755c6eff3ea826d"
+      },
+      "code": "PASS_SCOPED_OFFLINE_LAB",
+      "ci": "21_OF_21_SOURCE_WINDOWS_NATIVE_PASS",
+      "artifact": "SHA256_CRC_PASS",
+      "release": "STANDALONE_CODE_ONLY_TEST_ARTIFACT_NOT_PRODUCTION",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "Owner extracts complete Windows ZIP, runs 3-5 offline local scenes with one manual selection per scene only as needed, sends puzzle-browser-drag-v23.zip; analyze detection vs requested CDP path vs observed after pixels before suggesting next technical change."
     }
   ],
   "resume": {
