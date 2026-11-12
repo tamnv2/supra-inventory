@@ -301,6 +301,12 @@ function clearRoleScopedViewState(): void {
   recentTotal = 0;
   recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
   batchDetails.clear();
+  expandedRecentPickerBatches.clear();
+  opsSkuSuffix = "";
+  if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
+  opsSkuInputTimer = null;
+  overdueSearchOffset = 0;
+  overdueSearchTotal = 0;
   expandedBatchDetails.clear();
   batchDetailLoads.clear();
   pendingReporterResolutions.clear();
@@ -419,6 +425,11 @@ let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdr
 let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "HAS_STOCK";
+let opsSkuSuffix = "";
+let opsSkuInputTimer: number | null = null;
+let overdueSearchOffset = 0;
+let overdueSearchTotal = 0;
+const expandedRecentPickerBatches = new Set<string>();
 let recentFrom = dateDaysAgo(0);
 let recentTo = dateDaysAgo(0);
 let queueFilter: "ALL" | "WARNING" | "ESCALATED" = "ALL";
@@ -1593,16 +1604,38 @@ function render(): void {
 }
 
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
-  // D166: exactly five visible status tabs. All badges use ONE existing
-  // counter snapshot and ONE versioned realtime delta stream, not five polls.
+  // Five tabs share existing counters; suffix only applies to the active tab.
   const outcomeTab = (status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED", label: string) =>
     `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}">${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
-  return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
-    <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
-    <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
-    ${outcomeTab("HAS_STOCK", "Đã có hàng")}
-    ${outcomeTab("SKIP_ALLOWED", "Cho phép Skip")}
-    ${outcomeTab("CLOSED", "Picker đã thu hồi")}
+  const today = dateDaysAgo(0);
+  const preset = recentFrom === today && recentTo === today ? "TODAY"
+    : recentFrom === dateDaysAgo(1) && recentTo === dateDaysAgo(1) ? "YESTERDAY"
+    : recentFrom === dateDaysAgo(6) && recentTo === today ? "D7"
+    : recentFrom === dateDaysAgo(29) && recentTo === today ? "D30" : "CUSTOM";
+  const range = current !== "results" ? "" : `<div class="d173-result-range">
+    <div class="d173-range-presets">
+      <button type="button" class="filter ${preset === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
+      <button type="button" class="filter ${preset === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
+      <button type="button" class="filter ${preset === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
+      <button type="button" class="filter ${preset === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
+    </div>
+    <div id="recent-range-form" class="d173-range-dates">
+      <label>Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" /></label>
+      <label>Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" /></label>
+    </div>
+  </div>`;
+  return `<div class="d173-ops-toolbar">
+    <div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
+      <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
+      <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
+      ${outcomeTab("HAS_STOCK", "Đã có hàng")}
+      ${outcomeTab("SKIP_ALLOWED", "Cho phép Skip")}
+      ${outcomeTab("CLOSED", "Picker đã thu hồi")}
+    </div>
+    <div class="d173-ops-toolbar-right">
+      <input id="ops-sku-suffix" aria-label="Tìm SKU theo các chữ số cuối" placeholder="Tìm SKU theo các chữ số cuối" inputmode="numeric" autocomplete="off" maxlength="32" value="${esc(opsSkuSuffix)}" />
+      ${range}
+    </div>
   </div>`;
 }
 
@@ -1618,8 +1651,10 @@ function syncOperationalTabBadges(): void {
 }
 
 function filteredQueueRows(): ReporterBatch[] {
-  if (queueFilter === "ALL") return queueRows;
-  return queueRows.filter((row) => liveQueueTiming(row).state === queueFilter);
+  return queueRows.filter((row) =>
+    (queueFilter === "ALL" || liveQueueTiming(row).state === queueFilter) &&
+    (opsSkuSuffix.length < 3 || row.sku.endsWith(opsSkuSuffix))
+  );
 }
 
 function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | undefined, forceVisible = false): string {
@@ -1812,14 +1847,6 @@ function renderOverdue(): string {
 
 function renderResults(): string {
   const visible = recentRows;
-  const today = dateDaysAgo(0);
-  const yesterday = dateDaysAgo(1);
-  const rangeId =
-    recentFrom === today && recentTo === today ? "TODAY" :
-    recentFrom === yesterday && recentTo === yesterday ? "YESTERDAY" :
-    recentFrom === dateDaysAgo(6) && recentTo === today ? "D7" :
-    recentFrom === dateDaysAgo(29) && recentTo === today ? "D30" :
-    "CUSTOM";
   const hasStock = Number(recentTotals.has_stock || 0);
   const skipped = Number(recentTotals.skip_allowed || 0);
   const withdrawn = Number(recentTotals.withdrawn || 0);
@@ -1829,6 +1856,8 @@ function renderResults(): string {
   const humanSkipped = Math.max(0, skipped - automaticSkipped);
   const pageFrom = recentTotal ? recentOffset + 1 : 0;
   const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
+  const showFirstReport = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED";
+  const columnCount = showFirstReport ? 10 : 9;
   return `<section class="ops-route ops-business-workspace">
     ${skuDayBanner()}
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
@@ -1841,20 +1870,6 @@ function renderResults(): string {
       <article class="business-summary-card primary"><span>Đã hiển thị trên PDA/Web</span><strong>${displayedCount}/${targets}</strong></article>
     </section>
     <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Khoảng kết quả</h3></div><button class="secondary" id="recent-open-report">Mở báo cáo chi tiết</button></div>
-      <div class="toolbar recent-range-toolbar" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
-        <div class="filters" style="display:flex;gap:6px;flex-wrap:wrap;align-self:flex-end">
-          <button class="filter ${rangeId === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
-          <button class="filter ${rangeId === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
-          <button class="filter ${rangeId === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
-          <button class="filter ${rangeId === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
-        </div>
-        <form id="recent-range-form" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;min-width:0">
-          <label style="min-width:146px">Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" required /></label>
-          <label style="min-width:146px">Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" required /></label>
-          <button class="secondary" type="submit">Áp dụng</button>
-        </form>
-      </div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
         ${visible.map((row) => { const correctionEnd = Date.parse(row.correction_deadline_at || "");
           const canCorrect = roleCanResolve() &&
@@ -3680,15 +3695,21 @@ async function loadReporterOverdueSnapshot(): Promise<void> {
   const requestGeneration = ++reporterOverdueLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const overdue = await getReporterOverdue(200, 0);
+  const suffix = activeSection === "overdue" && opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
+  const offset = suffix ? overdueSearchOffset : 0;
+  const overdue = await getReporterOverdue(200, offset, suffix);
   if (
     requestGeneration !== reporterOverdueLoadGeneration ||
     generation !== sessionViewGeneration ||
     userId !== (profile?.user_id || "")
   ) return;
   overdueRows = overdue.items;
-  overdueBadgeCount = Math.max(0, Number(overdue.total || overdue.items.length));
-  overdueBadgeInitialized = true;
+  if (suffix) overdueSearchTotal = Math.max(0, Number(overdue.total || 0));
+  else {
+    overdueSearchTotal = 0;
+    overdueBadgeCount = Math.max(0, Number(overdue.total || overdue.items.length));
+    overdueBadgeInitialized = true;
+  }
   perPickerOverdueEnabled = Boolean(overdue.enabled && overdue.auto_skip_mode === "PER_PICKER");
   syncOperationalTabBadges();
   markWebUpdateReceived();
@@ -3699,12 +3720,15 @@ async function loadReporterRecentSnapshot(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
+  const suffix = opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
   const recent = await getReporterRecent(
     RECENT_PAGE_SIZE,
     recentOffset,
     recentStatus,
     apiRange(recentFrom, recentTo).from,
     apiRange(recentFrom, recentTo).to,
+    suffix,
+    recentFilter === "CLOSED",
   );
   if (
     requestGeneration !== reporterRecentLoadGeneration ||
@@ -3717,9 +3741,12 @@ async function loadReporterRecentSnapshot(): Promise<void> {
   }
   recentRows = recent.items;
   recentTotal = recent.total;
-  recentBadgeCount = Math.max(0, Number(recent.total || 0));
-  recentBadgeInitialized = true;
-  recentTotals = recent.totals;
+  if (recent.totals_included !== false) {
+    recentTotals = recent.totals;
+    recentBadgeCount = Math.max(0, Number(recentTotals.has_stock || 0) +
+      Number(recentTotals.skip_allowed || 0) + Number(recentTotals.withdrawn || 0));
+    recentBadgeInitialized = true;
+  }
   syncOperationalTabBadges();
   markWebUpdateReceived();
 }
