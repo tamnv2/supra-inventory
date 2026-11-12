@@ -1709,6 +1709,7 @@ function prefetchBatchDetails(batchId: string): void {
     .then((result) => {
       batchDetails.set(batchId, result.items);
       if (activeSection === "operations" && selectedBatchId === batchId) refreshFastDetailOnly();
+      if (activeSection === "results" && expandedRecentPickerBatches.has(batchId)) patchActiveSection(true);
     })
     .catch((error) => runtimeLogEvent(`Không tải được danh sách Picker: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"))
     .finally(() => batchDetailLoads.delete(batchId));
@@ -5144,15 +5145,6 @@ function bindSection(): void {
     patchActiveSection(true);
     if (expandedRecentPickerBatches.has(batchId)) {
       prefetchBatchDetails(batchId);
-      // Existing queue-only refresh must not be used for result rows.
-      if (!batchDetails.has(batchId)) {
-        void getReporterBatchTickets(batchId).then((result) => {
-          batchDetails.set(batchId, result.items);
-          if (activeSection === "results" && expandedRecentPickerBatches.has(batchId)) patchActiveSection(true);
-        }).catch(() => {
-          if (activeSection === "results") setNotice("warning", "Không tải được thông tin Picker của đợt SKU.");
-        });
-      }
     }
   };
   document.querySelectorAll<HTMLElement>("[data-recent-picker-batch]").forEach((tr) => {
