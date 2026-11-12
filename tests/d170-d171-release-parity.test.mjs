@@ -28,7 +28,7 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
     e185.owner_protected_release_approved === true &&
     e185.web_target_version === "3.3.6" &&
     e185.android_mutation === false && e185.obpp_mutation === false;
-  assert.match(web, webE209 ? /WEB_VERSION = "3\\.3\\.7"/ :
+  assert.match(web, webE209 ? /WEB_VERSION = "3\.3\.7"/ :
     webE185 ? /WEB_VERSION = "3\.3\.6"/ :
     webE175 ? /WEB_VERSION = "3\\.3\\.5"/ :
     e167.log_protocol_approved && e167.web_mutation ?
