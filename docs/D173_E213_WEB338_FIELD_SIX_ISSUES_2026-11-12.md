@@ -13,7 +13,7 @@
 
 ## Nguyên nhân/giới hạn
 - CSS `web/src/d173-tabler.css` có breakpoint `max-width:1550px` ép khu vực ngày + tìm kiếm xuống hàng mới; các width cứng làm lãng phí diện tích.
-- UI Web 3.3.8 có đường tìm SKU suffix trong API/SQL, nhưng kết quả cũ còn hiển thị trong lúc debounce/fetch; cần buộc danh sách khớp chính xác khóa lọc. **Không khẳng định đây là nguyên nhân duy nhất** khi chưa có browser network trace thực tế.
+- UI Web 3.3.8 có đường tìm SKU suffix trong API/SQL, nhưng kết quả cũ còn hiển thị trong lúc debounce/fetch; cần buộc danh sách khớp chính xác khóa lọc. **Thêm nguyên nhân xác minh trực tiếp từ source:** `restoreUiContext` tái áp giá trị DOM cũ vào ô SKU sau khi đổi tab và xóa `opsSkuSuffix`, khiến ô vẫn có SKU nhưng truy vấn rỗng và danh sách không lọc. Đã chặn tái áp riêng ô SKU, các input khác giữ nguyên. Các nguyên nhân bổ sung từ Production cần network trace thực tế.
 - Worker hiện nối `latest_withdrawal.picker_user_id` với user; mã employee của phiếu có thể trống. Source thêm fallback sang mã user gốc, vẫn phải kiểm tra trên dữ liệu thực tế. Nếu API trả thiếu cả identity lịch sử, không đoán người thu hồi và không thay bằng người xử lý batch.
 
 ## Thay đổi tối thiểu — PR #946 (CODE ONLY)

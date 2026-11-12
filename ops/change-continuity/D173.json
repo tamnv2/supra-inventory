@@ -3920,7 +3920,7 @@
       "date_vn": "2026-11-12",
       "kind": "OWNER_COMMAND",
       "topic": "Web 3.3.8 corporate header, SKU search, withdrawn Picker identity, Skip tab, compact dates and one-line toolbar",
-      "status": "PR946_SOURCE_CANDIDATE__CI_PENDING__PRODUCTION_UNCHANGED",
+      "status": "PR946_SOURCE_PATCH__OWNED_WEB_FIX__CI_EXACT_HEAD_PENDING__RELEASE_HOLD",
       "owner_approval": true,
       "owner_release_approval": false,
       "pr": 946,
@@ -3935,7 +3935,8 @@
       "verified": [
         "desktop_css_max1550_forces_second_row",
         "suffix_api_exists_but_stale_filtered_rows_can_remain_visible_before_new_response",
-        "withdrawn_actor_from_latest_ticket_user_id_with_read_only_employee_code_fallback"
+        "withdrawn_actor_from_latest_ticket_user_id_with_read_only_employee_code_fallback",
+        "DOM_context_restore_can_replay_old_SKU_after_tab_switch_even_when_opsSkuSuffix_is_empty__controlled_field_restoration_now_skipped"
       ],
       "unverified": [
         "exact_root_cause_of_all_search_failures_without_production_network_trace",
@@ -3946,7 +3947,7 @@
       "evidence": "docs/D173_E213_WEB338_FIELD_SIX_ISSUES_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/946",
       "next_action": "Review exact PR CI and source fixture, then gated Owner release decision separately; validate real Picker actor and search on deployed Web before field or Owner PASS",
       "code": "SOURCE_CANDIDATE",
-      "ci": "PENDING",
+      "ci": "LATEST_SHA_PENDING_RECHECK",
       "release": "HOLD",
       "field_pass": false,
       "owner_pass": false,
@@ -5163,7 +5164,8 @@
     "verified_source_findings": [
       "desktop_css_max1550_forces_second_row",
       "suffix_api_exists_but_stale_filtered_rows_can_remain_visible_before_new_response",
-      "withdrawn_actor_from_latest_ticket_user_id_with_read_only_employee_code_fallback"
+      "withdrawn_actor_from_latest_ticket_user_id_with_read_only_employee_code_fallback",
+      "DOM_context_restore_can_replay_old_SKU_after_tab_switch_even_when_opsSkuSuffix_is_empty__controlled_field_restoration_now_skipped"
     ],
     "unverified": [
       "exact_root_cause_of_all_search_failures_without_production_network_trace",
@@ -5181,14 +5183,15 @@
       "tools/d173_e210_withdrawn_identity_sql.py",
       ".github/workflows/d173-e213-web338-field.yml"
     ],
-    "source_ci_sha": "e18b551a9903aa0459ad43542bdd1fd9e2ddba12",
+    "source_ci_sha": null,
     "code": "BRANCH_PATCH_WRITTEN_PENDING_FULL_TEST",
-    "ci": "RUNNING_VERIFY_FROM_PR_946",
+    "ci": "E213_SUCCESS_388E06A_BEFORE_LAST_SOURCE_ADJUSTMENT__EXACT_LATEST_SHA_STILL_PENDING",
     "release": "NO_NEW_RELEASE_OWNER_GATED",
     "field": "WEB338_OWNER_FAIL_NEW_FIX_UNTESTED",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "evidence": "docs/D173_E213_WEB338_FIELD_SIX_ISSUES_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/946"
+    "evidence": "docs/D173_E213_WEB338_FIELD_SIX_ISSUES_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/946",
+    "candidate_head_sha": "4d91ad566adf026fa34c090e5d0a156dab759e38"
   }
 }
