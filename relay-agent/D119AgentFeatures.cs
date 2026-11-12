@@ -588,6 +588,11 @@ namespace SupraInventoryRelayAgent
             _pair.Visible = !authenticated;
 
             _logout.Visible = authenticated;
+            // E207: original Web-data controls now live inside the Agent card;
+            // hide them with the rest of the authenticated actions on logout.
+            _browserBundleDownload.Visible = authenticated;
+            _openAgentDataFolder.Visible = authenticated;
+            _moveAgentDataFolder.Visible = authenticated;
             _background.Visible = true;
             _agentExit.Visible = true;
             _d173E175NetworkStatus.Visible = authenticated;
