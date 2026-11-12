@@ -31,6 +31,9 @@ jobs:
         run: |
           npm install --ignore-scripts --no-audit --no-fund
           npm run build
+      - name: Install TypeScript needed by D172 synthetic tests
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: D172 independent change boundary and regression
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
