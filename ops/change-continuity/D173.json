@@ -7,11 +7,11 @@
   "pr": 938,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R06",
+    "id": "D173-E204-R07",
     "date_vn": "2026-11-12",
-    "summary": "Owner cannot download 99 MiB V2.2 ChatGPT sandbox ZIP; original GitHub artifact verified (ID13906912746, SHA b3cf2bbe...), supplied GitHub Actions link. GitHub download by Owner unverified; no code or runtime change.",
-    "status": "ARTIFACT_ARCHIVED_ON_GITHUB__CHATGPT_DOWNLOAD_UI_FAILED__GITHUB_DOWNLOAD_FIELD_UNVERIFIED",
-    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43135479919/artifacts/13906912746"
+    "summary": "Owner tested V2.2 ROI fixed across window resize/Scale/display resolution and reports correct persistence. Uploaded ROI ZIP CRC valid; 421x290 crop at [379,156] for fixed 1178x600 WebView2; no input sent. ROI-only FIELD accepted as Owner observation; full FIELD/OWNER pending, no auto CAPTCHA.",
+    "status": "V22_OWNER_ATTESTED_ROI_FIELD_PASS__ZIP_VALID__AUTO_CHALLENGE_NOT_IMPLEMENTED__NO_OWNER_GLOBAL_PASS",
+    "source": "Owner-provided ZIP and https://github.com/tamnv2/supra-inventory/pull/938"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4091,6 +4091,36 @@
       "code": "NO_CHANGE",
       "ci": "PRIOR_15_15_PASS",
       "release": "TEST_ARTIFACT_ONLY",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R07",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_FIELD_OBSERVATION_AND_SANITIZED_UPLOAD_REVIEW",
+      "topic": "V2.2 fixed viewport and ROI persistence across resize, Windows scale and display resolution",
+      "status": "V22_OWNER_ATTESTED_ROI_FIELD_PASS__ZIP_VALID__AUTO_CHALLENGE_NOT_IMPLEMENTED__NO_OWNER_GLOBAL_PASS",
+      "owner_field_report": "Owner tested minimizing/maximizing/resizing application window, adjusting Windows display Scale and Display Resolution; previously selected region continued to show correctly.",
+      "verified_upload": [
+        "Received local puzzle-region-v22.zip, 160095 bytes, SHA256 a0058ac1c828e3ec355886d87ff5af9471dff52a483034737de95f3ca37b3fac, CRC PASS.",
+        "ZIP has exactly region-v22.png (421x290 px RGB) and region-v22.json with expected schema.",
+        "JSON viewport_fixed_control_px=[1178,600], region_image_px=[379,156,421,290], input_sent=false.",
+        "Image review: selected crop includes puzzle image, two puzzle-piece shapes and bottom slider/instruction; no visible account identifiers or authentication fields in this crop."
+      ],
+      "evidence_limits": [
+        "One ZIP with one PNG and one metadata snapshot cannot independently verify pre/post pixel-coordinate consistency over all DPI and resolution changes; multi-resolution consistency is Owner-attested FIELD observation only.",
+        "Validated ROI/display behavior does not validate CAPTCHA matching, drag correctness, login, Confirm navigation or Agent Production integration.",
+        "Do not commit actual PNG/ZIP or security challenge images into the public repository."
+      ],
+      "decision": "Record FIELD PASS narrowly for V2.2 fixed viewport/ROI persistence as Owner-attested, not full acceptance. No further live CAPTCHA attempts required. No new code/release authority inferred.",
+      "next_action": "No additional action unless Owner requests a separate scope. Retain PR938 Draft isolated from Production, D172 and Stable.",
+      "source": "Owner-provided ZIP and https://github.com/tamnv2/supra-inventory/pull/938",
+      "code": "NO_CHANGE_PREVIOUS_CI_PASS",
+      "ci": "NO_NEW_CI",
+      "release": "DIAGNOSTIC_ARTIFACT_ONLY",
+      "field": "ROI_PERSISTENCE_OWNER_ATTESTED_PASS",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
