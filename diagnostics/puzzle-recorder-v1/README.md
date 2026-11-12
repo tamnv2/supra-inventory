@@ -46,3 +46,14 @@ Không tự tải ảnh hoặc log lên mạng. Các tọa độ chuột đượ
 - Bấm **Kiểm tra vùng (không kéo)**. Công cụ chỉ chụp vùng đã chọn trong RAM để anh xác nhận. Nút **Xuất vùng đã duyệt** sẽ ghi ZIP gồm `region-v22.png` và `region-v22.json`, không có màn hình đăng nhập đầy đủ. Đọc lại ZIP trước khi gửi.
 - Không bấm Test/kéo tự động; V2.2 không thử lại, không tự đăng nhập, không tự điều hướng trang Confirm. Hoàn thành thử thách phải do người dùng thực hiện hoặc qua API/SSO chính thức do WMS cho phép.
 - `--startup-smoke` kiểm tra OpenCV synthetic V2 và giới hạn tọa độ ROI synthetic V2.2, không truy cập WMS hoặc mạng thật.
+
+## V2.3 — Mô phỏng ROI lệch ±15 px và kéo cục bộ (offline)
+
+1. Giải nén toàn bộ ZIP Windows x64, mở `SUPRA.Puzzle.Tester.V2.exe` (version 2.3.0).
+2. Nhấn **Mô phỏng kéo (offline)**. Không cần đăng nhập, không truy cập WMS hoặc CAPTCHA thật.
+3. Nhập độ lệch vùng chọn X/Y từ -15 đến +15 px, thử nhiều tổ hợp (-15,-15), (0,0), (+15,+15).
+4. Nhấn **Mô phỏng kéo**. Hình chữ nhật màu xanh di chuyển trên hình giả lập tới ô viền xanh. Màn hình hiện `SIM PASS` nếu chuyển động mô phỏng khớp khoảng đã biết.
+5. Nhấn **Lưu kết quả** để tạo JSON mô phỏng, không chứa URL, tài khoản hoặc dữ liệu từ Web.
+6. V2.2 vẫn hỗ trợ **Chọn vùng trò chơi**, **Kiểm tra vùng (không kéo)** và **Xuất vùng đã duyệt**. Nút Test kéo tự động trên trang WMS không được bật.
+
+`SIM PASS` chỉ xác minh phép toán tọa độ trong hình giả lập có nhãn cố định, **không phải** độ chính xác nhận diện hình ngẫu nhiên, không chứng minh kéo CAPTCHA qua được trang đăng nhập và không xác minh tính năng Confirm Picklist.
