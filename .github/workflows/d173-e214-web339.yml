@@ -1,0 +1,56 @@
+name: D173 E214 Web339 Owner Scoped Source Gate
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'service/src/operational-v2-core.ts'
+      - 'tests/d173-e209-web-results.test.mjs'
+      - 'tests/d173-e214-web339-field-six-issues.test.mjs'
+      - 'tools/d173_e210_withdrawn_identity_sql.py'
+      - 'tools/d173_e214_web339_release_gate.py'
+      - 'ops/d173-e214-web-release-authorization.json'
+      - '.github/workflows/deploy-beta.yml'
+      - '.github/workflows/d173-e214-web339.yml'
+permissions:
+  contents: read
+jobs:
+  web339:
+    if: contains(github.head_ref, 'd173-e214-web339-field-release')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Web339 regression, suffix and actual SQLite withdrawn actor
+        run: |
+          node --test tests/d173-e214-web339-field-six-issues.test.mjs tests/d173-e209-field-ui.test.mjs tests/d173-e209-web-results.test.mjs
+          python3 tools/d173_e209_suffix_sql_regression.py
+          python3 tools/d173_e210_withdrawn_identity_sql.py
+          node --test tests/d173-e032-ui-code-only.test.mjs tests/d167-web-ux-consistency.test.mjs
+      - name: Owner scoped exact code paths no provider write
+        run: |
+          python3 tools/d173_e214_web339_release_gate.py --component worker --preflight
+          python3 tools/d173_e214_web339_release_gate.py --component web --preflight
+      - name: Build new Web 3.3.9
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Shared Worker TypeScript
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Strict independent D172 regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: No provider mutation in PR
+        run: echo "D173_E214_WEB339_EXACT_SOURCE_ONLY__PRODUCTION_FIELD_OWNER_PENDING"

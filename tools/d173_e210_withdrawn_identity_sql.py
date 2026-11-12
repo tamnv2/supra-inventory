@@ -31,4 +31,19 @@ sql = """SELECT page.picker_employee_code,
  FROM page_ids page """ + joins
 rows = db.execute(sql).fetchall()
 assert rows == [('999999','Tên Picker lần thu hồi mới nhất','2026-11-12T09:45:00Z')], rows
+
+# E213: a historical ticket can have no stored employee code. The read
+# projection must fall back to the authenticated withdrawer's employee code.
+assert "COALESCE(NULLIF(page.picker_employee_code, ''), NULLIF(withdrawn_user.employee_code, ''), '') AS withdrawn_picker_employee_code" in src
+db.executescript("""
+INSERT INTO page_ids VALUES ('b2','','2026-11-12T10:00:00Z');
+INSERT INTO users VALUES ('u_missing','SYNTH-088','Người thu hồi có danh tính');
+INSERT INTO report_tickets VALUES ('t_missing','b2','u_missing','','WITHDRAWN','2026-11-12T10:00:00Z');
+""")
+fallback_sql = """SELECT COALESCE(NULLIF(page.picker_employee_code, ''), NULLIF(withdrawn_user.employee_code, ''), ''),
+ COALESCE(NULLIF(withdrawn_user.display_name, ''), NULLIF(code_user.display_name, ''), '')
+ FROM page_ids page """ + joins + " WHERE page.batch_id = 'b2'"
+assert db.execute(fallback_sql).fetchall() == [('SYNTH-088','Người thu hồi có danh tính')]
+
 print("D173_E210_WITHDRAWN_ACTOR_LATEST_TICKET_SQL_PASS")
+print("D173_E213_WITHDRAWN_ACTOR_MISSING_EMPLOYEE_CODE_SQL_PASS")
