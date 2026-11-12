@@ -42,7 +42,7 @@ def main():
     auth = json.loads((ROOT / "ops/d173-e233-web3314-release-authorization.json").read_text())
     fixed = {
         "schema_version":1,"project_key":"supra-inventory","change_id":"D173-E233",
-        "owner_approval_reference":"OWNER_20261112_EXPLICIT_DEPLOY_WEB_3_3_13",
+        "owner_approval_reference":"OWNER_20261112_DEPLOY_WEB3314_E233_FIELD_FIX",
         "owner_code_approved":True,"owner_production_release_approved":True,"source_pr":959,
         "base_main_sha":BASE,"source_code_sha":PIN,"web_target_version":"3.3.14",
         "approved_components":["worker","web"],"release_marker":MARKER,"web_ui_only":True,
