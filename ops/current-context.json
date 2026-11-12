@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E227",
+    "checkpoint_id": "D173-E228",
     "pr": 955,
     "branch": "fix/d173-e227-web3312-eight-ui-fixes-20261112",
-    "status": "WEB3312_EIGHT_UI_APPROVED_CODE_PR955__SCOPED_CI_PENDING__PRODUCTION_WEB3311_UNCHANGED__D172_HOLD",
+    "status": "WEB3312_EIGHT_UI_SOURCE_CI_4_PASS__PROTECTED_RELEASE_GATE_PENDING__PROD_WEB3311_UNCHANGED__D172_HOLD",
     "owner_merge_approved": true,
     "owner_release_approved": true,
     "source_doc": "docs/D173_E227_WEB3312_EIGHT_UI_OWNER_2026-11-12.md",
