@@ -66,11 +66,14 @@ for name in (
     "COUNTER_RECENT_TOTAL",
 ):
     assert name in sql and name in oper
-# E055 eliminates the redundant recent count entirely; keep the historical
-# query ID allowlisted for existing retained telemetry, but never execute it.
+# E209 adds a count only for suffix/picker-row pagination. Ordinary lists
+# still reuse the existing aggregate without a redundant extra COUNT.
 assert "RECENT_RESULTS_COUNT" in sql
-assert 'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"' not in oper
-assert 'total: status === "HAS_STOCK"' in oper
+assert 'const filteredTotal = (suffix || pickerRows)' in oper
+assert oper.count('d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"') == 1
+assert 'total: filteredTotal !== null ? filteredTotal : status === "HAS_STOCK"' in oper
+assert 'const totalsRow = !includeTotals ? {} : first(' in oper
+assert 'const ackTotals = !includeTotals ? {} : first(' in oper
 assert "WeakMap<DurableObjectState" in sql and "WeakMap<DurableObjectState" in route
 assert "recordD167DoRequest(this.state, request.method, url.pathname," in core
 assert "d167_do_request_diagnostics: snapshotD167DoRequests(state)" in metrics
