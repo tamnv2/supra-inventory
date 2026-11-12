@@ -1040,25 +1040,12 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
           LIMIT ? OFFSET ?
        )`;
 
-  const rows = d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE",
-    `${pageSql}
-     SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-            b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
-            COALESCE(resolver.display_name, '') AS resolved_by_display_name,
-            COALESCE(
-              NULLIF(resolver.employee_code, ''),
-              (SELECT e.actor_employee_code
-                 FROM report_events e
-                WHERE e.batch_id = b.batch_id
-                  AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
-                  AND e.actor_employee_code IS NOT NULL
-                ORDER BY e.created_at DESC
-                LIMIT 1),
-              ''
-            ) AS resolved_by_employee_code,
-            b.version, p.batch_id AS previous_batch_id, p.resolved_at AS previous_resolved_at,
-            ${pickerRows ? "page.picker_employee_code AS withdrawn_picker_employee_code, COALESCE(withdrawn_user.display_name, '') AS withdrawn_picker_display_name, page.withdrawn_at AS withdrawn_picker_withdrawn_at," : ""}
-            CASE
+
+  // A CLOSED picker row is already an individual WITHDRAWN ticket owner.
+  // Avoid repeating multiple ACK and ticket-count subqueries per picker row.
+  const rowCountsSql = pickerRows
+    ? "1 AS affected_picker_count, 1 AS total_ticket_count, 1 AS withdrawn_ticket_count, 0 AS ack_target_count, 0 AS acknowledged_count, 0 AS displayed_count"
+    : `            CASE
               WHEN b.status = 'CLOSED' THEN
                 (SELECT COUNT(DISTINCT COALESCE(t.picker_user_id, t.picker_employee_code))
                    FROM report_tickets t
@@ -1082,7 +1069,27 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
                   AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count,
             (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
                 WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                  AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL)) AS displayed_count
+                  AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL)) AS displayed_count`;
+
+  const rows = d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE",
+    `${pageSql}
+     SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
+            b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
+            COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+            COALESCE(
+              NULLIF(resolver.employee_code, ''),
+              (SELECT e.actor_employee_code
+                 FROM report_events e
+                WHERE e.batch_id = b.batch_id
+                  AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+                  AND e.actor_employee_code IS NOT NULL
+                ORDER BY e.created_at DESC
+                LIMIT 1),
+              ''
+            ) AS resolved_by_employee_code,
+            b.version, p.batch_id AS previous_batch_id, p.resolved_at AS previous_resolved_at,
+            ${pickerRows ? "page.picker_employee_code AS withdrawn_picker_employee_code, COALESCE(withdrawn_user.display_name, '') AS withdrawn_picker_display_name, page.withdrawn_at AS withdrawn_picker_withdrawn_at," : ""}
+            ${rowCountsSql}
        FROM page_ids page
        JOIN report_batches b ON b.batch_id = page.batch_id
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
