@@ -86,7 +86,10 @@ jobs:
         run: |
           set -euo pipefail
           subject="$(git log -1 --format=%s)"
-          if [[ "$subject" == D173-E223_WEB3311_PRODUCTION_RELEASE:* ]]; then
+          if [[ "$subject" == D173-E227_WEB3312_PRODUCTION_RELEASE:* ]]; then
+            python3 tools/d173_e227_web3312_release_gate.py --component worker
+            python3 tools/d173_e227_web3312_release_gate.py --component web
+          elif [[ "$subject" == D173-E223_WEB3311_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e223_web3311_release_gate.py --component worker
             python3 tools/d173_e223_web3311_release_gate.py --component web
           elif [[ "$subject" == D173-E217_WEB3310_PRODUCTION_RELEASE:* ]]; then
@@ -168,7 +171,7 @@ jobs:
           # E165/E167 Owner-approved Production changes ONLY the Web log cadence.
           # Validate its precise replacement instead of blocking a correct release
           # with obsolete literal source checks.
-          if [[ "$(git log -1 --format=%s)" == D173-E223_WEB3311_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E217_WEB3310_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E214_WEB339_FIELD_REPAIR_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E210_WEB338_FIELD_REPAIR_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E209_WEB337_RESULTS_WORKER_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E175_UNIFIED_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* || "$(git log -1 --format=%s)" == D172-E059_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E060_WORKER_ONLY:* ]]; then
+          if [[ "$(git log -1 --format=%s)" == D173-E227_WEB3312_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E223_WEB3311_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E217_WEB3310_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E214_WEB339_FIELD_REPAIR_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E210_WEB338_FIELD_REPAIR_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E209_WEB337_RESULTS_WORKER_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E175_UNIFIED_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* || "$(git log -1 --format=%s)" == D172-E059_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E060_WORKER_ONLY:* ]]; then
             grep -Fq 'const minuteOfDay = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);' web/src/runtime-logger.ts
             grep -Fq 'const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];' web/src/runtime-logger.ts
             grep -Fq 'return `${parts.year}${parts.month}${parts.day}-${slot}`;' web/src/runtime-logger.ts
@@ -267,6 +270,14 @@ jobs:
           # cannot reuse Agent158/159 release authority.
           # E140 shares the EXISTING Worker; no Apps Script Gateway or D172
           # mutation, and Worker must deploy before Agent166/Android126.
+          if [[ "$(git log -1 --format=%s)" == D173-E227_WEB3312_PRODUCTION_RELEASE:* ]]; then
+            python3 tools/d173_e227_web3312_release_gate.py --component worker
+            git diff --quiet "$(jq -r '.base_main_sha' ops/d173-e227-web3312-release-authorization.json)" HEAD -- service/ android/ obpp1291/ firebase/ functions/ pda-management/ ops/apps-script/ relay-agent/ relay-agent-webview2-host/ || {
+              echo "::error::E227 UI-only scope drift in protected D172/Provider/Agent paths"; exit 1;
+            }
+            echo "D173_E227_EXISTING_GATEWAY_WORKER_BUSINESS_D172_UNCHANGED"
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E223_WEB3311_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e223_web3311_release_gate.py --component worker
             git diff --quiet "$(jq -r '.base_main_sha' ops/d173-e223-web3311-release-authorization.json)" HEAD -- \
