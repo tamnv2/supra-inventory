@@ -1,3 +1,11 @@
+## D173-E209 — Owner 12/11/2026: chốt logic thu hồi và triển khai Web 3.3.7 (Worker/Web only)
+
+Owner duyệt triển khai trọn các thay đổi đã phân tích Web vận hành Báo hàng: (1) tìm SKU chỉ bằng **chữ số cuối** trong **tab đang chọn**, tối thiểu 3 số; Đang xử lý/Quá hạn tra toàn bộ chưa hoàn tất, 3 tab kết quả tra theo `first_report_at` trong đúng khoảng ngày đã chọn; (2) ẩn nút mở báo cáo chi tiết tại workspace; (3) Picker đã thu hồi **mỗi picker một dòng** nhưng badge/KPI **vẫn đếm số batch** như hiện tại và phân trang theo **dòng picker**; (4) một picker báo/thu hồi nhiều lượt trong cùng batch chỉ hiện **một dòng, lần thu hồi mới nhất**; (5) double-click chi tiết picker theo batch trong Đã có hàng/Cho phép Skip; (6) auto ngày, thu gọn toolbar, thêm cột first report.
+
+Ưu tiên **Usage > Ổn định > Tốc độ**. Cho phép code, kiểm thử rồi phát hành riêng **Web 3.3.7 và Worker D173 API đọc hiện hữu** sau khi exact CI + independent D172 regression + scope/auth/release gates PASS; không cấp quyền thay đổi APK, Agent, Firebase, dữ liệu nghiệp vụ D172 hay Stable. Không tự coi CI/Release là FIELD hoặc OWNER PASS. Bất kỳ gate fail phải sửa theo phạm vi được duyệt, không bỏ qua gate. Nguồn: `docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md`, PR #942.
+
+---
+
 ## D173 — Owner 12/11/2026: chốt 3 quyết định phạm vi Web tìm SKU và Picker thu hồi
 - **Tìm kiếm đúng tab đang mở.** Tab Đang xử lý/Quá hạn tìm **toàn bộ đơn chưa hoàn tất**; ba tab Đã có hàng/Cho phép Skip/Picker đã thu hồi chỉ tìm đúng phạm vi ngày đã chọn, không tự mở rộng. Vẫn dùng tìm SKU theo hậu tố đã chốt (>=3 chữ số, placeholder `Tìm SKU theo các chữ số cuối`).
 - **Picker đã thu hồi:** mỗi picker một dòng riêng, cùng SKU/batch có thể hiện nhiều dòng; không tự gộp nhiều picker vào một dòng.
