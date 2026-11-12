@@ -297,6 +297,7 @@ function clearRoleScopedViewState(): void {
   overdueBadgeInitialized = false;
   perPickerOverdueEnabled = false;
   recentRows = [];
+  recentLoadedViewKey = "";
   recentOffset = 0;
   recentTotal = 0;
   recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
@@ -419,6 +420,7 @@ let recentBadgeInitialized = false;
 let reporterBadgeLoadGeneration = 0;
 let queueServerOffsetMs = 0;
 let recentRows: ReporterRecentBatch[] = [];
+let recentLoadedViewKey = "";
 let recentOffset = 0;
 let recentTotal = 0;
 const RECENT_PAGE_SIZE = 50;
@@ -1605,11 +1607,15 @@ function render(): void {
   }, performance.now() - started);
 }
 
+function recentPageKey(): string {
+  return [recentFilter, recentFrom, recentTo, opsSkuSuffix.length >= 3 ? opsSkuSuffix : "", recentOffset].join("|");
+}
+
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
   // Five tabs share existing counters; suffix only applies to the active tab.
   const skipBreakdown = `Tổng ${resultTabBadgeCounts.SKIP_ALLOWED}: Tự động ${resultTabAutoSkipCount} - Nhân sự ${Math.max(0, resultTabBadgeCounts.SKIP_ALLOWED - resultTabAutoSkipCount)}`;
   const outcomeTab = (status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED", label: string) =>
-    `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}">${label} ${status === "SKIP_ALLOWED" ? `(<span data-workspace-count="SKIP_ALLOWED">${skipBreakdown}</span>)` : `<b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b>`}</button>`;
+    `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}"${status === "SKIP_ALLOWED" ? ` title="${esc(skipBreakdown)}"` : ""}>${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
   const today = dateDaysAgo(0);
   const preset = recentFrom === today && recentTo === today ? "TODAY"
     : recentFrom === dateDaysAgo(1) && recentTo === dateDaysAgo(1) ? "YESTERDAY"
@@ -1649,9 +1655,7 @@ function syncOperationalTabBadges(): void {
   if (overdue) overdue.textContent = String(overdueBadgeCount);
   for (const status of ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const) {
     const badge = document.querySelector<HTMLElement>(`[data-workspace-count="${status}"]`);
-    if (badge) badge.textContent = status === "SKIP_ALLOWED"
-      ? `Tổng ${resultTabBadgeCounts.SKIP_ALLOWED}: Tự động ${resultTabAutoSkipCount} - Nhân sự ${Math.max(0, resultTabBadgeCounts.SKIP_ALLOWED - resultTabAutoSkipCount)}`
-      : String(resultTabBadgeCounts[status]);
+    if (badge) badge.textContent = String(resultTabBadgeCounts[status]);
   }
 }
 
@@ -1867,9 +1871,10 @@ function resultPickerMarkup(batchId: string): string {
 }
 
 function renderResults(): string {
-  const visible = recentRows;
-  const pageFrom = recentTotal ? recentOffset + 1 : 0;
-  const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
+  const waitingForResults = recentLoadedViewKey !== recentPageKey();
+  const visible = waitingForResults ? [] : recentRows;
+  const pageFrom = !waitingForResults && recentTotal ? recentOffset + 1 : 0;
+  const pageTo = waitingForResults ? 0 : Math.min(recentTotal, recentOffset + recentRows.length);
   const showFirstReport = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED";
   const columnCount = showFirstReport ? 9 : 8;
   return `<section class="ops-route ops-business-workspace">
@@ -1886,9 +1891,9 @@ function renderResults(): string {
             ? [row.withdrawn_picker_employee_code, row.withdrawn_picker_display_name].filter(Boolean).join(" - ") || "—"
             : resolutionActorLabel(row);
           return `<tr ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
-          ${showFirstReport && expandedRecentPickerBatches.has(row.batch_id) ? `<tr class="d173-picker-detail-tr"><td colspan="${columnCount}">${resultPickerMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="${columnCount}" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
+          ${showFirstReport && expandedRecentPickerBatches.has(row.batch_id) ? `<tr class="d173-picker-detail-tr"><td colspan="${columnCount}">${resultPickerMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="${columnCount}" class="empty">${waitingForResults ? "Đang tìm dữ liệu theo bộ lọc…" : "Chưa có kết quả phù hợp trong khoảng ngày đã chọn."}</td></tr>`}
       </tbody></table></div>
-      <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} ${recentFilter === "CLOSED" ? "dòng Picker thu hồi" : "kết quả"}</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
+      <div class="user-pagination"><span>${waitingForResults ? "Đang tìm dữ liệu theo bộ lọc…" : `Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} ${recentFilter === "CLOSED" ? "dòng Picker thu hồi" : "kết quả"}`}</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
   </section>`;
 }
@@ -3759,7 +3764,7 @@ async function loadReporterRecentSnapshot(includeTotals = false): Promise<void> 
   const requestGeneration = ++reporterRecentLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const viewKey = [recentFilter, recentFrom, recentTo, opsSkuSuffix, recentOffset].join("|");
+  const viewKey = recentPageKey();
   const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
   const suffix = opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
   const recent = await getReporterRecent(
@@ -3776,7 +3781,7 @@ async function loadReporterRecentSnapshot(includeTotals = false): Promise<void> 
     requestGeneration !== reporterRecentLoadGeneration ||
     generation !== sessionViewGeneration ||
     userId !== (profile?.user_id || "") ||
-    viewKey !== [recentFilter, recentFrom, recentTo, opsSkuSuffix, recentOffset].join("|")
+    viewKey !== recentPageKey()
   ) return;
   if (recent.total > 0 && recentOffset >= recent.total) {
     recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
@@ -3784,6 +3789,7 @@ async function loadReporterRecentSnapshot(includeTotals = false): Promise<void> 
   }
   recentRows = recent.items;
   recentTotal = recent.total;
+  recentLoadedViewKey = viewKey;
   if (recent.totals_included !== false) {
     recentTotals = recent.totals;
     resultTabAutoSkipCount = Math.min(Math.max(0, Number(recentTotals.skip_allowed || 0)), Math.max(0, Number(recentTotals.automatic_skipped || 0)));
@@ -4589,6 +4595,7 @@ function bindShell(): void {
       recentBadgeInitialized = false;
       reporterBadgeLoadGeneration += 1;
       recentRows = [];
+      recentLoadedViewKey = "";
       batchDetails.clear();
       pickerReports = [];
       pickerResults = [];
@@ -5155,6 +5162,7 @@ function bindSection(): void {
     expandedRecentPickerBatches.clear();
     if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
     opsSkuInputTimer = null;
+    if (activeSection === "results" && (wasSearching || opsSkuSuffix.length >= 3)) patchActiveSection(true);
     if (!wasSearching && opsSkuSuffix.length < 3) return; // No call for 1–2 digits.
     if (activeSection === "operations") {
       patchActiveSection(true); // Client-side filter of the complete queue: zero API calls.
