@@ -25,14 +25,19 @@
   "stable_mutation": false,
   "sqlite_schema_mutation": false,
   "new_provider_resources": false,
-  "source_ci_verified": false,
-  "web_build_pass": false,
-  "d172_isolation_pass": false,
-  "required_ci_failed": null,
-  "required_ci_success": 0,
-  "release": "OWNER_APPROVED_RELEASE__EXACT_PR_FINAL_SOURCE_CI_PENDING",
+  "source_ci_verified": true,
+  "web_build_pass": true,
+  "d172_isolation_pass": true,
+  "required_ci_failed": 0,
+  "required_ci_success": 4,
+  "release": "OWNER_APPROVED_SCOPED_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_REQUIRED",
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_sha": null,
-  "required_ci_run_ids": []
+  "source_ci_sha": "b287887e6613ab60b750947a7b7133a201700288",
+  "required_ci_run_ids": [
+    43227189692,
+    43227189986,
+    43227189717,
+    43227189801
+  ]
 }
