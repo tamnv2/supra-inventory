@@ -7604,16 +7604,16 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
     "pr": 959,
-    "latest_checkpoint_id": "D173-E233",
+    "latest_checkpoint_id": "D173-E234",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E233_WEB3313_FIELD_NOT_PASS_REVIEW_ONLY__NO_NEW_RELEASE_AUTH__D172_HOLD",
+    "owner_release_gate": "D173_E234_OWNER_APPROVED_WEB3314_SCOPED_RELEASE_AFTER_CI__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 959,
     "active_working_branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
-    "working_pr_lifecycle": "PR959_OPEN_DOCS_ONLY_WEB3313_FIELD_NOT_PASS__NO_RUNTIME_REDEPLOY"
+    "working_pr_lifecycle": "PR959_OPEN_WEB3314_CODE_CANDIDATE__CI_AND_RELEASE_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14111,5 +14111,40 @@
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md",
     "pr": 959
+  },
+  "d173_e234_web3314_owner_field_fix": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E234",
+    "kind": "OWNER_APPROVED_WEB3314_FIELD_FIX_AND_RELEASE",
+    "branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
+    "pr": 959,
+    "base_main_sha": "99da97d69490f68818a5a1e49c566a0c5e12141b",
+    "source_code_pin": "2707623f53b932a3cb1cf892fd88f9d0879a76e0",
+    "production_web_version": "3.3.13",
+    "candidate_web_version": "3.3.14",
+    "owner_code_approved": true,
+    "owner_merge_approved": true,
+    "owner_production_release_approved": true,
+    "scope": "WEB_D173_REPORTER_RESULT_RAM_CACHE_AND_DESKTOP_SCROLL_ONLY",
+    "persistent_business_cache": false,
+    "source_changes": [
+      "web/src/operational-app.ts",
+      "web/src/d173-tabler.css",
+      "web/src/web-version.ts",
+      "web/package.json"
+    ],
+    "release_gate": "tools/d173_e233_web3314_release_gate.py",
+    "release_authorization": "ops/d173-e233-web3314-release-authorization.json",
+    "release_marker": "D173-E233_WEB3314_PRODUCTION_RELEASE:",
+    "source_ci": "PENDING_EXACT_PR_HEAD",
+    "code": "CANDIDATE_PR959",
+    "release": "WEB3314_NOT_DEPLOYED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md",
+    "known_first_failure_run": 43234305152
   }
 }
