@@ -22,7 +22,7 @@ namespace SupraPuzzleRecorder
             if (args.Length == 1 && args[0] == "--startup-smoke")
             {
                 // Assert that native OpenCV can actually load from the x64 build artifact.
-                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()) || !PuzzleVision.SelfTest() || !RecorderForm.V21ImageSmoke())
+                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()) || !PuzzleVision.SelfTest() || !RecorderForm.V21ImageSmoke() || !RecorderForm.V22RegionSmoke())
                     throw new InvalidOperationException("OpenCV vision self-test unavailable");
                 return;
             }
@@ -56,10 +56,11 @@ namespace SupraPuzzleRecorder
 
         internal RecorderForm()
         {
-            Text = "SUPRA | Puzzle Tester V2.1 — Chẩn đoán ảnh & đường kéo";
+            Text = "SUPRA | Puzzle Diagnostic V2.2 — Khung cố định";
+            AutoScaleMode = AutoScaleMode.None;
             Width = 1200;
             Height = 800;
-            MinimumSize = new Size(1070, 520);
+            MinimumSize = new Size(980, 520);
             StartPosition = FormStartPosition.CenterScreen;
             var toolbar = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 1, ColumnCount = 9, Padding = new Padding(6), Height = 44 };
             toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -79,7 +80,12 @@ namespace SupraPuzzleRecorder
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
-            _browser.Dock = DockStyle.Fill;
+            // Browser viewport remains constant when the outer window or monitor changes.
+            // The host scrolls rather than resizing the page or changing image coordinates.
+            var browserHost = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+            _browser.Dock = DockStyle.None;
+            _browser.Size = new Size(1178, 600);
+            browserHost.Controls.Add(_browser);
             _browser.CreationProperties = new CoreWebView2CreationProperties
             {
                 UserDataFolder = _profileRoot,
@@ -90,7 +96,7 @@ namespace SupraPuzzleRecorder
             _status.TextAlign = ContentAlignment.MiddleLeft;
             root.Controls.Add(toolbar, 0, 0);
             root.Controls.Add(V21CreateToolbar(), 0, 1);
-            root.Controls.Add(_browser, 0, 2);
+            root.Controls.Add(browserHost, 0, 2);
             root.Controls.Add(_status, 0, 3);
             Controls.Add(root);
             _url.KeyDown += (sender, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; Navigate(); } };
@@ -99,7 +105,9 @@ namespace SupraPuzzleRecorder
             _stop.Click += (sender, e) => StopRecording();
             _export.Click += (sender, e) => ExportLog();
             _crop.Click += async (sender, e) => await CaptureCropAsync();
-            _test.Click += async (sender, e) => await TestOnceAsync();
+            // V2.2 deliberately exposes only passive ROI inspection; no automated challenge-solving Test.
+            _test.Visible = false;
+            _test.Enabled = false;
             _pass.Click += (sender, e) => MarkTest(true);
             _fail.Click += (sender, e) => MarkTest(false);
             Shown += async (sender, e) => await InitializeAsync();
@@ -110,6 +118,7 @@ namespace SupraPuzzleRecorder
             try
             {
                 await _browser.EnsureCoreWebView2Async();
+                _browser.ZoomFactor = 1.0;
                 _browser.CoreWebView2.Profile.IsPasswordAutosaveEnabled = false;
                 _browser.CoreWebView2.Profile.IsGeneralAutofillEnabled = false;
                 _browser.CoreWebView2.Settings.IsWebMessageEnabled = true;
@@ -129,9 +138,9 @@ namespace SupraPuzzleRecorder
                     await _browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(reader.ReadToEnd());
                 _start.Enabled = true;
                 _crop.Enabled = true;
-                _test.Enabled = true;
+                _test.Enabled = false;
                 _v21ChooseRegion.Enabled = true;
-                _status.Text = "V2.1: Chọn vùng trò chơi trước, sau đó Test từng lần. Ảnh chỉ lưu khi anh xem và xác nhận.";
+                _status.Text = "V2.2: chọn vùng trò chơi một lần, Kiểm tra vùng chỉ xem ảnh; thao tác xác minh thực hiện thủ công.";
             }
             catch (Exception)
             {
