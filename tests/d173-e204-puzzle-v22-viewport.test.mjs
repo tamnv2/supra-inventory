@@ -36,6 +36,12 @@ test("V2.2 selected-region test is passive, with no automated challenge solution
   assert.ok(!v22.includes("Input.dispatchMouseEvent"));
   assert.ok(!v22.includes("PuzzleVision.Analyze"));
   assert.ok(!v22.includes("CallDevToolsProtocolMethodAsync"));
+  assert.ok(v21.includes("_v22Export.Click += (sender, args) => V22ExportApprovedRegion()"));
+  assert.ok(v22.includes("_v22ApprovedPng = pixels"));
+  assert.ok(v22.includes("if (_v22ApprovedPng == null"));
+  assert.ok(v22.includes("V21WriteEntry(zip, \"region-v22.png\", _v22ApprovedPng)"));
+  assert.ok(v22.includes('"input_sent"] = false'));
+
 });
 
 test("V2.2 remains standalone; native smoke checks bounded ROI geometry", () => {
