@@ -1,0 +1,270 @@
+name: D173 E213 Agent193 protected release
+
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "relay-agent-webview2-host/**"
+      - "ops/d173-e213-agent193-release-authorization.json"
+      - "tools/d173_e213_agent193_release_gate.py"
+      - ".github/workflows/d173-e213-agent193-release.yml"
+      - "tests/d173-e207-agent192-overview-layout.test.mjs"
+      - "docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md"
+      - "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md"
+      - "docs/OWNER_DECISIONS.md"
+      - "ops/change-continuity/D173.json"
+      - "ops/project-state.json"
+      - "ops/current-context.json"
+      - "ops/authority-manifest.json"
+      - "ops/resource-registry.json"
+      - "tools/authority_guard.py"
+  push:
+    branches: [main, fix/d173-e212-agent193-ui-stable-columns-20261112]
+    paths:
+      - ".github/workflows/d173-e213-agent193-release.yml"
+      - "relay-agent/VERSION"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  source:
+    if: (github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e212-agent193-ui-stable-columns-20261112') || (github.event_name == 'push' && github.ref == 'refs/heads/fix/d173-e212-agent193-ui-stable-columns-20261112')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Owner exact-source WinForms 70/30 layout and D172 regression
+        run: |
+          python3 tools/d173_e213_agent193_release_gate.py --preflight
+          python3 tools/authority_guard.py
+          python3 tools/project_state_guard.py
+          python3 tools/change_continuity_guard.py
+          node --test tests/d173-e207-agent192-overview-layout.test.mjs
+      - name: Install service TypeScript dev dependency for read-only D172 tests
+        run: npm install --prefix service --ignore-scripts --no-audit --no-fund --no-package-lock
+      - name: Independent D172 source tests (no external providers)
+        run: node --test tests/d172-*.test.mjs
+
+  native:
+    if: (github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e212-agent193-ui-stable-columns-20261112') || (github.event_name == 'push' && github.ref == 'refs/heads/fix/d173-e212-agent193-ui-stable-columns-20261112')
+    needs: source
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build unchanged Host14 interface and Agent193 x64 native smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64
+          if ($LASTEXITCODE -ne 0) { throw 'E213 native Host source build failed' }
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64
+          if ($LASTEXITCODE -ne 0) { throw 'Agent193 native build failed' }
+          $exe = (Resolve-Path 'relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe').Path
+          foreach ($arg in @('--startup-smoke','--e100-roster-self-test','--e103-activity-self-test','--d140-sync-safety-self-test')) {
+            $process = Start-Process -FilePath $exe -ArgumentList $arg -PassThru
+            if (-not $process.WaitForExit(15000)) {
+              try { $process.Kill() } catch {}
+              throw "Agent193 native smoke timeout $arg"
+            }
+            if ($process.ExitCode -ne 0) { throw "Agent193 smoke failed $arg" }
+          }
+          Write-Host 'E213_AGENT193_NATIVE_SOURCE_PASS'
+
+  agent193-ota:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E213_AGENT193_ONLY_RELEASE:')
+    runs-on: windows-latest
+    environment: beta
+    env:
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+      AGENT_LOG_GATEWAY_URL_BETA: ${{ vars.AGENT_LOG_GATEWAY_URL_BETA }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Gate exact Owner-merged Agent tree and prior source CI
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python3 tools/d173_e213_agent193_release_gate.py
+          if ($LASTEXITCODE -ne 0) { throw 'E213 Owner release scope failed' }
+          $source = '5125b4750daf2a2b53f160ed979a2a279b296d18'
+          $verifiedTree = (git rev-parse "$source`:relay-agent").Trim()
+          $currentTree = (git rev-parse 'HEAD:relay-agent').Trim()
+          if ($LASTEXITCODE -ne 0 -or $verifiedTree -ne $currentTree) {
+            throw 'E213 exact Agent193 source tree has changed'
+          }
+          $preflight = Join-Path $env:RUNNER_TEMP 'e207-current-channel'
+          New-Item -ItemType Directory -Force -Path $preflight | Out-Null
+          gh release download inventory-channel --repo $env:GITHUB_REPOSITORY --pattern 'agent-latest.json' --pattern 'agent-browser-latest.json' --dir $preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E213 channel manifest missing' }
+          $previous = Get-Content (Join-Path $preflight 'agent-latest.json') -Raw | ConvertFrom-Json
+          $browser = Get-Content (Join-Path $preflight 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+          if ($previous.tag -ne 'relay-agent-v192' -or
+              ([string]$previous.sha256).ToLowerInvariant() -ne '38dbabe22ef470e90dff8fa2012d65115da230fed17d0d637d8fa3000c725675' -or
+              [int]$browser.host_build -ne 14 -or
+              [string]$browser.host_arch -ne 'x64' -or
+              ([string]$browser.sha256).ToLowerInvariant() -ne 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2') {
+            throw 'E213 expected signed Agent191/Host14 baseline drift'
+          }
+          # A missing tag is expected, not a failed workflow step. PowerShell
+          # otherwise retains gh release view's exit=1 as the step exit code.
+          $existingTags = @(gh release list --repo $env:GITHUB_REPOSITORY --limit 400 --json tagName --jq '.[].tagName')
+          if ($LASTEXITCODE -ne 0) { throw 'E213 release index unavailable' }
+          if ($existingTags -contains 'relay-agent-v193') {
+            throw 'E213 v193 already exists, refusing overwrite'
+          }
+          Write-Host 'E213_AGENT193_OWNER_PIN_AND_OTA_BASELINE_PASS'
+
+      - name: Inject and validate existing Firebase and Google Apps Script configuration
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:FIREBASE_API_KEY_BETA) -or
+              $env:FIREBASE_API_KEY_BETA.Contains('__')) {
+            throw 'Firebase configuration is required'
+          }
+          $gateway = $env:AGENT_LOG_GATEWAY_URL_BETA.Trim()
+          $uri = $null
+          if (-not [System.Uri]::TryCreate($gateway, [System.UriKind]::Absolute, [ref]$uri) -or
+              $uri.Scheme -ne 'https' -or $uri.Host -ne 'script.google.com' -or
+              -not $uri.AbsolutePath.EndsWith('/exec')) {
+            throw 'Gateway configuration is required: HTTPS Google Apps Script /exec'
+          }
+          $file = 'relay-agent/AgentConfig.cs'
+          $config = Get-Content $file -Raw
+          if (-not $config.Contains('__FIREBASE_API_KEY_BETA__') -or
+              -not $config.Contains('__AGENT_LOG_GATEWAY_URL_BETA__')) {
+            throw 'Missing Agent193 build placeholders'
+          }
+          $config = $config.Replace('__FIREBASE_API_KEY_BETA__', $env:FIREBASE_API_KEY_BETA)
+          $config = $config.Replace('__AGENT_LOG_GATEWAY_URL_BETA__', $gateway)
+          if ($config.Contains('__FIREBASE_API_KEY_BETA__') -or
+              $config.Contains('__AGENT_LOG_GATEWAY_URL_BETA__')) {
+            throw 'Agent193 incomplete configuration injection'
+          }
+          Set-Content -Path $file -Value $config -Encoding utf8
+          Write-Host 'E213_AGENT193_CONFIG_NAMES_VALID_NO_SECRET_OUTPUT'
+
+      - name: Build native Agent193 and unattended smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64
+          if ($LASTEXITCODE -ne 0) { throw 'E213 native build failed' }
+          $exe = (Resolve-Path 'relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe').Path
+          foreach ($arg in @('--startup-smoke','--e100-roster-self-test','--e103-activity-self-test',
+                             '--d134-grpc-native-self-test','--d140-sync-safety-self-test')) {
+            $process = Start-Process -FilePath $exe -ArgumentList $arg -PassThru
+            if (-not $process.WaitForExit(15000)) {
+              try { $process.Kill() } catch {}
+              throw "E213 native smoke timeout $arg"
+            }
+            if ($process.ExitCode -ne 0) { throw "E213 native smoke failed $arg" }
+          }
+          New-Item -ItemType Directory -Force -Path 'relay-agent/dist' | Out-Null
+          Copy-Item $exe 'relay-agent/dist/Agent Auto Confirm Pick Pack.exe'
+          Copy-Item $exe 'relay-agent/dist/SUPRA-Inventory-Relay-Test.exe'
+          Copy-Item relay-agent/README.md relay-agent/dist/README.md
+          foreach ($name in @('Agent Auto Confirm Pick Pack.exe','SUPRA-Inventory-Relay-Test.exe')) {
+            $path = Join-Path 'relay-agent/dist' $name
+            (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant() |
+              Set-Content "$path.sha256" -Encoding utf8
+          }
+
+      - name: Publish Agent193 tag then switch only Agent OTA assets with SHA readback (Host14 immutable)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python3 tools/d173_e213_agent193_release_gate.py
+          if ($LASTEXITCODE -ne 0) { throw 'E213 gate drift after build' }
+          $tag = 'relay-agent-v193'
+          $base = 'relay-agent/dist'
+          $sourceExe = "$base/Agent Auto Confirm Pick Pack.exe"
+          $sha = (Get-FileHash $sourceExe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ((Get-Content "$sourceExe.sha256" -Raw).Trim().Split(' ')[0].ToLowerInvariant() -ne $sha) {
+            throw 'E213 local checksum mismatch'
+          }
+          gh release create $tag `
+            "$sourceExe#Agent Auto Confirm Pick Pack.exe" `
+            "$sourceExe.sha256#Agent Auto Confirm Pick Pack.exe.sha256" `
+            "$base/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
+            "$base/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
+            "$base/README.md#README.md" `
+            --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA `
+            --title 'Agent Auto Confirm Pick Pack v193' `
+            --notes 'D173-E213 Agent193: five Owner-approved Agent UI refinements: 70/30 top, protected Exit Agent menu, network refresh in action strip, right-aligned roster actions and stable roster column widths. Existing WMS/Host14/Worker/Web/APK/D172/Stable unchanged. FIELD/OWNER pending.' `
+            --prerelease
+          if ($LASTEXITCODE -ne 0) { throw 'E213 release publish failed' }
+          $tagRead = Join-Path $env:RUNNER_TEMP 'e207-tag-readback'
+          New-Item -ItemType Directory -Force -Path $tagRead | Out-Null
+          gh release download $tag --repo $env:GITHUB_REPOSITORY --pattern 'Agent.Auto.Confirm.Pick.Pack.exe' --pattern 'Agent.Auto.Confirm.Pick.Pack.exe.sha256' --dir $tagRead
+          if ($LASTEXITCODE -ne 0) { throw 'E213 published asset download failed' }
+          $tagExe = Join-Path $tagRead 'Agent.Auto.Confirm.Pick.Pack.exe'
+          $tagShaFile = Join-Path $tagRead 'Agent.Auto.Confirm.Pick.Pack.exe.sha256'
+          $tagHash = (Get-FileHash $tagExe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($tagHash -ne $sha -or $tagHash -ne (Get-Content $tagShaFile -Raw).Trim().Split(' ')[0].ToLowerInvariant()) {
+            throw 'E213 published EXE SHA mismatch; OTA remains v192'
+          }
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = 'beta'
+            tag = $tag
+            name = 'Agent Auto Confirm Pick Pack v193'
+            published_at = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+            source = $env:GITHUB_SHA
+            asset_name = 'Agent.Auto.Confirm.Pick.Pack.exe'
+            size_bytes = (Get-Item $tagExe).Length
+            sha256 = $tagHash
+            release_notes = @(
+              'Agent193: Bố cục 70/30; Thoát Agent với hai lựa chọn bảo mật; làm mới mạng cùng thanh nút.'
+              'Nút roster căn phải, cùng hàng bộ lọc; cột ổn định theo viewport và DPI, không nhảy khi cập nhật realtime.'
+              'Worker/Web/APK/D172/Stable không đổi. FIELD/OWNER PASS chờ xác nhận.'
+            )
+          } | ConvertTo-Json -Compress
+          $channelExe = "$base/Agent.Auto.Confirm.Pick.Pack.exe"
+          Copy-Item $tagExe $channelExe -Force
+          Copy-Item $tagShaFile "$channelExe.sha256" -Force
+          $manifest | Set-Content "$base/agent-latest.json" -Encoding utf8
+          gh release upload inventory-channel $channelExe "$channelExe.sha256" --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'E213 alias upload failed; manifest not switched' }
+          gh release upload inventory-channel "$base/agent-latest.json" --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'E213 manifest switch failed' }
+          $verify = Join-Path $env:RUNNER_TEMP 'e207-ota-readback'
+          New-Item -ItemType Directory -Force -Path $verify | Out-Null
+          gh release download inventory-channel --repo $env:GITHUB_REPOSITORY --pattern 'Agent.Auto.Confirm.Pick.Pack.exe' --pattern 'Agent.Auto.Confirm.Pick.Pack.exe.sha256' --pattern 'agent-latest.json' --dir $verify
+          if ($LASTEXITCODE -ne 0) { throw 'E213 channel readback failed' }
+          $remoteExe = Join-Path $verify 'Agent.Auto.Confirm.Pick.Pack.exe'
+          $remoteHash = (Get-FileHash $remoteExe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $remoteManifest = Get-Content (Join-Path $verify 'agent-latest.json') -Raw | ConvertFrom-Json
+          $remoteText = (Get-Content (Join-Path $verify 'Agent.Auto.Confirm.Pick.Pack.exe.sha256') -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          if ($remoteHash -ne $tagHash -or $remoteText -ne $tagHash -or
+              $remoteManifest.tag -ne $tag -or $remoteManifest.sha256 -ne $tagHash -or
+              [int64]$remoteManifest.size_bytes -ne (Get-Item $remoteExe).Length) {
+            throw 'E213 Agent193 OTA readback mismatch'
+          }
+          Write-Host "E213_AGENT193_TECHNICAL_OTA_SHA_PASS tag=$tag sha256=$tagHash FIELD_PENDING"
