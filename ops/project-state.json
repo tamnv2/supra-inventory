@@ -13641,7 +13641,7 @@
     "owner_field": "WEB337_FIELD_NOT_PASS",
     "owner_code_approved": true,
     "branch": "fix/d173-e209-field-ux-search-20261112",
-    "pr": null,
+    "pr": 943,
     "accepted_main_sha": "7d67e5f0510ef98c3b0222b6c8000ac06aa1e141",
     "target_web_version": "3.3.8",
     "scope": "WEB_UI_SEARCH_WITHDRAWN_IDENTITY_READ_API_ONLY",
