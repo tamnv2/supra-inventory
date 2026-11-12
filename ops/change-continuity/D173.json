@@ -4774,5 +4774,49 @@
       "authority": "BUSINESS_SEMANTICS_APPROVED_ONLY__NO_CODE_MERGE_RELEASE_PERMISSION"
     },
     "status": "OWNER_APPROVED_SUFFIX_SEARCH_SEMANTICS__DOCS_ONLY_CODE_NOT_STARTED"
+  },
+  "d173_web_results_usage_first_plan_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "OWNER_PRIORITY_AND_IMPLEMENTATION_SCENARIO_ANALYSIS",
+    "approved_owner_priority": [
+      "1_USAGE",
+      "2_STABILITY",
+      "3_SPEED"
+    ],
+    "owner_command": "Analyze scripts and business logic before implementation; request Owner decisions on unknowns; no code/release instruction",
+    "source_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "pr": 942,
+    "document": "docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md",
+    "confirmed": [
+      "Existing reporterRecent performs page, status totals and ACK/display aggregate SQL; blind per-keystroke refresh would repeat expensive aggregates",
+      "Existing five tabs use queue/overdue APIs without date range; three result statuses share date-scoped recent endpoint",
+      "Existing result-list realtime delta patches and mutation read_model can overwrite a future filtered search list unless guarded",
+      "Existing batch tickets are indexed by batch_id and contain employee code/name/reported_at; first_report_at already in recent row",
+      "Owner suffix-only search and exact placeholder previously approved"
+    ],
+    "proposed_not_approved": [
+      "User input debounce 450–500ms and coalesce identical requests; no DO request while 1–2 digits",
+      "Single authorized recent list response per query; search matching total only, no repeated unrelated ACK/status aggregate on every suffix",
+      "Page-only CLOSED picker aggregation inside existing DO invocation, lazy per-batch detail GET cached/invalidation",
+      "Search view identity/revision key and realtime guarded reconciliation; no polling; baseline parity",
+      "Only consider indexed reversed-SKU after actual EXPLAIN/rowsRead and Owner approval; default read-only SQL suffix filter",
+      "Measure request/SQL rows read/p50-p95 at 1/7/30/60-day scopes; D172+D173 regression if shared Worker touched"
+    ],
+    "questions_for_owner": [
+      "Search scope and date semantics for 5 tabs: recommended 5-tab search but pending/overdue all open regardless date, three outcomes within date",
+      "Withdrawn batch with >1 Picker: recommended one batch row and grouped actor names vs separate picker rows",
+      "Outcome tab date semantics: retain existing first_report_at vs change to resolved_at"
+    ],
+    "code": "NOT_STARTED",
+    "ci": "NOT_RUN",
+    "production_release": "UNCHANGED",
+    "field": "NOT_TESTED",
+    "owner_pass": false,
+    "owner_code_approval": false,
+    "owner_release_approval": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "sanitized": true
   }
 }
