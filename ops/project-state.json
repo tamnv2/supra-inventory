@@ -7,13 +7,24 @@
     "production_at_approval": "3.3.10",
     "pr": 952,
     "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0",
-    "source_ci_runs": [43202503500, 43202503880, 43202503474, 43202503719, 43202503313],
+    "source_ci_runs": [
+      43202503500,
+      43202503880,
+      43202503474,
+      43202503719,
+      43202503313
+    ],
     "release_gate": "D173-E223_WEB3311_PRODUCTION_RELEASE",
-    "release": "GATED_PENDING",
+    "release": "PASS_TECHNICAL",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "release_main_sha": "dd09f6f92ec026fd0effca222d3e98b27ffe18de",
+    "release_run": 43206176500,
+    "worker_version_id_at_deploy": "0176b945-50af-4ebb-b29f-c602113f1afd",
+    "receipt_doc": "docs/D173_E224_WEB3311_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "receipt_pr": 953
   },
   "project_key": "supra-inventory",
   "display_name": "SUPRA Inventory — Báo hàng",
