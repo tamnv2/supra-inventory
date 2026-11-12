@@ -152,7 +152,8 @@
     "current_d173_e230_web3313_field_ui": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md",
     "current_d173_e231_web3313_release_authorization": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
     "current_d173_web3313_release_receipt": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
-    "current_d173_e233_web3313_field_review": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md"
+    "current_d173_e233_web3313_field_review": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md",
+    "current_d173_e234_web3314_owner_code_release": "docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -449,7 +450,8 @@
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED",
       "owner_command": "2026-11-10_YEU_CAU_PHAT_HANH"
-    }
+    },
+    "working_pr_lifecycle": "PR959_OPEN_WEB3314_SOURCE_CANDIDATE__CI_PENDING"
   },
   "bootstrap_read_policy": {
     "mode": "CURRENT_ESSENTIALS_ONLY__HISTORY_ON_DEMAND",
