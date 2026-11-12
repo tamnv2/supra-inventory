@@ -10,7 +10,7 @@
     "checkpoint_id": "D173-E212",
     "pr": 945,
     "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
-    "status": "AGENT193_CODE_ONLY_CANDIDATE__CI_PENDING__NO_MERGE_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
+    "status": "AGENT193_CODE_SOURCE_CI_NATIVE_PASS__DRAFT_NO_MERGE_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_merge_approved": false,
     "owner_release_approved": false
   },
@@ -92,10 +92,12 @@
     "pr": 945,
     "version": 193,
     "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
-    "source_pin": "PENDING_EXACT_CI",
+    "source_pin": "e34664a907b9a3431886566e1a2c3639b507b31b",
     "release": "CODE_ONLY_NO_RELEASE__SIGNED_AGENT192_PRODUCTION",
     "host_build": 14,
-    "scope": "AGENT_WINFORMS_UI_ONLY_5_OWNER_CORRECTIONS"
+    "scope": "AGENT_WINFORMS_UI_ONLY_5_OWNER_CORRECTIONS",
+    "source_ci_run": 43163281722,
+    "code_ci": "PASS_SOURCE_NATIVE"
   },
   "active_field_analysis": {
     "id": "D173-E202",
