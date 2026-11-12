@@ -4703,5 +4703,28 @@
     "owner_pass": false,
     "owner_code_authorization": false,
     "d172": "INDEPENDENT_HOLD"
+  },
+  "d173_20261112_agent_browser_distribution_review": {
+    "type": "OWNER_QUESTION_AND_READ_ONLY_TECHNICAL_FINDING",
+    "date_vn": "2026-11-12",
+    "owner_question": "Why must Web Host be downloaded separately from Agent; can both be acquired in one user action?",
+    "confirmed": {
+      "main_at_review": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+      "agent_tag": "relay-agent-v192",
+      "browser_host": "Host14",
+      "agent_entry": "relay-agent/Program.cs StartupSequence calls AgentBrowserBundle.EnsureBackground(Log)",
+      "host_installer": "relay-agent/AgentBrowserBundle.cs verifies trusted manifest, SHA256, x64 Host, fixed runtime, installs to owned storage and reuses matching bundle",
+      "manual_action": "Program.cs StartAgentBrowserDownload calls same EnsureBackground; failures log SUPRA_BROWSER owned_bundle=FAILED auto_fallback=false",
+      "channel": "inventory-channel ships Agent EXE and separate WebView2 Host14 x64 ZIP; Host14 approx 322MB"
+    },
+    "not_verified": "Actual reason for any particular machine requiring manual Web Host download; no machine logs inspected in this inquiry.",
+    "proposal_not_owner_approved": "Keep independent signed Agent/Host release and OTA to avoid 322MB per Agent update, but make first-run/Host-missing delivery one-click and automatic, with safe bounded retry on connectivity return; optionally a first-install offline combined package. No business/provider changes before explicit Owner approval.",
+    "code": "UNCHANGED",
+    "ci": "NOT_RUN_READ_ONLY",
+    "release": "UNCHANGED",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
