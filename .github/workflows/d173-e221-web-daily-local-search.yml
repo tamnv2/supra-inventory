@@ -9,6 +9,9 @@ on:
       - 'service/src/core.ts'
       - 'tests/d173-e221-web-daily-local-search.test.mjs'
       - '.github/workflows/d173-e221-web-daily-local-search.yml'
+      - '.github/workflows/deploy-beta.yml'
+      - 'tools/d173_e223_web3311_release_gate.py'
+      - 'ops/d173-e223-web3311-release-authorization.json'
 permissions:
   contents: read
 jobs:
@@ -42,5 +45,7 @@ jobs:
         run: |
           python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
           node --test tests/d172-*.test.mjs
-      - name: Explicit no release
-        run: echo "D173_E221_CODE_AND_CI_ONLY__WEB3310_PRODUCTION_UNCHANGED__FIELD_OWNER_PENDING"
+      - name: E223 Owner exact-source preflight without Provider mutation
+        run: python3 tools/d173_e223_web3311_release_gate.py --component worker --preflight
+      - name: E223 code preflight complete; protected merge separately gated
+        run: echo "D173_E223_CODE_AND_PREFLIGHT_PASS__PRODUCTION_REQUIRES_MAIN_MERGE"
