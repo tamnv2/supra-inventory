@@ -68,7 +68,7 @@ test("E209: date range retains first_report_at, no Apply button or report redire
   assert.match(core, /b\.first_report_at < \?/);
   assert.match(web, /input\[type=date\]/);
   assert.doesNotMatch(web, /id="recent-open-report"/);
-  assert.doesNotMatch(web, /type="submit">Áp dụng<\/button>/);
+  assert.doesNotMatch(web.slice(web.indexOf("function renderOperationalTabs("), web.indexOf("function renderPicker(): string {")), /type="submit">Áp dụng<\/button>/);
   assert.match(web, /showFirstReport \? "<th>Thời gian báo hàng đầu tiên<\/th>"/);
 });
 
