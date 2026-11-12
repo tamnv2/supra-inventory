@@ -1,3 +1,12 @@
+## D173 — Owner 12/11/2026: chốt tìm SKU bằng các chữ số cuối trên Web Vận hành
+
+- Quy tắc tìm SKU đã chốt: **khớp hậu tố duy nhất**, không tìm tiền tố hoặc chuỗi ở giữa. SKU `10011233`: nhập `233` **có**, `1233` **có**, `123` **không**. Chỉ chấp nhận chữ số; tối thiểu 3 số mới tự tìm.
+- Input phải có placeholder chính xác: **`Tìm SKU theo các chữ số cuối`**. Áp dụng theo tab hiện hành và **tất cả kết quả trong khoảng ngày**, lọc phía server trước phân trang (không chỉ 50 dòng đầu).
+- Đây là quyết định **cụ thể về hành vi tìm kiếm**, không phải lệnh CODE/RELEASE. Phải đo chi phí Rows Read/latency của suffix search, không tự thay đổi sang prefix để tối ưu. Các mục Web khác vẫn là đề xuất chưa duyệt triển khai. D172 độc lập PENDING/HOLD; Stable OWNER-GATED.
+- Phương án và bằng chứng: `docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md`, PR #942 (docs-only).
+
+---
+
 ## D173-E199 — Owner 12/11/2026: triển khai sửa lỗi Agent189 trong phạm vi Agent-only
 
 Owner xem kết quả rà soát 8 lỗi Agent189 và yêu cầu: **“oke tiến hành triển khai”**. Cho phép tiếp tục code, CI, PR bảo vệ và phát hành signed OTA **Agent190** đối với phạm vi Agent-only đã được mô tả tại PR #929, không có quyền sửa Worker/Core chung, Web/APK/Firebase/D172 hoặc Stable. Host14 đang phân phối giữ nguyên; không phát sinh quyền tự động thay Host/đổi WMS/Auth.
