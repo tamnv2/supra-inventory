@@ -93,7 +93,7 @@
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D173_E232_WEB_3_3_13_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "web": "D173_E232_WEB_3_3_13_PRODUCTION_TECH_PASS__E233_FIELD_NOT_PASS__OWNER_PENDING",
     "android": "SIGNED_ANDROID_VC128_CHANNEL_RELEASE_PASS__FLEET_INSTALL_UNVERIFIED",
     "latest_beta_apk": "beta-vc128__SIGNED_APK_RELEASE_PUBLISHED__PHYSICAL_FLEET_INSTALL_UNVERIFIED",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
@@ -7602,17 +7602,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e232-web3313-production-receipt-20261112",
+    "working_branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
     "pr": 958,
-    "latest_checkpoint_id": "D173-E232",
+    "latest_checkpoint_id": "D173-E233",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E232_WEB3313_PRODUCTION_TECH_PASS__PR958_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "E233_WEB3313_FIELD_NOT_PASS_REVIEW_ONLY__NO_NEW_RELEASE_AUTH__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 958,
-    "active_working_branch": "docs/d173-e232-web3313-production-receipt-20261112",
+    "active_working_branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
     "working_pr_lifecycle": "PR958_OPEN_DOCS_ONLY_WEB3313_PRODUCTION_RECEIPT__NO_PROVIDER_REDEPLOY"
   },
   "d167_web_visual_layout_20261012": {
@@ -14080,5 +14080,35 @@
     "stable": "OWNER_GATED",
     "receipt_doc": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
     "scope": "WEB_ASSETS_ONLY__EXISTING_WORKER__NO_BUSINESS_OR_D172_SOURCE_CHANGES"
+  },
+  "d173_e233_web3313_field_cache_scroll_review": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E233",
+    "kind": "OWNER_FIELD_FEEDBACK",
+    "production_version": "3.3.13",
+    "production_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
+    "field_pass": false,
+    "owner_pass": false,
+    "field_reason": "SLOW_LIST_LOAD__NESTED_MAIN_AND_SKU_SCROLL__FINAL_SKU_VISUALLY_CLIPPED",
+    "verified_code_findings": [
+      "getReporterRecent fetches 200 rows per page sequentially for status/day, current result state stores one active view key and reloads when returning to tab",
+      "main overflow-y:auto plus table-wrap overflow:auto/max-height:calc(100dvh - 190px) yields independent nested scrolling",
+      "renderResults maps full recentRows; screenshot indicates visual clipping, no evidence of DB record deletion"
+    ],
+    "not_yet_verified": [
+      "API vs DOM latency breakdown",
+      "actual row loss vs viewport/footer cropping on authenticated browser",
+      "usage before/after",
+      "cache persistence privacy permission"
+    ],
+    "recommended_scope": "D173_WEB_ONLY_REVIEW__SESSION_RAM_CACHE_PER_USER_ROLE_TAB_DAY__VIEWPORT_FLEX_SCROLL_ONLY_LIST__NO_PERSISTENT_BUSINESS_DATA",
+    "owner_code_release_approval": "NOT_EXPLICIT_FOR_REPAIR__REVIEW_ONLY",
+    "code": "NOT_STARTED",
+    "ci": "NOT_STARTED",
+    "release": "WEB3313_TECH_PASS_UNCHANGED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md"
   }
 }
