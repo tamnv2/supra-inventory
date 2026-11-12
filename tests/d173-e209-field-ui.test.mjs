@@ -34,7 +34,7 @@ test("E209 field fail: skip tab shows total / automatic / human using server cou
 
 test("E209 field fail: search bypasses global busy gate and reloads only selected tab", () => {
   assert.doesNotMatch(search, /void run\(/);
-  assert.match(search, /activeSection === "results"/);
+  assert.match(search, /section === "results"/);
   assert.match(search, /loadReporterRecentSnapshot\(\)/);
   assert.match(search, /loadReporterOverdueSnapshot\(\)/);
   assert.match(search, /opsSkuSuffix\.length < 3/);
