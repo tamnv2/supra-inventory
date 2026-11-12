@@ -5100,17 +5100,23 @@ function bindSection(): void {
   })));
   document.querySelectorAll<HTMLButtonElement>("[data-recent-range]").forEach((button) => button.addEventListener("click", () => {
     const preset = button.dataset.recentRange || "";
+    const previousFrom = recentFrom, previousTo = recentTo;
     const today = dateDaysAgo(0);
     if (preset === "TODAY") { recentFrom = today; recentTo = today; }
     else if (preset === "YESTERDAY") { recentFrom = dateDaysAgo(1); recentTo = dateDaysAgo(1); }
     else if (preset === "D7") { recentFrom = dateDaysAgo(6); recentTo = today; }
     else if (preset === "D30") { recentFrom = dateDaysAgo(29); recentTo = today; }
     else return;
+    if (recentFrom === previousFrom && recentTo === previousTo) return;
     syncVisibleDateRange("recent", recentFrom, recentTo);
     recentOffset = 0;
     expandedRecentPickerBatches.clear();
     // One counter reconcile for the new date scope, not one per tab.
-    void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
+    void run(async () => { await Promise.all([
+      activeSection === "results" && opsSkuSuffix.length >= 3
+        ? loadReporterRecentSnapshot(true) : loadOperations(),
+      loadReporterTabCounters(true),
+    ]); });
   }));
   document.querySelectorAll<HTMLInputElement>("#recent-range-form input[type=date]").forEach((input) =>
     input.addEventListener("change", () => {
@@ -5130,7 +5136,11 @@ function bindSection(): void {
       recentTo = to;
       recentOffset = 0;
       expandedRecentPickerBatches.clear();
-      void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
+      void run(async () => { await Promise.all([
+      activeSection === "results" && opsSkuSuffix.length >= 3
+        ? loadReporterRecentSnapshot(true) : loadOperations(),
+      loadReporterTabCounters(true),
+    ]); });
     })
   );
   // One input for the active tab, never search other tabs or extend its date range.
