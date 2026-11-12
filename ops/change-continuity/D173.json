@@ -7,13 +7,13 @@
   "pr": 945,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E212",
+    "id": "D173-E213",
     "date_vn": "2026-11-12",
-    "summary": "Agent193 five Owner-requested UI refinements: source 9/9, independent D172 74/74, authority/continuity and Windows x64 native smoke PASS at e34664a907b9a3431886566e1a2c3639b507b31b (run 43163281722). Draft PR945 CODE ONLY; no merge/release; signed Agent192 Production unchanged. FIELD/OWNER PENDING.",
-    "status": "AGENT193_SOURCE_CI_NATIVE_PASS__DRAFT_CODE_ONLY__NO_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
+    "summary": "Owner explicitly authorizes PR945 Agent193 source CI→protected merge→signed OTA only for five E212 UI fixes and AgentBuild correction; Agent192 remains production until verified tag/channel SHA. FIELD/OWNER pending; D172 independent HOLD.",
+    "status": "AGENT193_OWNER_RELEASE_AUTHORIZED__EXACT_SOURCE_CI_PENDING__NO_RELEASE_YET__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md",
     "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
-    "pr": 945,
-    "source": "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md"
+    "pr": 945
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3956,6 +3956,35 @@
       ],
       "source_ci_sha": "e34664a907b9a3431886566e1a2c3639b507b31b",
       "ci_run_id": 43163281722
+    },
+    {
+      "id": "D173-E213",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_AGENT193_PROTECTED_MERGE_SIGNED_OTA__SOURCE_GATE_PENDING",
+      "owner_approval": true,
+      "topic": "Owner explicitly orders release of already-scoped five Agent193 WinForms repairs; protect official OTA",
+      "next_action": "Check exact Agent193 source pin and version=193, run PR CI authority+D172+Windows native; merge PR945 with protected marker and verify v193 tag/channel SHA; do not touch D172, stable or other components.",
+      "evidence": "2026-11-12 Owner message requested release; PR945; docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md; accepted main d06d1342706a77d8afb9b43b4dd7c02e77694053",
+      "facts": [
+        "Signed Agent192 is currently pinned to inventory-channel with SHA256 38dbabe22ef470e90dff8fa2012d65115da230fed17d0d637d8fa3000c725675.",
+        "Owner approves merge/release of only D173-E212 five Agent WinForms UI fixes and necessary AgentBuild version correction.",
+        "Agent193 signed release and physical-field proof are not yet performed at this checkpoint."
+      ],
+      "owner_release_approved": true,
+      "owner_merge_approved": true,
+      "scope": "AGENT193_ONLY",
+      "source_branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
+      "source_main_sha": "d06d1342706a77d8afb9b43b4dd7c02e77694053",
+      "source_pin": "5125b4750daf2a2b53f160ed979a2a279b296d18",
+      "pr": 945,
+      "code": "SOURCE_CANDIDATE_VERSION193",
+      "ci": "PENDING_CURRENT_EXACT_PIN",
+      "release": "AUTHORIZED_PENDING_GATES",
+      "field": "PENDING",
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -5164,8 +5193,10 @@
     "doc": "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md",
     "owner_authorization": {
       "code": true,
-      "merge": false,
-      "release": false
+      "merge": true,
+      "release": true,
+      "scope": "D173_E212_UI_ONLY_PLUS_AGENTBUILD_VERSION_CORRECTION",
+      "source": "D173-E213_OWNER_2026-11-12"
     },
     "code": "SOURCE_TEST_PASS",
     "ci": "PASS_9_AGENT_UI_74_D172_NATIVE_WINDOWS",
@@ -5177,5 +5208,32 @@
     "privacy_safe": true,
     "source_ci_sha": "e34664a907b9a3431886566e1a2c3639b507b31b",
     "ci_run_id": 43163281722
+  },
+  "d173_e213_agent193_release": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E213",
+    "kind": "OWNER_SIGNED_AGENT193_RELEASE_AUTHORIZATION",
+    "owner_code_merge_release_approved": true,
+    "owner_field_pass": false,
+    "accepted_base_sha": "d06d1342706a77d8afb9b43b4dd7c02e77694053",
+    "source_branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
+    "source_pin": "5125b4750daf2a2b53f160ed979a2a279b296d18",
+    "pr": 945,
+    "previous_tag": "relay-agent-v192",
+    "previous_exe_sha256": "38dbabe22ef470e90dff8fa2012d65115da230fed17d0d637d8fa3000c725675",
+    "new_tag": "relay-agent-v193",
+    "release_marker": "D173-E213_AGENT193_ONLY_RELEASE:",
+    "components": "AGENT_WINFORMS_ONLY",
+    "code": "SOURCE_CANDIDATE",
+    "ci": "PENDING",
+    "release": "NOT_PUBLISHED",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md",
+    "gate": "tools/d173_e213_agent193_release_gate.py",
+    "workflow": ".github/workflows/d173-e213-agent193-release.yml"
   }
 }
