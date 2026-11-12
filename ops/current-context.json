@@ -7,17 +7,16 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E232",
-    "pr": 958,
-    "branch": "docs/d173-e232-web3313-production-receipt-20261112",
-    "status": "WEB3313_PRODUCTION_TECH_PASS__PR958_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
-    "owner_merge_approved": true,
-    "owner_release_approved": true,
-    "source_doc": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "checkpoint_id": "D173-E233",
+    "pr": null,
+    "branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
+    "status": "WEB3313_PRODUCTION_TECH_PASS__E233_FIELD_NOT_PASS_REVIEW_ONLY__NO_NEW_RELEASE",
+    "owner_merge_approved": false,
+    "owner_release_approved": false,
+    "source_doc": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md",
     "production_web_version": "3.3.13",
-    "source_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
-    "target_web_version": "3.3.13",
-    "release_run": 43227915003
+    "source_main_sha": "99da97d69490f68818a5a1e49c566a0c5e12141b",
+    "target_web_version": null
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -50,7 +49,7 @@
       "source_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
       "worker_version_id_at_deploy": "c5352328-5955-4884-bf12-8945d71d2835",
       "ci_release": "PASS_TECHNICAL_EXACT_SOURCE",
-      "field": "PENDING_REAL_BROWSER_WEB3313_SKU_DENSITY_AND_SKIP_VISUAL",
+      "field": "E233_FIELD_NOT_PASS__SLOW_LOAD_NESTED_SCROLL_LAST_ROW_CLIPPED",
       "owner_pass": "PENDING"
     },
     "android": {
