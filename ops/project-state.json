@@ -14004,7 +14004,7 @@
     "production_web_version": "3.3.12",
     "candidate_web_version": "3.3.13",
     "owner_code_requested": true,
-    "owner_production_release_approved": false,
+    "owner_production_release_approved": true,
     "source_scope": "WEB_D173_OPERATIONAL_UI_ONLY",
     "requirements": [
       "Human Skip rows use normal table background; only SYSTEM_TIMEOUT/SYSTEM_DAY_END special background in light/dark",
@@ -14013,7 +14013,7 @@
     ],
     "code": "SOURCE_TEST_PASS",
     "ci": "PASS_E230_SCOPED_12_UI_WEB_BUILD_D172_74_AND_REPO_GUARDS",
-    "release": "HOLD_NO_OWNER_RELEASE_COMMAND__PRODUCTION_WEB3312_UNCHANGED",
+    "release": "OWNER_APPROVED_EXACT_SOURCE_CI_AND_PROTECTED_MERGE_REQUIRED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -14028,6 +14028,13 @@
       "ui_baseline_fail": 43221618297,
       "ui_current_fail": 43224546814
     },
-    "baseline_unrelated_guard": "UI_DESIGN_GUARD_MAIN_RUN43221618297_FAILURE__E230_SAME_LEGACY_AGENT_D137_D130_AND_WEB_D063_FAILURE__NO_UNRELATED_SOURCE_EDIT"
+    "baseline_unrelated_guard": "UI_DESIGN_GUARD_MAIN_RUN43221618297_FAILURE__E230_SAME_LEGACY_AGENT_D137_D130_AND_WEB_D063_FAILURE__NO_UNRELATED_SOURCE_EDIT",
+    "release_authorization": "ops/d173-e230-web3313-release-authorization.json",
+    "release_authorization_doc": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
+    "release_marker": "D173-E230_WEB3313_PRODUCTION_RELEASE:",
+    "release_workflow": ".github/workflows/deploy-beta.yml",
+    "owner_release_command": "2026-11-12_TRIEN_KHAI_3.3.13",
+    "working_pr": 957,
+    "source_ci_final": "PENDING_E231_PRELIMINARY"
   }
 }
