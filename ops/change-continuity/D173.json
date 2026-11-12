@@ -4926,9 +4926,9 @@
       "Production SHA receipt"
     ],
     "status": {
-      "code": "IN_PROGRESS",
-      "ci": "NOT_VERIFIED",
-      "release": "NOT_STARTED",
+      "code": "SOURCE_TEST_PASS",
+      "ci": "SIX_SCOPED_CHECKS_SUCCESS",
+      "release": "PENDING_PROTECTED_MERGE",
       "field": "PENDING",
       "owner_pass": false
     },
@@ -4944,6 +4944,33 @@
     ],
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "privacy_safe": true
+    "privacy_safe": true,
+    "source_ci_sha": "02bc15ae241581e79527c67f7ec77c89dbd484b0"
+  },
+  "d173_e209_source_ci_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "EXACT_E209_SOURCE_CI_EVIDENCE",
+    "owner_authorized_code_release": true,
+    "source_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "source_tested_sha": "02bc15ae241581e79527c67f7ec77c89dbd484b0",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "pr": 942,
+    "passed_runs": {
+      "E209": 43152254899,
+      "D172_ISOLATION": 43152254918,
+      "REPO_AUTHORITY": 43152255053,
+      "CONTINUITY": 43152255040,
+      "D166_LOG_SQL": 43152254823,
+      "D170_OFFICIAL_ORIGIN": 43152254783
+    },
+    "verified": "E209 8 contract assertions, actual SQLite suffix and picker-page fixtures, Web Vite compile, Worker TS typecheck, 74 D172 independent cases; owner release preflight",
+    "non_gating_legacy_workflows": "Some old version/source-specific checks fail due old fixed release pins and unrelated Agent source; not marked PASS or used for release proof",
+    "code": "SOURCE_CI_PASS",
+    "release": "PENDING_PROTECTED_MERGE",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "privacy": "NO_RAW_LOGS"
   }
 }
