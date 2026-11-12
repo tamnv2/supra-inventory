@@ -7,10 +7,10 @@
   "pr": 950,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E217",
+    "id": "D173-E218",
     "date_vn": "2026-11-12",
-    "summary": "Owner orders Web release of E216 3 fixes. PR950 now Web3.3.10 source candidate, exact CI/owner pin/guarded merge required; live Web remains 3.3.9; D172 held.",
-    "status": "E217_WEB3310_OWNER_RELEASE_APPROVED_CI_PENDING__FIELD_OWNER_PENDING",
+    "summary": "E217 Web3.3.10 PR950 exact source CI PASS five required groups at bd3f38d2; owner release approved, pin required, protected merge and official Worker/Web Production deployment pending.",
+    "status": "E217_WEB3310_EXACT_CI_PASS_5_GROUPS__PROTECTED_MERGE_PENDING__FIELD_OWNER_PENDING",
     "source": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
     "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
     "pr": 950
@@ -4112,6 +4112,32 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E218",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Web3.3.10 E217 exact PR950 source/SQL/Web/D172/authority/state verification",
+      "status": "SOURCE_CI_PINNED_5_SUCCESS__RELEASE_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 950,
+      "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+      "source_ci_sha": "bd3f38d2e699356fa0dc90f49f63503f07373b31",
+      "facts": [
+        "Web E216-E217 build, UI contracts, SQL suffix and independent D172 regression passed on PR950 exact head bd3f38d2.",
+        "Worker/Web TypeScript + SQLite/SQL + D172 isolated source CI passed; project state and repo authority CI passed.",
+        "Unrelated legacy PR checks remain failing due historical Agent/SLA assumptions; no unapproved unrelated code changed."
+      ],
+      "evidence": "{\"e216_e217_web_build_sql_d172\":43182177953,\"e123_worker_web_sql_d172\":43182177602,\"d172_independent_guard\":43182177442,\"repo_authority\":43182177217,\"project_state\":43182177193}",
+      "next_action": "Protected merge via exact head and owner marker; trigger and confirm live Production Web/Worker run, /health readback and Web shell; FIELD/OWNER after browser test.",
+      "code": "PASS",
+      "ci": "PASS_EXACT_SOURCE_REQUIRED_5",
+      "release": "PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -5425,11 +5451,19 @@
     "base_main_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
     "owner_release_approved": true,
     "target_web_version": "3.3.10",
-    "source_ci": "PENDING",
+    "source_ci": "PASS_5_OF_5_EXACT_HEAD",
     "release": "PENDING",
     "field_pass": false,
     "owner_pass": false,
     "doc": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
-    "auth": "ops/d173-e217-web-release-authorization.json"
+    "auth": "ops/d173-e217-web-release-authorization.json",
+    "source_ci_sha": "bd3f38d2e699356fa0dc90f49f63503f07373b31",
+    "ci_evidence": {
+      "e216_e217_web_build_sql_d172": 43182177953,
+      "e123_worker_web_sql_d172": 43182177602,
+      "d172_independent_guard": 43182177442,
+      "repo_authority": 43182177217,
+      "project_state": 43182177193
+    }
   }
 }
