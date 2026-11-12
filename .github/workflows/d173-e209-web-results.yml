@@ -28,6 +28,8 @@ jobs:
         run: |
           node --test tests/d173-e209-web-results.test.mjs
           python3 tools/d173_e209_suffix_sql_regression.py
+          node --test tests/d170-d171-release-parity.test.mjs tests/d173-e032-ui-code-only.test.mjs tests/d167-web-ux-consistency.test.mjs
+          python3 tools/d167_dual_track_regression.py
       - name: Exact Owner source scope preflight (no provider writes)
         run: |
           python3 tools/d173_e209_web_release_gate.py --component worker --preflight
