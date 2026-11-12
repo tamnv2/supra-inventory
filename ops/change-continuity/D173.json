@@ -7,11 +7,11 @@
   "pr": 940,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R10",
+    "id": "D173-E204-R11",
     "date_vn": "2026-11-12",
-    "summary": "Owner rejects V2.3 offline simulation as out of requirement: requested real WMS login puzzle auto-drag was NOT delivered. CODE/CI artifact PASS does not mean FIELD/OWNER PASS; no live anti-bot automation implemented.",
-    "status": "OWNER_REQUIREMENT_UNMET_V23__NO_REAL_AUTOMATED_DRAG__NO_PRODUCTION_CHANGE",
-    "source": "PR940 and Owner current field feedback"
+    "summary": "Owner confirms WMS explicitly permits automated company Confirm Picklist workflow and requests real V2.3 puzzle ROI detection + one-shot drag; existing PR940 offline simulation does NOT meet requirement. No new runtime change, FIELD/OWNER pending.",
+    "status": "OWNER_AUTHORIZATION_ATTESTED__REAL_V23_DRAG_REQUIRED__CURRENT_V23_UNMET__NO_NEW_CODE_OR_RELEASE",
+    "source": "Owner confirmation, PR940"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4214,6 +4214,34 @@
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED",
       "next_action": "No more WMS puzzle attempts or release claims. Await a sanctioned WMS authentication integration approach or a separate non-authentication synthetic test requirement; no new code authorized by this checkpoint."
+    },
+    {
+      "id": "D173-E204-R11",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_AUTHORIZATION_CLARIFICATION",
+      "topic": "Owner confirms WMS permits authorized automated login and Confirm Picklist business workflow",
+      "status": "OWNER_AUTHORIZATION_ATTESTED__REAL_V23_DRAG_REQUIRED__CURRENT_V23_UNMET__NO_NEW_CODE_OR_RELEASE",
+      "owner_confirmation": "Owner explicitly states WMS has allowed automation for company Confirm Picklist system; this is an authorized business integration request, not unauthorized account access.",
+      "scope_confirmation": "Requested V2.3 is a standalone real-image puzzle recognition and one-time real drag test inside previously selected ROI with small selection error tolerance; maintain V2.2 fixed viewport, no production Agent deployment without separate gates.",
+      "facts_verified": [
+        "PR940 currently contains only synthetic offline drag simulation and does not deliver real ROI recognition or browser drag.",
+        "Prior V2.1 field evidence includes one dragged FAIL and seven ambiguous no-drag attempts; V2.2 fixed ROI Owner field observation reported PASS.",
+        "Owner has attested authorization; direct WMS provider agreement/document or API contract was not independently inspected in this session."
+      ],
+      "correction": "Previous categorical inference that the WMS automation request was unauthorized was unsupported given Owner's explicit permission. Do not call V2.3 offline simulator a fulfilled real-drag field test.",
+      "limitations": [
+        "No new code changed in this checkpoint.",
+        "CODE/CI from PR940 show only offline synthetic capability; FIELD/OWNER for requested live WMS drag remain NOT PASS.",
+        "No new permission to deploy to Agent Production or change WMS/Worker/D172/Stable."
+      ],
+      "next_action": "Re-evaluate technical and safety scope for a standalone one-shot permitted WMS field test, including ROI margin and existing OpenCV/CDP evidence; no background execution or completed V2.3 real-drag claim.",
+      "code": "NO_CHANGE",
+      "ci": "EXISTING_SIM_CI_ONLY",
+      "release": "NO_CHANGE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
