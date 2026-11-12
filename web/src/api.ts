@@ -1147,6 +1147,7 @@ type ReporterCountersResponse = {
   recent_total: number;
   has_stock_total?: number;
   skip_allowed_total?: number;
+  automatic_skipped_total?: number;
   withdrawn_total?: number;
   auto_skip_enabled?: boolean;
   auto_skip_mode?: AutoSkipMode | null;
