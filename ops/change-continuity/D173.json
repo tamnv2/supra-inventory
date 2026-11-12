@@ -4600,7 +4600,7 @@
       "base_main_sha": "99da97d69490f68818a5a1e49c566a0c5e12141b",
       "branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
       "pr": 959,
-      "source_code_pin": "2707623f53b932a3cb1cf892fd88f9d0879a76e0",
+      "source_code_pin": "6986afe823a254c068ec720a7eaf5e0614fe8310",
       "facts": [
         "New Owner message: 'Triển khai cập nhật sửa lỗi'; explicitly supersedes E233 review-only gate for scoped three Web defects.",
         "PR959 Web3.3.14 proposed RAM-only bounded complete result view cache by session/user/effective role/day/status; invalidates across realtime mutation/reconcile/disconnect/generation change; first load still paginates 200 with totals/dedupe.",
