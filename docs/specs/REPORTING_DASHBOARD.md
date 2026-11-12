@@ -1,3 +1,12 @@
+## D173 — Web vận hành: tìm SKU theo các chữ số cuối (Owner quyết định 12/11/2026; chưa triển khai)
+
+- Trên màn hình Vận hành báo hàng, placeholder của ô tìm kiếm phải đúng **`Tìm SKU theo các chữ số cuối`**; chỉ nhận số và tự kích hoạt khi đã nhập tối thiểu **3 chữ số**, không có nút tìm.
+- Quy tắc khớp duy nhất: **hậu tố SKU** (suffix/`endsWith`), không khớp phần đầu hoặc chữ số nằm giữa. Với SKU `10011233`, nhập `233` hoặc `1233` phải có kết quả; nhập `123` không được có kết quả.
+- Lọc trên **toàn bộ dữ liệu của tab và khoảng ngày** trước phân trang; không giới hạn trang 50 dòng. Giữ bộ đếm KPI theo phạm vi ngày, không làm sai nhãn tab; tránh request lặp và cần đo DO Rows Read vì SQL suffix matching có thể không tận dụng index SKU thông thường.
+- Đây là **đặc tả nghiệp vụ đã chốt**, không tự cấp quyền chỉnh sửa Worker/Web, merge hoặc Production release. D172 giữ độc lập PENDING/HOLD và Stable OWNER-GATED. Căn cứ: `docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md`.
+
+---
+
 ## D173-E093 — Usage Agent156: dữ liệu ca và quota ngày/chu kỳ
 
 - Mở Agent sau 06:00 phải truy vấn lại lịch sử 24 giờ từ Provider rồi lọc các mẫu thuộc ca từ 06:00; không phụ thuộc thời điểm mở Agent. Giữ nhịp sync từng metric đã cấu hình, không bổ sung polling ngắn.
