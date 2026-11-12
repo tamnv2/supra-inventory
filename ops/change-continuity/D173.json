@@ -7,11 +7,11 @@
   "pr": 935,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R01",
+    "id": "D173-E204-R02",
     "date_vn": "2026-11-12",
-    "summary": "Standalone V2.1 PR935 exact source 8a53afa run43122193408 11/11 tests+Windows x64 native PASS; downloaded artifact13900403861 ZIP SHA256 5be5c04d.. CRC verified. V2 FIELD FAIL unchanged; V2.1 FIELD/OWNER pending; D172/Stable/Production untouched.",
-    "status": "CODE_CI_DIAGNOSTIC_ARTIFACT_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E204_PUZZLE_DIAGNOSTIC_V21_2026-11-12.md"
+    "summary": "Owner permits only 1 optional 2 real puzzle attempts due anti-spam lockout risk; PR935 V2.1 field capture should stop after one reviewed ROI-only ZIP. No retries/production changes, no FIELD/OWNER PASS.",
+    "status": "FIELD_NOT_RUN__OWNER_TESTS_RESTRICTED_TO_1_OPTIONAL_2__NO_RUNTIME_CHANGE",
+    "source": "PR935 + E204-R01 verified technical artifact"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3923,6 +3923,37 @@
       "next_action": "Owner runs V2.1 in standalone Windows, selects puzzle-only region, Test once, annotate before/after ground truth, labels PASS/FAIL, exports user-approved ZIP. Diagnose exact pixel error versus acknowledged pointer path; only then propose V2.2 matcher fix.",
       "ci": "PASS_11_OF_11_SOURCE_AND_WINDOWS_NATIVE",
       "release": "TEST_ARTIFACT_ZIP_SHA_PASS_NO_PRODUCTION",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R02",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_FIELD_TEST_CONSTRAINT_AND_EVIDENCE_PLAN",
+      "topic": "V2.1 single-attempt diagnostic field test; avoid anti-spam account lock",
+      "status": "FIELD_NOT_RUN__OWNER_TESTS_RESTRICTED_TO_1_OPTIONAL_2__NO_RUNTIME_CHANGE",
+      "owner_constraint": "Owner reports only a few allowed real puzzle attempts; repeated tests may trigger anti-spam lockout. Prior ten-attempt field plan is not applicable to this session.",
+      "verified_source_facts": [
+        "V2.1 PR935 source 2bfc0b7 retains PuzzleVision.Analyze(full WebView2 screenshot); selected ROI is for before/after evidence crop, not an algorithmic detection restriction.",
+        "One Test (1 lần) triggers at most one drag, no auto-retry; captures before/after puzzle ROI, source/slot annotation and optional observed piece position.",
+        "Browser acknowledgement of CDP mouse events proves dispatch acknowledgement only, not actual puzzle motion or service acceptance.",
+        "Prior V2 dataset: 35 field attempts, 0 PASS; 25 no-drag and 10 drag FAIL; V2.1 code is diagnostic only and source/CI PASS does not prove FIELD."
+      ],
+      "proposed_field_protocol": [
+        "Before any real Test: open login manually, reach puzzle, select tight puzzle-only ROI, confirm no personal/session/company data is visible, and verify app launch and ZIP export independently with synthetic/offline test when possible.",
+        "Perform a maximum of one authorized real Test first; inspect BEFORE source center and target slot, optional AFTER visible piece center; explicitly review images, mark PASS/FAIL only if drag was sent, and export one approved puzzle-diagnostic-v21.zip immediately.",
+        "Stop if challenge rejects, refreshes, rate-limits, or presents unusual warnings; do not retry/reload repeatedly, never automate successive attempts.",
+        "Analyze annotated predicted delta vs manual reference and acknowledged pointer trace vs after image from this single sample; request a second attempt only if truly indispensable and Owner confirms allowed attempts.",
+        "No account lockout safety guarantee; official provider/site attempt policy is unknown. No secrets, full login screenshots or session identifiers in repo."
+      ],
+      "decision": "DIAGNOSTIC_GUIDANCE_ONLY__DO_NOT_AUTOMATICALLY_RUN_TESTS__NO_CODE_CHANGE__NO_PRODUCTION_RELEASE",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/935 and the E204-R01 technical artifact checkpoint",
+      "next_action": "Owner supplies one reviewed ROI-only ZIP if site permits a real test; analyze offline before requesting any more attempts.",
+      "code": "NO_CHANGE",
+      "ci": "NO_NEW_CI_CLAIM",
+      "release": "NO_CHANGE",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
