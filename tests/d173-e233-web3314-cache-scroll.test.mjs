@@ -62,3 +62,83 @@ test("E233: final SKU remains rendered, existing local suffix and version advanc
   assert.match(version, /WEB_VERSION = "3\.3\.14"/);
   assert.equal(pkg.version, "3.3.14");
 });
+
+import { runInNewContext } from "node:vm";
+
+const loaderBody = part("async function loadReporterRecentSnapshot()", "async function loadOperationsSnapshot()")
+  .replace("async function loadReporterRecentSnapshot(): Promise<void>", "async function loadReporterRecentSnapshot()")
+  .replace("const all: ReporterRecentBatch[] = []", "const all = []")
+  .replace("let totals: typeof recentTotals | null = null", "let totals = null");
+
+function loaderFixture(count) {
+  const records = Array.from({ length: count }, (_, index) => ({ batch_id: `b${index}`, sku: String(index) }));
+  let calls = 0;
+  const ctx = {
+    profile: { user_id: "operator-1", role: "ADMIN", base_role: "ADMIN" },
+    sessionViewGeneration: 1,
+    recentViewCacheEpoch: 0,
+    recentViewCache: new Map(),
+    reporterRecentLoadGeneration: 0,
+    recentFilter: "HAS_STOCK",
+    recentFrom: "2026-11-12",
+    recentTo: "2026-11-12",
+    recentLoadedViewKey: "",
+    recentRows: [],
+    recentTotal: 0,
+    recentLoadError: "",
+    recentTotals: { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 },
+    recentBadgeCount: 0,
+    recentBadgeInitialized: false,
+    resultTabAutoSkipCount: 0,
+    realtimeState: "connected",
+    RECENT_PAGE_SIZE: 200,
+    recentPageKey: () => [ctx.recentFilter, ctx.recentFrom, ctx.recentTo].join("|"),
+    apiRange: () => ({ from: "2026-11-12T00:00:00", to: "2026-11-13T00:00:00" }),
+    syncOperationalTabBadges() {},
+    markWebUpdateReceived() {},
+    async getReporterRecent(limit, offset) {
+      calls++;
+      return {
+        items: records.slice(offset, offset + limit),
+        total: records.length,
+        totals: { ...ctx.recentTotals, has_stock: records.length },
+      };
+    },
+  };
+  const load = runInNewContext(loaderBody + "\nloadReporterRecentSnapshot", ctx);
+  return { ctx, load, get calls() { return calls; } };
+}
+
+test("E234 behavior: 0/1/200/201/383/1000 rows all loaded; exact count and bounded 200 API paging", async () => {
+  for (const n of [0, 1, 200, 201, 383, 1000]) {
+    const f = loaderFixture(n);
+    await f.load();
+    assert.equal(f.ctx.recentRows.length, n, "row count " + n);
+    assert.equal(f.ctx.recentTotal, n);
+    assert.equal(f.ctx.recentLoadedViewKey, "HAS_STOCK|2026-11-12|2026-11-12");
+    assert.equal(f.calls, Math.max(1, Math.ceil(n / 200)), "GET count " + n);
+  }
+});
+
+test("E234 behavior: A→B→A reuses only valid same-session cache and restores badges", async () => {
+  const f = loaderFixture(383);
+  await f.load();
+  assert.equal(f.calls, 2);
+  f.ctx.recentFilter = "SKIP_ALLOWED";
+  await f.load();
+  assert.equal(f.calls, 4);
+  f.ctx.recentFilter = "HAS_STOCK";
+  await f.load();
+  assert.equal(f.calls, 4, "returning to complete A must make zero API requests");
+  assert.equal(f.ctx.recentBadgeCount, 383);
+  f.ctx.recentViewCache.clear();
+  f.ctx.recentViewCacheEpoch++;
+  await f.load();
+  assert.equal(f.calls, 6, "realtime invalidation must force authoritative reload");
+  f.ctx.profile.user_id = "operator-2";
+  await f.load();
+  assert.equal(f.calls, 8, "new user must not reuse previous user's RAM data");
+  f.ctx.realtimeState = "offline";
+  await f.load();
+  assert.equal(f.calls, 10, "offline / dirty state must never treat old RAM as authoritative");
+});
