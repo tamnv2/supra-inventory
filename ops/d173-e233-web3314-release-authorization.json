@@ -25,14 +25,18 @@
   "stable_mutation": false,
   "sqlite_schema_mutation": false,
   "new_provider_resources": false,
-  "source_ci_verified": false,
-  "web_build_pass": false,
-  "d172_isolation_pass": false,
+  "source_ci_verified": true,
+  "web_build_pass": true,
+  "d172_isolation_pass": true,
   "required_ci_failed": 0,
-  "required_ci_success": 0,
-  "source_ci_sha": null,
-  "required_ci_run_ids": [],
+  "required_ci_success": 3,
+  "source_ci_sha": "0dcfa9b36e3670be02d9de9a17d963976d8b5c69",
+  "required_ci_run_ids": [
+    43237001233,
+    43237001008,
+    43237001025
+  ],
   "field_pass": false,
   "owner_pass": false,
-  "release": "SOURCE_CI_PENDING__OWNER_WEB3314_APPROVED"
+  "release": "SOURCE_WEB_BUILD_AND_D172_AND_AUTHORITY_CI_PASS__EXACT_HEAD_STATE_AND_PROTECTED_MERGE_PENDING"
 }
