@@ -5019,9 +5019,9 @@
     ],
     "status": {
       "code": "SOURCE_TEST_PASS",
-      "ci": "SIX_SCOPED_GATES_PASS",
-      "release": "PENDING",
-      "field": "WEB337_NOT_PASS_WEB338_PENDING",
+      "ci": "SIX_SCOPED_PASS",
+      "release": "WORKER_WEB338_PRODUCTION_TECH_PASS",
+      "field": "WEB338_PENDING_FIELD_OWNER",
       "owner_pass": false
     },
     "privacy_safe": true,
@@ -5035,7 +5035,11 @@
       "d166": 43159132500,
       "d170": 43159132223
     },
-    "gates_note": "historical Agent-only/old release pin jobs failing, not counted as E210 PASS"
+    "gates_note": "historical Agent-only/old release pin jobs failing, not counted as E210 PASS",
+    "release_merge_sha": "b913f86bff209905f2d2dab3bf7a1ffa88c4a279",
+    "release_run_id": 43159857445,
+    "release_version": "3.3.8",
+    "release_receipt": "docs/D173_E211_WEB338_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
   },
   "d173_e210_source_ci_20261112": {
     "date_vn": "2026-11-12",
@@ -5062,5 +5066,35 @@
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED",
     "privacy_safe": true
+  },
+  "d173_e211_web338_production_technical_receipt_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "VERIFIED_PRODUCTION_RELEASE_RECEIPT",
+    "subchange": "E211",
+    "parent": "D173-E210",
+    "source_pr": 943,
+    "protected_main_sha": "b913f86bff209905f2d2dab3bf7a1ffa88c4a279",
+    "source_ci_sha": "08e7b214c8a1ec27bd17190e0e4f2c33ce31a702",
+    "production_worker_web_run": 43159857445,
+    "provider_worker_version": "550bab2f-36d1-4915-a638-cb3d9059226d",
+    "technical_result": "WORKER_WEB338_RELEASE_PASS",
+    "official_host": "inventory.supra.cc.cd",
+    "verified_checks": [
+      "owner_advanced_release_gate",
+      "wrangler_upload_and_deploy",
+      "official_health_source_commit_exact",
+      "SQLite_and_bindings",
+      "web_shell",
+      "auth_and_oauth_smoke"
+    ],
+    "code": "PASS",
+    "ci": "PASS_RELEVANT",
+    "release": "PASS_TECHNICAL",
+    "field": "NOT_VERIFIED",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "privacy_safe": true,
+    "docs_only": true
   }
 }
