@@ -441,6 +441,7 @@ namespace SupraPuzzleRecorder
             _drags.Clear();
             _tests.Clear();
             V21ClearImages();
+            _v22ApprovedPng = null;
             _browser.Dispose();
             try { if (Directory.Exists(_profileRoot)) Directory.Delete(_profileRoot, true); }
             catch (IOException) { /* Browser subprocess may still be closing. InPrivate remains enabled. */ }
