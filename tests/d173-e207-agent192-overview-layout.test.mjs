@@ -11,10 +11,10 @@ const section = (start, end) => layout.slice(layout.indexOf(start), layout.index
 const overview = section('private void InstallD173E179NoScrollTop(', '// E182 FIELD FAIL:');
 const toolbar = section('private int D173E182FitAgentHeader(', 'private void InstallD173E179WebTools(');
 
-test('overview is exactly two 60/40 columns with the existing lower roster untouched', () => {
-  assert.match(overview, /new ColumnStyle\(SizeType\.Percent, 60F\)/);
+test('overview retains two columns with Owner-updated 70/30 allocation with the existing lower roster untouched', () => {
+  assert.match(overview, /new ColumnStyle\(SizeType\.Percent, 70F\)/);
   assert.match(overview, /viewport\.ClientSize\.Height >= 375/);
-  assert.match(overview, /new ColumnStyle\(SizeType\.Percent, 40F\)/);
+  assert.match(overview, /new ColumnStyle\(SizeType\.Percent, 30F\)/);
   assert.match(overview, /twoColumns\.ColumnCount = 2;/);
   assert.match(overview, /overview\.RowStyles\[0\]\.Height = 40F/);
   assert.match(overview, /overview\.RowStyles\[1\]\.Height = 60F/);
@@ -35,10 +35,10 @@ test('old Supra summary and Desktop Web button disappear without removing WMS ha
   assert.match(form, /ActivateEmbeddedWmsTab\(\)/);
 });
 
-test('Agent toolbar always places five control actions before three visually distinct Web-data actions', () => {
+test('Agent toolbar places four actions, three Web-data actions, then network refresh', () => {
   const items = ['_d150PrimaryTakeoverButton', '_manualUpdate', '_background',
-    '_logout', '_agentExit', '_browserBundleDownload', '_openAgentDataFolder',
-    '_moveAgentDataFolder'];
+    '_d173E212ExitMenuButton', '_browserBundleDownload', '_openAgentDataFolder',
+    '_moveAgentDataFolder', '_d173E175NetworkRefresh'];
   const sequence = toolbar.slice(toolbar.indexOf('var actions = new Control[]'), toolbar.indexOf('}.Where(control'));
   let last = -1;
   for (const item of items) {
@@ -47,7 +47,7 @@ test('Agent toolbar always places five control actions before three visually dis
     last = index;
   }
   assert.match(toolbar, /_d150PrimaryTakeoverButton\.Text = "Chuyển Agent chính"/);
-  assert.match(toolbar, /_logout\.Text = "Đăng xuất"/);
+  assert.match(toolbar, /_d173E212ExitMenuButton\.Text = "Thoát Agent"/);
   assert.match(toolbar, /SetD173BoundsIfChanged\(control, actionX, actionTop/);
   assert.match(legacy, /if \(_d173E182AdaptiveTopReady\)[\s\S]*?D173E179FitAgentFleet\(host\);/);
   assert.match(overview, /button\.BackColor = Color\.FromArgb\(226, 237, 248\)/);
@@ -75,4 +75,42 @@ test('narrow desktop preserves tab access to Agent, PickList and resources witho
   assert.match(overview, /agentTab\.Controls\.Add\(agent\)/);
   assert.match(overview, /pickTab\.Controls\.Add\(picklist\)/);
   assert.match(overview, /desktopTab\.Controls\.Add\(desktop\)/);
+});
+
+test('E212 exit selector keeps both original protected operations without extra network requests', () => {
+  assert.match(overview, /exitChoices\.Items\.Add\("Đăng xuất User Agent"/);
+  assert.match(overview, /exitChoices\.Items\.Add\("Tắt chương trình Agent"/);
+  assert.match(overview, /RequestProtectedAgentLogout\(\)/);
+  assert.match(overview, /RequestProtectedExit\(\)/);
+  assert.match(form, /_logout\.Click \+= \(s, e\) => RequestProtectedAgentLogout\(\)/);
+  assert.match(form, /private void RequestProtectedAgentLogout\(\)/);
+  assert.match(form, /VerifyCurrentAgentPasswordForAction\(/);
+  assert.match(form, /_agentExit\.Click \+= \(sender, args\) => RequestProtectedExit\(\)/);
+  assert.match(auth, /_logout\.Visible = authenticated && !_d173E182AdaptiveTopReady/);
+  assert.match(auth, /_agentExit\.Visible = !authenticated \|\| !_d173E182AdaptiveTopReady/);
+  assert.match(auth, /_d173E212ExitMenuButton\.Visible = authenticated && _d173E182AdaptiveTopReady/);
+});
+
+test('E212 status and refresh action use separate rows; action labels are DPI measured', () => {
+  assert.match(toolbar, /_d173E175NetworkRefresh/);
+  assert.match(toolbar, /var networkWidth = width;/);
+  assert.match(toolbar, /var actionWidth = Math\.Min\(width, Math\.Max\(72, measuredWidth\)\)/);
+});
+
+test('E212 live roster refresh does not remeasure data-driven widths', () => {
+  const fitting = section('private void D173E179FitRosterColumns()', 'private void InstallD173E179PickListPager(');
+  assert.match(fitting, /_d173E212RosterWidthSignature == signature\) return;/);
+  assert.match(fitting, /grid\.DeviceDpi/);
+  assert.match(fitting, /desired\[i\] = max;/);
+  assert.match(fitting, /_d173E212RosterWidthSignature = signature;/);
+  assert.doesNotMatch(fitting, /grid\.Rows\[/);
+});
+
+test('E212 roster tools stay on one row and right-align only when they fit', () => {
+  const block = auth.slice(auth.indexOf('private void LayoutD173RosterToolbar()'),
+    auth.indexOf('private void UpdateD173RosterFilterColors()'));
+  assert.match(block, /if \(fit && i == actionOffset\) x = width - actionsWidth;/);
+  assert.match(block, /_d173RosterToolbar\.AutoScroll = !fit;/);
+  assert.match(block, /_d173E148ManualRefreshButton, _d173E140CloseAllCalls/);
+  assert.match(block, /_d168GroupContact, _d161BulkKickAllButton/);
 });
