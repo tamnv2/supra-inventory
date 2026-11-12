@@ -1629,8 +1629,8 @@ function renderOperationalTabs(current: "operations" | "overdue" | "results"): s
       <button type="button" class="filter ${preset === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
     </div>
     <div id="recent-range-form" class="d173-range-dates">
-      <label>Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" /></label>
-      <label>Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" /></label>
+      <label>Từ<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" /></label>
+      <label>Đến<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" /></label>
     </div>
   </div>`;
   return `<div class="d173-ops-toolbar">
@@ -1643,7 +1643,7 @@ function renderOperationalTabs(current: "operations" | "overdue" | "results"): s
     </div>
     <div class="d173-ops-toolbar-right">
       ${range}
-      <input id="ops-sku-suffix" aria-label="Tìm SKU theo các chữ số cuối" placeholder="Tìm SKU theo các chữ số cuối" inputmode="numeric" autocomplete="off" maxlength="32" value="${esc(opsSkuSuffix)}" />
+      <input id="ops-sku-suffix" aria-label="Tìm SKU theo các chữ số cuối" placeholder="Tìm SKU" inputmode="numeric" autocomplete="off" maxlength="32" value="${esc(opsSkuSuffix)}" />
     </div>
   </div>`;
 }
