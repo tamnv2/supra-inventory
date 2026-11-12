@@ -34,3 +34,6 @@ Owner gửi hai ảnh sau phát hành Web 3.3.13, yêu cầu phân tích:
 
 ## Kết luận và ranh giới
 Đã xác minh **lỗi hai lớp cuộn từ CSS** và **thiết kế tải lại dữ liệu khi đổi tab**; riêng tỷ trọng thời gian API/DOM và khả năng thiếu dòng thực tế **chưa đo**. Đây là intake/đề xuất, **chưa có quyền lưu dữ liệu nghiệp vụ bền vững lên máy**, chưa phát hành Production mới, không thay Web 3.3.13 đã phát hành.
+
+## Cập nhật Owner và thực thi E234 (sau bản phân tích)
+Owner ngày 12/11/2026 ban hành lệnh mới: **“Triển khai cập nhật sửa lỗi.”** Lệnh này **thay thế kết luận review-only** về code/triển khai ở trên, nhưng không cấp quyền lưu persistent business data. Nguồn quyết định mới, cách sửa Web3.3.14, kiểm thử và trạng thái: `docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md`; PR #959. Các khẳng định FIELD NOT PASS của Web3.3.13 vẫn có hiệu lực đến khi có FIELD receipt mới.
