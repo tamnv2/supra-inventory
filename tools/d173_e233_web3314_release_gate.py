@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "99da97d69490f68818a5a1e49c566a0c5e12141b"
-PIN = "2707623f53b932a3cb1cf892fd88f9d0879a76e0"
+PIN = "6986afe823a254c068ec720a7eaf5e0614fe8310"
 MARKER = "D173-E233_WEB3314_PRODUCTION_RELEASE:"
 RUNTIME = {"web/src/operational-app.ts", "web/src/d173-tabler.css", "web/src/web-version.ts", "web/package.json"}
 ALLOWED = RUNTIME | {
