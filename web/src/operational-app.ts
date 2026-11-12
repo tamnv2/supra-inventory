@@ -5137,10 +5137,10 @@ function bindSection(): void {
       recentOffset = 0;
       expandedRecentPickerBatches.clear();
       void run(async () => { await Promise.all([
-      activeSection === "results" && opsSkuSuffix.length >= 3
-        ? loadReporterRecentSnapshot(true) : loadOperations(),
-      loadReporterTabCounters(true),
-    ]); });
+        activeSection === "results" && opsSkuSuffix.length >= 3
+          ? loadReporterRecentSnapshot(true) : loadOperations(),
+        loadReporterTabCounters(true),
+      ]); });
     })
   );
   // One input for the active tab, never search other tabs or extend its date range.
