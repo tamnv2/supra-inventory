@@ -44,6 +44,7 @@ namespace SupraPuzzleRecorder
                 WrapContents = false, Padding = new Padding(7, 1, 4, 0)
             };
             bar.Controls.Add(_v21ChooseRegion);
+            bar.Controls.Add(_v22Inspect);
             bar.Controls.Add(_v21Bundle);
             var label = new Label
             {
@@ -52,6 +53,7 @@ namespace SupraPuzzleRecorder
             };
             bar.Controls.Add(label);
             _v21ChooseRegion.Click += async (sender, args) => await V21SelectRegionAsync();
+            _v22Inspect.Click += async (sender, args) => await V22InspectRegionAsync();
             _v21Bundle.Click += (sender, args) => V21SaveBundle();
             return bar;
         }
@@ -104,6 +106,7 @@ namespace SupraPuzzleRecorder
                                 if (confirm.ShowDialog(this) != DialogResult.OK) return;
                             }
                             _v21Region = roi;
+                            V22SaveRegion(roi, original.Width, original.Height);
                             _status.Text = "Đã chọn vùng trò chơi " + roi.Width + "×" + roi.Height +
                                 " px. Nhấn Test một lần; mỗi ảnh sẽ được kiểm tra trước khi lưu.";
                         }
