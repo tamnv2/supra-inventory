@@ -111,8 +111,10 @@ namespace SupraInventoryRelayAgent
                 arranging = true;
                 try
                 {
-                    var useTwo = viewport.ClientSize.Width >= 900 &&
-                        viewport.ClientSize.Height >= 240;
+                    // The 65/35 left stack must fit the full toolbar and PickList
+                    // input; at HD short viewports use tabs instead of clipping.
+                    var useTwo = viewport.ClientSize.Width >= 1024 &&
+                        viewport.ClientSize.Height >= 375;
                     var wanted = useTwo ? 2 : 1;
                     if (mode != wanted)
                     {
