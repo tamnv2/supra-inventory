@@ -1,3 +1,12 @@
+## D173 — Owner 12/11/2026: chốt 3 quyết định phạm vi Web tìm SKU và Picker thu hồi
+- **Tìm kiếm đúng tab đang mở.** Tab Đang xử lý/Quá hạn tìm **toàn bộ đơn chưa hoàn tất**; ba tab Đã có hàng/Cho phép Skip/Picker đã thu hồi chỉ tìm đúng phạm vi ngày đã chọn, không tự mở rộng. Vẫn dùng tìm SKU theo hậu tố đã chốt (>=3 chữ số, placeholder `Tìm SKU theo các chữ số cuối`).
+- **Picker đã thu hồi:** mỗi picker một dòng riêng, cùng SKU/batch có thể hiện nhiều dòng; không tự gộp nhiều picker vào một dòng.
+- **Ngày của 3 tab kết quả:** theo `report_batches.first_report_at` như source hiện tại, không chuyển sang ngày xử lý/thu hồi.
+- **Chưa chốt:** (1) badge/KPI CLOSED theo số batch hay picker; (2) một picker thu hồi nhiều lần trong một batch: một dòng picker hay một dòng/lượt. Chưa cấp quyền code/merge/release. D172 độc lập PENDING/HOLD, Stable OWNER-GATED.
+- Bằng chứng và kịch bản: `docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md`, PR #942 docs-only.
+
+---
+
 ## D173 — Owner 12/11/2026: chốt tìm SKU bằng các chữ số cuối trên Web Vận hành
 
 - Quy tắc tìm SKU đã chốt: **khớp hậu tố duy nhất**, không tìm tiền tố hoặc chuỗi ở giữa. SKU `10011233`: nhập `233` **có**, `1233` **có**, `123` **không**. Chỉ chấp nhận chữ số; tối thiểu 3 số mới tự tìm.
