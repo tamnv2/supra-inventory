@@ -1094,7 +1094,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
               ''
             ) AS resolved_by_employee_code,
             b.version, p.batch_id AS previous_batch_id, p.resolved_at AS previous_resolved_at,
-            ${pickerRows ? "page.picker_employee_code AS withdrawn_picker_employee_code, COALESCE(NULLIF(withdrawn_user.display_name, ''), code_user.display_name, '') AS withdrawn_picker_display_name, page.withdrawn_at AS withdrawn_picker_withdrawn_at," : ""}
+            ${pickerRows ? "COALESCE(NULLIF(page.picker_employee_code, ''), NULLIF(withdrawn_user.employee_code, ''), '') AS withdrawn_picker_employee_code, COALESCE(NULLIF(withdrawn_user.display_name, ''), NULLIF(code_user.display_name, ''), '') AS withdrawn_picker_display_name, page.withdrawn_at AS withdrawn_picker_withdrawn_at," : ""}
             ${rowCountsSql}
        FROM page_ids page
        JOIN report_batches b ON b.batch_id = page.batch_id
