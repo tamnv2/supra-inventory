@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E231",
     "date_vn": "2026-11-12",
-    "summary": "Owner explicitly authorizes Web3.3.13 Production release for E230 UI-only; PR957 release gate now requires immutable source pin, CI/D172 and protected merge. No deployment/field PASS yet.",
-    "status": "WEB3313_OWNER_RELEASE_APPROVED__PR957_SOURCE_PREFLIGHT_PENDING__NO_PROVIDER_DEPLOY_YET",
+    "summary": "Owner approved Web3.3.13. Four scoped CI checks PASS at b287887e (UI/Web build, D172, Repo Authority and Project State); exact SHA release auth pinned. Protected PR957 merge and Production release pending.",
+    "status": "WEB3313_OWNER_APPROVED__SOURCE_CI_4_OF_4_SCOPED_PASS__PROTECTED_MERGE_RELEASE_PENDING",
     "source": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
     "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
     "pr": 957
@@ -4497,7 +4497,7 @@
       "date_vn": "2026-11-12",
       "kind": "OWNER_COMMAND",
       "topic": "Owner explicitly requests protected Production release of D173 Web3.3.13 candidate after Web3.3.12 field UI corrections",
-      "status": "WEB3313_OWNER_RELEASE_APPROVED__PR957_SOURCE_PREFLIGHT_PENDING__NO_PROVIDER_DEPLOY_YET",
+      "status": "WEB3313_OWNER_APPROVED__SOURCE_CI_4_OF_4_SCOPED_PASS__PROTECTED_MERGE_RELEASE_PENDING",
       "owner_approval": true,
       "owner_release_approved": true,
       "pr": 957,
@@ -4510,15 +4510,22 @@
         "Guarded release uses registered Production Worker/Web static assets and requires exactly two-parent PR merge marker, exact main base and immutable Web runtime PIN, D172 isolation and source-scoped CI before any provider writes.",
         "Unrelated legacy UI Design Guard already failed on identical main baseline, not treated as E230 scoped source PASS; no bypass of required E230 or D172 guards."
       ],
-      "evidence": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/957",
-      "next_action": "Complete final PR957 head source preflight + D172 CI and capture exact run IDs; update release auth CI receipt, protect merge with exact head and marker; verify Production run/health afterwards.",
-      "code": "SOURCE_CANDIDATE",
-      "ci": "PENDING_FINAL_E231",
-      "release": "NOT_DEPLOYED",
+      "evidence": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/957; https://github.com/tamnv2/supra-inventory/actions/runs/43227189692; https://github.com/tamnv2/supra-inventory/actions/runs/43227189986",
+      "next_action": "Verify final PR head CI and immutable Web PIN, merge with E230 two-parent marker, then verify Production run exact SHA/health and write release receipt.",
+      "code": "SOURCE_TEST_PASS",
+      "ci": "PASS_E230_WEB_D172_AUTHORITY_CONTINUITY",
+      "release": "PENDING_PROTECTED_MERGE_AND_ACTUAL_PRODUCTION_DEPLOY",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "b287887e6613ab60b750947a7b7133a201700288",
+      "ci_run_ids": [
+        43227189692,
+        43227189986,
+        43227189717,
+        43227189801
+      ]
     }
   ],
   "resume": {
