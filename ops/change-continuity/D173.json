@@ -4874,5 +4874,76 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "privacy": "NO_OPERATIONAL_PERSONAL_DATA"
+  },
+  "d173_e209_owner_implementation_20261112": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "issue": "E209",
+    "kind": "OWNER_FINAL_BUSINESS_SELECTION_AND_WEB_IMPLEMENTATION_PERMISSION",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "pr": 942,
+    "accepted_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "owner_decisions": {
+      "search": "active_tab_only+suffix_digits_min3; queue_overdue_all_open; three outcomes date_first_report_at",
+      "closed_row": "one distinct picker_employee_code per batch latest_withdrawn_at",
+      "closed_kpi": "batch_count_unchanged; paging_picker_row_count",
+      "priority": [
+        "usage",
+        "stability",
+        "speed"
+      ],
+      "owner_code_permission": true,
+      "owner_production_release_permission": true,
+      "approved_component_scope": "D173_EXISTING_WORKER_READ_API_AND_WEB_3_3_7_ONLY"
+    },
+    "implementation": {
+      "web": [
+        "web/src/operational-app.ts",
+        "web/src/api.ts",
+        "web/src/d173-tabler.css",
+        "web/src/web-version.ts",
+        "web/package.json"
+      ],
+      "service": [
+        "service/src/operational-v2-core.ts"
+      ],
+      "tests": [
+        "tests/d173-e209-web-results.test.mjs",
+        "tools/d173_e209_suffix_sql_regression.py"
+      ],
+      "workflow": ".github/workflows/d173-e209-web-results.yml",
+      "schema_migration": false,
+      "provider_resource_changes": false,
+      "agent_apk_firebase_d172_stable": "unchanged"
+    },
+    "requirements": [
+      "exact source Web TypeScript build",
+      "Worker TypeScript check",
+      "real SQL fixture suffix/per-picker/pagination",
+      "D172 independent regression",
+      "PR protected gates",
+      "Owner-specific Worker/Web release guard",
+      "Production SHA receipt"
+    ],
+    "status": {
+      "code": "IN_PROGRESS",
+      "ci": "NOT_VERIFIED",
+      "release": "NOT_STARTED",
+      "field": "PENDING",
+      "owner_pass": false
+    },
+    "risks": [
+      "CLOSED page per picker may raise SQLite rowsRead; must measure and not N+1",
+      "search must not recalc ACK SQL for every suffix",
+      "existing pending/overdue APIs and realtime must retain original behavior",
+      "shared Worker route must satisfy D172 isolation"
+    ],
+    "docs": [
+      "docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md",
+      "docs/OWNER_DECISIONS.md"
+    ],
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "privacy_safe": true
   }
 }
