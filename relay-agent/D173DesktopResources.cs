@@ -370,7 +370,11 @@ namespace SupraInventoryRelayAgent
             if (host == null || host.IsDisposed || !authenticated) return;
             // E207 owns the signed-in toolbar. Do not let the old geometry
             // silently restore Logout-first ordering after a role refresh.
-            if (_d173E182AdaptiveTopReady) return;
+            if (_d173E182AdaptiveTopReady)
+            {
+                D173E179FitAgentFleet(host);
+                return;
+            }
             var width = Math.Max(310, host.ClientSize.Width);
             var compact = width < 700;
             const int gap = 4;
