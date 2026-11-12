@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E212",
     "date_vn": "2026-11-12",
-    "summary": "Owner Agent192 FIELD partial: 5 Agent-only UI corrections approved for code; Agent193 Draft PR945, no merge/OTA permission. Existing Agent192 signed release unchanged; CI, FIELD and OWNER PASS remain pending.",
-    "status": "AGENT193_CODE_ONLY_SOURCE_CANDIDATE__CI_PENDING__NO_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
+    "summary": "Agent193 five Owner-requested UI refinements: source 9/9, independent D172 74/74, authority/continuity and Windows x64 native smoke PASS at e34664a907b9a3431886566e1a2c3639b507b31b (run 43163281722). Draft PR945 CODE ONLY; no merge/release; signed Agent192 Production unchanged. FIELD/OWNER PENDING.",
+    "status": "AGENT193_SOURCE_CI_NATIVE_PASS__DRAFT_CODE_ONLY__NO_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
     "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
     "pr": 945,
     "source": "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md"
@@ -3935,24 +3935,27 @@
       "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
       "pr": 945,
       "docs": "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md",
-      "code": "SOURCE_CANDIDATE",
-      "ci": "PENDING",
+      "code": "PASS_EXACT_SOURCE",
+      "ci": "PASS_RUN_43163281722",
       "release": "AGENT192_UNCHANGED__AGENT193_NOT_RELEASED",
       "field": "PENDING",
       "owner_pass": false,
       "d172": "PENDING_HOLD_INDEPENDENT",
       "stable": "OWNER_GATED",
       "privacy_safe": true,
-      "status": "CODE_ONLY_SOURCE_CANDIDATE__CI_PENDING__NO_RELEASE",
+      "status": "SOURCE_CI_NATIVE_PASS__NO_RELEASE",
       "owner_approval": true,
       "topic": "Agent192 Owner five UI refinements into Agent193 code-only candidate",
       "next_action": "Complete scoped Agent UI test, D172 independent regression and Windows native build; no merge/release without separate explicit Owner instruction.",
-      "evidence": "Owner screenshot Agent192 2026-11-12; signed relay-agent-v192; Draft PR945; docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md",
+      "evidence": "Owner screenshot Agent192 2026-11-12; signed relay-agent-v192; Draft PR945; docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md; https://github.com/tamnv2/supra-inventory/actions/runs/43163281722",
       "facts": [
         "Agent192 signed OTA technical release is verified, Owner reports five requested UI refinements.",
         "D173 Agent WinForms-only proposed implementation on Draft PR945; separate D172 unchanged.",
-        "No Agent193 merge or OTA release approval in this Owner message."
-      ]
+        "No Agent193 merge or OTA release approval in this Owner message.",
+        "Exact-source CI at e34664a907b9a3431886566e1a2c3639b507b31b: 9/9 UI tests, 74/74 independent D172 cases, authority, state and continuity guards, Windows x64 build and native safety smoke PASS."
+      ],
+      "source_ci_sha": "e34664a907b9a3431886566e1a2c3639b507b31b",
+      "ci_run_id": 43163281722
     }
   ],
   "resume": {
@@ -5164,13 +5167,15 @@
       "merge": false,
       "release": false
     },
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
+    "code": "SOURCE_TEST_PASS",
+    "ci": "PASS_9_AGENT_UI_74_D172_NATIVE_WINDOWS",
     "release": "NO_CHANGE__AGENT192_OFFICIAL",
     "field": "NOT_TESTED_AGENT193",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "privacy_safe": true
+    "privacy_safe": true,
+    "source_ci_sha": "e34664a907b9a3431886566e1a2c3639b507b31b",
+    "ci_run_id": 43163281722
   }
 }
