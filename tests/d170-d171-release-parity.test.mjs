@@ -32,7 +32,7 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
   const webE210 = e210.owner_code_approved === true &&
     e210.owner_production_release_approved === true && e210.web_target_version === "3.3.8" &&
     e210.d172_pending_hold === true && e210.stable_mutation === false;
-  assert.match(web, webE210 ? /WEB_VERSION = "3\\.3\\.8"/ :
+  assert.match(web, webE210 ? /WEB_VERSION = "3\.3\.8"/ :
     webE209 ? /WEB_VERSION = "3\.3\.7"/ :
     webE185 ? /WEB_VERSION = "3\.3\.6"/ :
     webE175 ? /WEB_VERSION = "3\\.3\\.5"/ :
