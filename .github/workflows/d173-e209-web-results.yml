@@ -1,0 +1,46 @@
+name: D173 E209 Web Results Usage First Source
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'service/src/operational-v2-core.ts'
+      - 'tests/d173-e209-web-results.test.mjs'
+      - 'tools/d173_e209_suffix_sql_regression.py'
+      - '.github/workflows/d173-e209-web-results.yml'
+permissions:
+  contents: read
+jobs:
+  web-results:
+    if: contains(github.head_ref, 'd173')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Owner-approved suffix, picker-page and date tests
+        run: |
+          node --test tests/d173-e209-web-results.test.mjs
+          python3 tools/d173_e209_suffix_sql_regression.py
+      - name: Web dependencies, TypeScript, production build
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Shared Worker TypeScript compatibility
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Strict independent D172 boundary and business regressions
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: No provider writes on pull requests
+        run: echo "D173_E209_SOURCE_CI_ONLY__NO_PRODUCTION_FIELD_OWNER_PASS"
