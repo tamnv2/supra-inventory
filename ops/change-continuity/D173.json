@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e204-puzzle-v21-diagnostics-20261112",
-  "pr": 935,
+  "working_branch": "feat/d173-e204-puzzle-v22-fixed-viewport-20261112",
+  "pr": 938,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R03",
+    "id": "D173-E204-R04",
     "date_vn": "2026-11-12",
-    "summary": "Owner V2.1 diagnostic ZIP analyzed: 8 Tests, 1 drag FAIL with 122px annotated goal /120px sent /114px observed, 7 no-drags IMAGE_AMBIGUOUS. Offline only; no more live attempts recommended. FIELD/OWNER not PASS.",
-    "status": "FIELD_FAIL_ANALYZED_OFFLINE__NO_FURTHER_LIVE_ATTEMPTS_RECOMMENDED__NO_RUNTIME_CHANGE",
-    "source": "Owner-provided ZIP inspected offline; no raw images or user data committed"
+    "summary": "Owner requested fixed Web login ROI plus auto puzzle solve; V2.2 PR938 implements only passive fixed-viewport ROI inspection/reviewed ZIP, not anti-bot solving or WMS automation. CI pending, no Production changes.",
+    "status": "V22_CODE_CANDIDATE_PR938_DRAFT__CI_PENDING__NO_AUTO_CHALLENGE_SOLVE__NO_PRODUCTION",
+    "source": "https://github.com/tamnv2/supra-inventory/pull/938"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3990,6 +3990,48 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R04",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_V22_REQUEST_AND_BOUNDED_CODE_CANDIDATE",
+      "topic": "V2.2 fixed browser viewport, persist approved ROI and inspect only selected puzzle region",
+      "status": "V22_CODE_CANDIDATE_PR938_DRAFT__CI_PENDING__NO_AUTO_CHALLENGE_SOLVE__NO_PRODUCTION",
+      "owner_request": "Use a fixed Web login display across monitor sizes, allow one-time puzzle region selection, then analyze different puzzle images and automatically drag to complete login, proceeding to Confirm Picklist.",
+      "current_verified_facts": [
+        "V2.1 PR935 isolated source analyzed entire WebView2 screenshot while ROI was only for reviewed image crops.",
+        "Owner-provided V2.1 ZIP documented 8 tests: one sent drag FAIL with 122px annotated desired/120px sent/114px observed, and seven IMAGE_AMBIGUOUS no-drags.",
+        "Open Draft PR938 is stacked on PR935, modifies only standalone diagnostics, docs, tests and workflow. Agent Production not modified.",
+        "V2.2 candidate has fixed 1178x600 WebView2 control with scrollable host and ZoomFactor 1; ROI values saved locally only and restored only for matching screenshot dimensions.",
+        "Passive Inspect ROI shows puzzle-only crop in RAM; requires explicit image approval before local ZIP (ROI PNG+numeric metadata). Legacy click-to-autodrag control is hidden/disabled in V2.2."
+      ],
+      "boundary": "Do not deliver automated CAPTCHA/anti-bot solving, mouse actuation or automatic WMS login/Confirm navigation. That would bypass anti-abuse controls; use human verification or authorized WMS API/SSO route. Maintain Owner 1/optional 2 real-attempt restriction and do not request further live tests.",
+      "tradeoffs": [
+        "Fixed control DIPs do not guarantee identical screenshot pixels under varying Windows DPI; mismatch fails closed and requires fresh ROI selection.",
+        "Persisted ROI may be stale if WMS page layout changes despite same viewport and must be visually re-verified.",
+        "This V2.2 candidate intentionally does not implement the core automated-solve part of Owner request; no FIELD PASS is inferred."
+      ],
+      "changes": [
+        "diagnostics/puzzle-recorder-v1/Program.cs",
+        "diagnostics/puzzle-recorder-v1/V21Diagnostics.cs",
+        "diagnostics/puzzle-recorder-v1/V22FixedViewport.cs",
+        "diagnostics/puzzle-recorder-v1/SupraPuzzleRecorder.csproj",
+        "tests/d173-e204-puzzle-v22-viewport.test.mjs",
+        ".github/workflows/d173-e199-puzzle-recorder.yml",
+        "diagnostics/puzzle-recorder-v1/README.md",
+        "docs/D173_E204_PUZZLE_V22_FIXED_VIEWPORT_2026-11-12.md"
+      ],
+      "pr": 938,
+      "branch": "feat/d173-e204-puzzle-v22-fixed-viewport-20261112",
+      "base_pr": 935,
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "NONE_CODE_ONLY",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "Verify PR938 source and Windows-native CI on exact SHA; repair code-only errors; do not claim installable ZIP until artifact exists and checksum passes."
     }
   ],
   "resume": {
