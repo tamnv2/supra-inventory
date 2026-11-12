@@ -21,3 +21,6 @@ Owner đánh giá Agent192 cơ bản đạt yêu cầu nhưng yêu cầu chỉnh
 - CI: `.github/workflows/d173-e212-agent193-code-only.yml`: authority, continuity, Agent UI test, độc lập D172, native Windows x64 build + startup/roster/HA safety smoke.
 - **CODE/CI**: đang chờ GitHub CI nguồn và native. **RELEASE**: chưa duyệt, chưa phát hành v193, signed Agent192 không thay đổi. **FIELD/OWNER PASS**: chưa kiểm thử/duyệt cho v193.
 - Nhánh: `fix/d173-e212-agent193-ui-stable-columns-20261112`; không merge main hoặc publish OTA khi chưa có lệnh riêng và exact release gate.
+
+## Tính liên tục bootstrap
+- E212 thay một bản receipt cũ trong `bootstrap_order`, giữ giới hạn tối đa 24 nguồn hiện hành; receipt lịch sử vẫn nằm tại `canonical_sources` để tra cứu khi cần.
