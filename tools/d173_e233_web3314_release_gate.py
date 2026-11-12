@@ -17,6 +17,7 @@ ALLOWED = RUNTIME | {
     "tests/d173-e227-web3312-eight-ui.test.mjs", "tests/d173-e230-web3313-field-density.test.mjs",
     "tests/d173-e233-web3314-cache-scroll.test.mjs",
     "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md",
+    "docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md",
     "docs/OWNER_DECISIONS.md", "ops/authority-manifest.json", "ops/current-context.json",
     "ops/change-continuity/D173.json", "ops/project-state.json", "ops/resource-registry.json",
 }
