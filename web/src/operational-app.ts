@@ -1652,7 +1652,7 @@ function renderOperationalTabs(current: "operations" | "overdue" | "results"): s
     </div>
     <div class="d173-ops-toolbar-right">
       ${range}
-      <input id="ops-sku-suffix" aria-label="Tìm SKU theo các chữ số cuối" placeholder="Tìm SKU" inputmode="numeric" autocomplete="off" maxlength="32" value="${esc(opsSkuSuffix)}" />
+      <input id="ops-sku-suffix" aria-label="Tìm SKU theo các chữ số cuối" placeholder="Tìm SKU tối thiểu 3 chữ số cuối" inputmode="numeric" autocomplete="off" maxlength="32" value="${esc(opsSkuSuffix)}" />
     </div>
   </div>`;
 }
@@ -1859,7 +1859,6 @@ function renderOverdue(): string {
         </tr>`).join("") || `<tr><td colspan="5" class="empty">Hiện không có SKU quá hạn.</td></tr>`}
         ${overdueRows.length ? `<tr id="ops-sku-no-match" style="display:none"><td colspan="5" class="empty">Không có SKU phù hợp.</td></tr>` : ""}
       </tbody></table></div>
-      <div class="user-pagination"><span>Hiển thị <b data-ops-visible-count>${overdueRows.length.toLocaleString("vi-VN")}</b> SKU quá hạn</span></div>
     </article>
   </section>`;
 }
@@ -1900,13 +1899,12 @@ function renderResults(): string {
             : resolutionActorLabel(row);
           if (withdrawnOnly) return `<tr data-ops-sku-row="${esc(row.sku)}" data-ops-sku-primary="1"><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.withdrawn_picker_withdrawn_at || row.first_report_at))}</td></tr>`;
           const skipRowTone = row.status === "SKIP_ALLOWED"
-            ? (row.resolution_source === "SYSTEM_TIMEOUT" || row.resolution_source === "SYSTEM_DAY_END" ? "d173-skip-auto" : "d173-skip-human")
+            ? (row.resolution_source === "SYSTEM_TIMEOUT" || row.resolution_source === "SYSTEM_DAY_END" ? "d173-skip-auto" : "")
             : "";
           return `<tr class="${skipRowTone}" data-ops-sku-row="${esc(row.sku)}" data-ops-sku-primary="1" ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
           ${showFirstReport && expandedRecentPickerBatches.has(row.batch_id) ? `<tr class="d173-picker-detail-tr" data-ops-sku-row="${esc(row.sku)}"><td colspan="${columnCount}">${resultPickerMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="${columnCount}" class="empty">${waitingForResults ? "Đang tải toàn bộ dữ liệu trong ngày…" : recentLoadError || "Chưa có kết quả trong ngày đã chọn."}</td></tr>`}
       ${!waitingForResults && recentRows.length ? `<tr id="ops-sku-no-match" style="display:none"><td colspan="${columnCount}" class="empty">Không có SKU phù hợp.</td></tr>` : ""}
       </tbody></table></div>
-      <div class="user-pagination"><span>${waitingForResults ? "Đang tải toàn bộ dữ liệu trong ngày…" : `Hiển thị <b data-ops-visible-count>${visible.length.toLocaleString("vi-VN")}</b> / ${recentTotal.toLocaleString("vi-VN")} ${recentFilter === "CLOSED" ? "dòng Picker thu hồi" : "kết quả"}`}</span></div>
     </article>
   </section>`;
 }

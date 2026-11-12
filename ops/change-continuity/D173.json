@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e229-web3312-production-receipt-20261112",
-  "pr": 956,
+  "working_branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+  "pr": 957,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E229",
+    "id": "D173-E231",
     "date_vn": "2026-11-12",
-    "summary": "PR955 protected 2-parent merged main 8dc91e50 Web3.3.12; exact Production Worker/Web run43220864308 SUCCESS, 3 assets uploaded, /health/SQLite/auth/Web/OAuth PASS. UI FIELD and OWNER remain pending; PR956 docs-only.",
-    "status": "WEB3312_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E229_WEB3312_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
-    "branch": "docs/d173-e229-web3312-production-receipt-20261112",
-    "pr": 956
+    "summary": "Owner approved Web3.3.13. Four scoped CI checks PASS at b287887e (UI/Web build, D172, Repo Authority and Project State); exact SHA release auth pinned. Protected PR957 merge and Production release pending.",
+    "status": "WEB3313_OWNER_APPROVED__SOURCE_CI_4_OF_4_SCOPED_PASS__PROTECTED_MERGE_RELEASE_PENDING",
+    "source": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
+    "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+    "pr": 957
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4452,6 +4452,80 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E230",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner requires three UI corrections after Production Web3.3.12; Web3.3.13 Draft PR957",
+      "status": "WEB3313_SOURCE_12_UI_PASS_BUILD_PASS_D172_74_PASS__NO_DEPLOY__OWNER_FIELD_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": false,
+      "pr": 957,
+      "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+      "base_main_sha": "b995b1f7ac6f822cd609cd499892f7dbd4fdaaed",
+      "facts": [
+        "Production Web3.3.12 is verified TECHNICAL RELEASE PASS via PR955/main 8dc91e50 and run43220864308; FIELD had three UI defects, no Owner PASS.",
+        "Human-operated Skip blue backgrounds came from d173-skip-human CSS, not server data; only SYSTEM_TIMEOUT/SYSTEM_DAY_END should be highlighted, including dark mode.",
+        "Result and overdue lists carried redundant user-pagination footers; existing page and table styling layered borders/radii/padding, reducing SKU density.",
+        "Requested exact search placeholder is Tìm SKU tối thiểu 3 chữ số cuối; existing suffix-only minimum 3 business filter is unchanged.",
+        "Web 3.3.13 UI-only source candidate in Draft PR957; service/DO/SQLite/schema/API, Agent, Android, Firebase, D172, Stable unchanged.",
+        "Exact source CI run 43224546702: 12/12 E227+E230 UI assertions PASS, Web TypeScript/Vite build PASS, 74/74 D172 isolated regression PASS with 0 Provider writes. Separate D172 isolation run43224547266 SUCCESS, Repo Authority43224547001 SUCCESS, Project State/continuity43224546938 SUCCESS.",
+        "UI Design Guard pre-existing failure on main b995b1 (run43221618297) and current branch run43224546814: agent_d137, agent_d130 and legacy web_d063 checks; not claimed as E230 scoped PASS."
+      ],
+      "evidence": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/957; code test tests/d173-e230-web3313-field-density.test.mjs; https://github.com/tamnv2/supra-inventory/actions/runs/43224546702; https://github.com/tamnv2/supra-inventory/actions/runs/43224547266",
+      "next_action": "Preserve Draft PR957/code-only; no Production release until explicit Owner command and protected gate. FIELD screenshots after any future release.",
+      "code": "SOURCE_TEST_PASS",
+      "ci": "PASS_E230_SOURCE_D172_AUTHORITY_CONTINUITY",
+      "release": "PRODUCTION_WEB3312_UNCHANGED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "a4ec0e052418608850a19c9217541e69afb0e6c2",
+      "ci_run_ids": {
+        "e230": 43224546702,
+        "d172": 43224547266,
+        "authority": 43224547001,
+        "continuity": 43224546938,
+        "ui_baseline_fail": 43221618297,
+        "ui_current_fail": 43224546814
+      }
+    },
+    {
+      "id": "D173-E231",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly requests protected Production release of D173 Web3.3.13 candidate after Web3.3.12 field UI corrections",
+      "status": "WEB3313_OWNER_APPROVED__SOURCE_CI_4_OF_4_SCOPED_PASS__PROTECTED_MERGE_RELEASE_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 957,
+      "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+      "base_main_sha": "b995b1f7ac6f822cd609cd499892f7dbd4fdaaed",
+      "source_pin": "a4ec0e052418608850a19c9217541e69afb0e6c2",
+      "facts": [
+        "Owner command: Triển khai 3.3.13 đi em; applies only E230 three Web UI corrections, not general Worker/Service/Agent/Android/D172/Stable release.",
+        "PR957 is open Draft at intake; Web3.3.12 Production technical PASS E229, code-only Web3.3.13 scoped UI/build and D172 regressions were successful before release authorization.",
+        "Guarded release uses registered Production Worker/Web static assets and requires exactly two-parent PR merge marker, exact main base and immutable Web runtime PIN, D172 isolation and source-scoped CI before any provider writes.",
+        "Unrelated legacy UI Design Guard already failed on identical main baseline, not treated as E230 scoped source PASS; no bypass of required E230 or D172 guards."
+      ],
+      "evidence": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/957; https://github.com/tamnv2/supra-inventory/actions/runs/43227189692; https://github.com/tamnv2/supra-inventory/actions/runs/43227189986",
+      "next_action": "Verify final PR head CI and immutable Web PIN, merge with E230 two-parent marker, then verify Production run exact SHA/health and write release receipt.",
+      "code": "SOURCE_TEST_PASS",
+      "ci": "PASS_E230_WEB_D172_AUTHORITY_CONTINUITY",
+      "release": "PENDING_PROTECTED_MERGE_AND_ACTUAL_PRODUCTION_DEPLOY",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "b287887e6613ab60b750947a7b7133a201700288",
+      "ci_run_ids": [
+        43227189692,
+        43227189986,
+        43227189717,
+        43227189801
+      ]
     }
   ],
   "resume": {

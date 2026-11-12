@@ -7602,18 +7602,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e229-web3312-production-receipt-20261112",
-    "pr": 956,
-    "latest_checkpoint_id": "D173-E229",
+    "working_branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+    "pr": 957,
+    "latest_checkpoint_id": "D173-E231",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E229_WEB3312_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E231_WEB3313_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_PRODUCTION_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 956,
-    "active_working_branch": "docs/d173-e229-web3312-production-receipt-20261112",
-    "working_pr_lifecycle": "PR956_OPEN_DOCS_ONLY_WEB3312_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING"
+    "working_pr": 957,
+    "active_working_branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+    "working_pr_lifecycle": "PR957_OPEN_READY_REVIEW__WEB3313_OWNER_RELEASE_APPROVED__EXACT_CI_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13992,5 +13992,55 @@
       "repo_authority": 43202503719,
       "project_state": 43202503313
     }
+  },
+  "d173_e230_web3313_field_ui": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E230",
+    "kind": "OWNER_WEB3312_FIELD_UI_FEEDBACK__WEB3313_CODE_ONLY",
+    "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+    "pr": 957,
+    "base_main_sha": "b995b1f7ac6f822cd609cd499892f7dbd4fdaaed",
+    "production_web_version": "3.3.12",
+    "candidate_web_version": "3.3.13",
+    "owner_code_requested": true,
+    "owner_production_release_approved": true,
+    "source_scope": "WEB_D173_OPERATIONAL_UI_ONLY",
+    "requirements": [
+      "Human Skip rows use normal table background; only SYSTEM_TIMEOUT/SYSTEM_DAY_END special background in light/dark",
+      "Simplify border/radius/gap/padding for the five-tab SKU workspace; remove visible result/overdue footer totals",
+      "Exact search placeholder Tìm SKU tối thiểu 3 chữ số cuối; suffix >=3 logic unchanged"
+    ],
+    "code": "SOURCE_TEST_PASS",
+    "ci": "PASS_E230_SCOPED_12_UI_WEB_BUILD_D172_74_AND_REPO_GUARDS",
+    "release": "OWNER_APPROVED_SOURCE_CI_PASS__PROTECTED_MERGE_PRODUCTION_PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md",
+    "source_ci_sha": "b287887e6613ab60b750947a7b7133a201700288",
+    "ci_run_ids": {
+      "e230": 43224546702,
+      "d172": 43224547266,
+      "authority": 43224547001,
+      "continuity": 43224546938,
+      "ui_baseline_fail": 43221618297,
+      "ui_current_fail": 43224546814
+    },
+    "baseline_unrelated_guard": "UI_DESIGN_GUARD_MAIN_RUN43221618297_FAILURE__E230_SAME_LEGACY_AGENT_D137_D130_AND_WEB_D063_FAILURE__NO_UNRELATED_SOURCE_EDIT",
+    "release_authorization": "ops/d173-e230-web3313-release-authorization.json",
+    "release_authorization_doc": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
+    "release_marker": "D173-E230_WEB3313_PRODUCTION_RELEASE:",
+    "release_workflow": ".github/workflows/deploy-beta.yml",
+    "owner_release_command": "2026-11-12_TRIEN_KHAI_3.3.13",
+    "working_pr": 957,
+    "source_ci_final": "PASS_FOUR_SCOPED_EXACT_SOURCE_RUNS",
+    "required_ci_run_ids": [
+      43227189692,
+      43227189986,
+      43227189717,
+      43227189801
+    ]
   }
 }
