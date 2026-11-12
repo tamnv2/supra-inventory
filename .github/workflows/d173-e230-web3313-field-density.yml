@@ -1,0 +1,43 @@
+name: D173 E230 Web3313 Field Density Source CI
+on:
+  pull_request:
+    paths:
+      - 'web/src/operational-app.ts'
+      - 'web/src/d173-tabler.css'
+      - 'web/src/web-version.ts'
+      - 'web/package.json'
+      - 'tests/d173-e227-web3312-eight-ui.test.mjs'
+      - 'tests/d173-e230-web3313-field-density.test.mjs'
+      - '.github/workflows/d173-e230-web3313-field-density.yml'
+      - 'ops/change-continuity/D173.json'
+      - 'ops/project-state.json'
+permissions:
+  contents: read
+jobs:
+  web-density-source:
+    if: contains(github.head_ref, 'd173-e230-web3313-field-density-skip')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce and verify owner three UI corrections
+        run: node --test tests/d173-e227-web3312-eight-ui.test.mjs tests/d173-e230-web3313-field-density.test.mjs
+      - name: Compile Web presentation assets
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: D172 isolation guard and independent regression (no deployment)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: Code-only boundary
+        run: echo "D173_E230_WEB3313_CODE_ONLY__NO_PROVIDER_RELEASE"
