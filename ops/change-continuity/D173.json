@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e219-web3310-release-receipt-20261112",
-  "pr": 951,
+  "working_branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+  "pr": 952,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E219",
+    "id": "D173-E220",
     "date_vn": "2026-11-12",
-    "summary": "E217 Web3.3.10 protected merge 93e677c, official Production deployment run43183196333 SUCCESS, Worker version f83ca5b8, exact /health SQLite and Web shell PASS; physical browser FIELD and Owner pending.",
-    "status": "WEB3310_WORKER_WEB_PRODUCTION_TECH_PASS__PR951_DOCS_ONLY_RECEIPT__D172_HOLD",
-    "source": "docs/D173_E219_WEB3310_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
-    "branch": "docs/d173-e219-web3310-release-receipt-20261112",
-    "pr": 951
+    "summary": "Owner reports Web3.3.10 FIELD FAIL SKU search and requests one-day/all-row/local-browser search. Verified core.ts authorized reporter/recent strips sku_suffix/picker_rows/include_totals; overdue strips suffix. D173 Web+shared Worker impact review only, no code/release.",
+    "status": "E220_WEB3310_FIELD_NOT_PASS__VERIFIED_CORE_PARAM_DROP__DESIGN_REVIEW_ONLY",
+    "source": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md",
+    "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+    "pr": 952
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4165,6 +4165,42 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E220",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Web3.3.10 SKU search FIELD FAIL; Owner requests one day, all results without paging, local SKU search",
+      "status": "VERIFIED_SOURCE_ROOT_CAUSE__IMPACT_REVIEW_ONLY",
+      "owner_approval": true,
+      "owner_release_approved": false,
+      "pr": 952,
+      "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+      "verified_facts": [
+        "Web source api.ts and service read-api.ts forward sku_suffix, picker_rows, include_totals; authorized service/src/core.ts reporter/recent drops them before operational-v2-core SQL, as seen at live main da5f6948.",
+        "Overdue authorized handler also drops sku_suffix. UI rejects returned unfiltered results via existing E216 guard, matching Owner screenshot error.",
+        "Service operational-v2-core.ts clamps page limits to 200; current Web result page is 50, queue already all-pages, overdue only first 200.",
+        "Official Web3.3.10 technical release remains SUCCESS (run 43183196333), but actual FIELD SKU search is NOT PASS."
+      ],
+      "owner_requested": [
+        "Remove visible pagination; display complete result list for the selected day; one date input only, default today on F5/login; remove presets and from/to.",
+        "Client-side SKU search against fully loaded active-tab data, no per-keystroke Service search; preserve realtime/status/roles and existing business behavior."
+      ],
+      "review_trades": [
+        "Daily results should filter three terminal tabs by first_report_at in VN timezone; pending/overdue must remain live across days to avoid hidden unresolved batches.",
+        "Web may page internally <=200 rows per call, de-duplicate/verify total, load only active tab/date and hold in RAM; 357 rows require at least two API calls, potential first-load Rows Read/render increase.",
+        "Core param forwarding repair is shared Worker code and requires D172 independent regression and Owner scope acceptance; exact use of include_totals affects SQL aggregate cost.",
+        "No confirmed production usage/latency delta yet; physical authenticated/browser test remains needed."
+      ],
+      "evidence": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/952; main da5f6948852777528ced565cf894b35364841ee0",
+      "next_action": "Owner review impact of results-only day selector vs live pending/overdue and potential initial-load usage; then code/source CI/release only under explicit scoped approval. No cross-module mutation.",
+      "code": "NOT_STARTED",
+      "ci": "NOT_STARTED",
+      "release": "NO_NEW_RELEASE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -5505,5 +5541,15 @@
     "field_pass": false,
     "owner_pass": false,
     "doc": "docs/D173_E219_WEB3310_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
+  },
+  "d173_e220_web_daily_local_search_review": {
+    "pr": 952,
+    "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+    "source_main_sha": "da5f6948852777528ced565cf894b35364841ee0",
+    "field": "NOT_PASS_SKU_SEARCH",
+    "code": "REVIEW_ONLY",
+    "release": "HOLD_NO_NEW_AUTHORIZATION",
+    "doc": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md",
+    "verified_core_param_loss": true
   }
 }

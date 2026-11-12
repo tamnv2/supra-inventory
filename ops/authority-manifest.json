@@ -139,7 +139,8 @@
     "current_d173_web339_release_receipt": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
     "current_d173_e217_web3310_release": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
     "current_d173_e217_web3310_release_authorization": "ops/d173-e217-web-release-authorization.json",
-    "current_d173_web3310_release_receipt": "docs/D173_E219_WEB3310_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
+    "current_d173_web3310_release_receipt": "docs/D173_E219_WEB3310_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "current_d173_e220_web_daily_local_search_review": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -226,9 +227,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 951,
-    "ref_rule": "D173_E219_WEB3310_PRODUCTION_TECH_PASS_PR951_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_11_12_E219_WEB3310_WORKER_WEB_RELEASE_PASS_RUN43183196333",
+    "active_working_pr": 952,
+    "ref_rule": "D173_E220_WEB3310_FIELD_SKU_NOT_PASS__PR952_DOCS_ONLY_DESIGN_REVIEW__NO_RUNTIME_RELEASE",
+    "freshness": "2026_11_12_E220_VERIFIED_CORE_SEARCH_PARAM_DROP__OWNER_SINGLE_DAY_LOCAL_SEARCH_REVIEW",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -358,7 +359,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "docs/d173-e219-web3310-release-receipt-20261112",
+    "active_working_branch": "docs/d173-e220-web-daily-client-search-review-20261112",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,

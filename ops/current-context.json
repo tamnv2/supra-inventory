@@ -7,16 +7,15 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E219",
-    "pr": 951,
-    "branch": "docs/d173-e219-web3310-release-receipt-20261112",
-    "status": "WEB3310_E217_PRODUCTION_TECH_PASS__PR951_DOCS_RECEIPT_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
-    "owner_merge_approved": true,
-    "owner_release_approved": true,
-    "source_doc": "docs/D173_E219_WEB3310_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "checkpoint_id": "D173-E220",
+    "pr": 952,
+    "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+    "status": "WEB3310_FIELD_SKU_NOT_PASS__ONE_DAY_LOCAL_SEARCH_DESIGN_REVIEW_ONLY__D172_HOLD",
+    "owner_merge_approved": false,
+    "owner_release_approved": false,
+    "source_doc": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md",
     "production_web_version": "3.3.10",
-    "source_main_sha": "93e677cb99963a90455da446dbe1f03678153603",
-    "target_web_version": "3.3.10"
+    "source_main_sha": "93e677cb99963a90455da446dbe1f03678153603"
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
@@ -39,7 +38,7 @@
       "source_main_sha": "93e677cb99963a90455da446dbe1f03678153603",
       "worker_version_id": "f83ca5b8-e9b7-4547-a0fd-29190e4c5206",
       "ci_release": "PASS_TECHNICAL_EXACT_SOURCE",
-      "field": "PENDING_OWNER_REAL_BROWSER",
+      "field": "NOT_PASS_SKU_SEARCH_OWNER_SCREENSHOT",
       "owner_pass": "PENDING"
     },
     "android": {
