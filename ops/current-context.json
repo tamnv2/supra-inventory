@@ -7,13 +7,13 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E224",
-    "pr": 953,
-    "branch": "docs/d173-e224-web3311-prod-receipt-20261112",
-    "status": "WEB3311_PRODUCTION_TECH_PASS__PR953_DOCS_RECEIPT_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
+    "checkpoint_id": "D173-E226",
+    "pr": 954,
+    "branch": "docs/d173-e225-web3311-badge-field-review-20261112",
+    "status": "WEB3311_TECH_PASS__E226_OWNER_UI_LAYOUT_REVIEW__PR954_DOCS_ONLY__D172_HOLD",
     "owner_merge_approved": true,
     "owner_release_approved": true,
-    "source_doc": "docs/D173_E224_WEB3311_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "source_doc": "docs/D173_E226_WEB3311_UI_LAYOUT_OWNER_CORRECTION_2026-11-12.md",
     "production_web_version": "3.3.11",
     "source_main_sha": "dd09f6f92ec026fd0effca222d3e98b27ffe18de",
     "target_web_version": "3.3.11"
