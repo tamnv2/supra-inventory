@@ -8,7 +8,7 @@ on:
       - "ops/d173-e213-agent193-release-authorization.json"
       - "tools/d173_e213_agent193_release_gate.py"
       - ".github/workflows/d173-e213-agent193-release.yml"
-      - "tests/d173-e207-agent192-overview-layout.test.mjs"
+      - "tests/d173-e213-agent192-overview-layout.test.mjs"
       - "docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md"
       - "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md"
       - "docs/OWNER_DECISIONS.md"
@@ -48,7 +48,7 @@ jobs:
           python3 tools/authority_guard.py
           python3 tools/project_state_guard.py
           python3 tools/change_continuity_guard.py
-          node --test tests/d173-e207-agent192-overview-layout.test.mjs
+          node --test tests/d173-e213-agent192-overview-layout.test.mjs
       - name: Install service TypeScript dev dependency for read-only D172 tests
         run: npm install --prefix service --ignore-scripts --no-audit --no-fund --no-package-lock
       - name: Independent D172 source tests (no external providers)
@@ -116,7 +116,7 @@ jobs:
           if ($LASTEXITCODE -ne 0 -or $verifiedTree -ne $currentTree) {
             throw 'E213 exact Agent193 source tree has changed'
           }
-          $preflight = Join-Path $env:RUNNER_TEMP 'e207-current-channel'
+          $preflight = Join-Path $env:RUNNER_TEMP 'e213-current-channel'
           New-Item -ItemType Directory -Force -Path $preflight | Out-Null
           gh release download inventory-channel --repo $env:GITHUB_REPOSITORY --pattern 'agent-latest.json' --pattern 'agent-browser-latest.json' --dir $preflight
           if ($LASTEXITCODE -ne 0) { throw 'E213 channel manifest missing' }
@@ -127,7 +127,7 @@ jobs:
               [int]$browser.host_build -ne 14 -or
               [string]$browser.host_arch -ne 'x64' -or
               ([string]$browser.sha256).ToLowerInvariant() -ne 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2') {
-            throw 'E213 expected signed Agent191/Host14 baseline drift'
+            throw 'E213 expected signed Agent192/Host14 baseline drift'
           }
           # A missing tag is expected, not a failed workflow step. PowerShell
           # otherwise retains gh release view's exit=1 as the step exit code.
@@ -220,7 +220,7 @@ jobs:
             --notes 'D173-E213 Agent193: five Owner-approved Agent UI refinements: 70/30 top, protected Exit Agent menu, network refresh in action strip, right-aligned roster actions and stable roster column widths. Existing WMS/Host14/Worker/Web/APK/D172/Stable unchanged. FIELD/OWNER pending.' `
             --prerelease
           if ($LASTEXITCODE -ne 0) { throw 'E213 release publish failed' }
-          $tagRead = Join-Path $env:RUNNER_TEMP 'e207-tag-readback'
+          $tagRead = Join-Path $env:RUNNER_TEMP 'e213-tag-readback'
           New-Item -ItemType Directory -Force -Path $tagRead | Out-Null
           gh release download $tag --repo $env:GITHUB_REPOSITORY --pattern 'Agent.Auto.Confirm.Pick.Pack.exe' --pattern 'Agent.Auto.Confirm.Pick.Pack.exe.sha256' --dir $tagRead
           if ($LASTEXITCODE -ne 0) { throw 'E213 published asset download failed' }
@@ -254,7 +254,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E213 alias upload failed; manifest not switched' }
           gh release upload inventory-channel "$base/agent-latest.json" --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw 'E213 manifest switch failed' }
-          $verify = Join-Path $env:RUNNER_TEMP 'e207-ota-readback'
+          $verify = Join-Path $env:RUNNER_TEMP 'e213-ota-readback'
           New-Item -ItemType Directory -Force -Path $verify | Out-Null
           gh release download inventory-channel --repo $env:GITHUB_REPOSITORY --pattern 'Agent.Auto.Confirm.Pick.Pack.exe' --pattern 'Agent.Auto.Confirm.Pick.Pack.exe.sha256' --pattern 'agent-latest.json' --dir $verify
           if ($LASTEXITCODE -ne 0) { throw 'E213 channel readback failed' }
