@@ -14011,13 +14011,23 @@
       "Simplify border/radius/gap/padding for the five-tab SKU workspace; remove visible result/overdue footer totals",
       "Exact search placeholder Tìm SKU tối thiểu 3 chữ số cuối; suffix >=3 logic unchanged"
     ],
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING_GITHUB_PR957_EXACT_HEAD",
+    "code": "SOURCE_TEST_PASS",
+    "ci": "PASS_E230_SCOPED_12_UI_WEB_BUILD_D172_74_AND_REPO_GUARDS",
     "release": "HOLD_NO_OWNER_RELEASE_COMMAND__PRODUCTION_WEB3312_UNCHANGED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "doc": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md"
+    "doc": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md",
+    "source_ci_sha": "a4ec0e052418608850a19c9217541e69afb0e6c2",
+    "ci_run_ids": {
+      "e230": 43224546702,
+      "d172": 43224547266,
+      "authority": 43224547001,
+      "continuity": 43224546938,
+      "ui_baseline_fail": 43221618297,
+      "ui_current_fail": 43224546814
+    },
+    "baseline_unrelated_guard": "UI_DESIGN_GUARD_MAIN_RUN43221618297_FAILURE__E230_SAME_LEGACY_AGENT_D137_D130_AND_WEB_D063_FAILURE__NO_UNRELATED_SOURCE_EDIT"
   }
 }
