@@ -1,0 +1,48 @@
+name: D173 E213 Web 338 Field Six Issues Source CI
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'service/src/operational-v2-core.ts'
+      - 'tests/d173-e209-*.test.mjs'
+      - 'tests/d173-e213-web338-field-six-issues.test.mjs'
+      - 'tools/d173_e210_withdrawn_identity_sql.py'
+      - '.github/workflows/d173-e213-web338-field.yml'
+permissions:
+  contents: read
+jobs:
+  field-six-issues:
+    if: contains(github.head_ref, 'd173-web338-field-six-issues')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Web 338 field regressions and existing search/picker contracts
+        run: |
+          node --test tests/d173-e213-web338-field-six-issues.test.mjs tests/d173-e209-field-ui.test.mjs tests/d173-e209-web-results.test.mjs
+          python3 tools/d173_e209_suffix_sql_regression.py
+          python3 tools/d173_e210_withdrawn_identity_sql.py
+      - name: Web TypeScript and production build (source only)
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Shared Worker TypeScript (no provider writes)
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: D172 independent business isolation regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: Explicit source-only boundary
+        run: echo "D173_E213_SOURCE_CI_ONLY__NO_RELEASE_FIELD_OR_OWNER_PASS"
