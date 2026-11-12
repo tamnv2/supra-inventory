@@ -3918,7 +3918,7 @@
     {
       "id": "D173-E213",
       "date_vn": "2026-11-12",
-      "kind": "OWNER_FIELD_NOT_PASS_AND_SOURCE_REPAIR",
+      "kind": "OWNER_COMMAND",
       "topic": "Web 3.3.8 corporate header, SKU search, withdrawn Picker identity, Skip tab, compact dates and one-line toolbar",
       "status": "PR946_SOURCE_CANDIDATE__CI_PENDING__PRODUCTION_UNCHANGED",
       "owner_approval": true,
@@ -4086,7 +4086,8 @@
       "E172 PR875: restore same SHA Worker+Agent175 signed release, strict exact-head CI and merge ancestry required; no field evidence yet.",
       "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending.",
       "D173-E174 PR878 Agent176 focus-only source and exact CI verification in progress; no Worker/APK/Web production change.",
-      "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes."
+      "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes.",
+      "D173-E213 Web 3.3.8 6 field fixes PR946 source CI, release on HOLD; withdrawn Picker real data and search field remain unverified."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
