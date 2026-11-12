@@ -1,3 +1,8 @@
+## D173-E230 — UI mật độ danh sách SKU và màu nền Skip (12/11/2026)
+Trên năm tab Web **Xử lý báo hàng**, dòng Skip do nhân sự dùng nền bảng mặc định; chỉ nguồn tự động `SYSTEM_TIMEOUT`/`SYSTEM_DAY_END` được tô nền phân biệt ở cả sáng/tối. Không đổi các dấu nguồn Skip và điều kiện sửa. Bỏ thông tin footer `Hiển thị xx / yy kết quả` trong danh sách kết quả/quá hạn; giữ bộ đếm tab, độ chính xác tìm kiếm, ngày và realtime. Giảm khung, viền, bo góc, padding, gap **chỉ** trong `.ops-business-workspace`, tối đa diện tích bảng SKU nhưng không che nội dung/khi cuộn trên HD/HD+/zoom. Placeholder: **“Tìm SKU tối thiểu 3 chữ số cuối”** (không thay đổi logic suffix từ 3 chữ số). Quyền CODE ONLY ứng viên Web 3.3.13; phát hành/field/owner độc lập. Nguồn: `docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md`.
+
+---
+
 ## D173-E182 — Agent182 Owner-approved signed rollout (10/11/2026)
 
 Agent181 FIELD FAIL; tăng Agent lên **182** và phát hành có điều kiện theo exact-source CI / protected PR / signed OTA. Giữ layout tỷ lệ **40/60**, cột trên **34/33/33**, Web/PickList **50/50**, và mọi controls/handlers cũ. Chặn việc CPU/RAM/sync clock kích hoạt relayout toàn Agent, dùng một nguồn tọa độ cho overtime và fleet; session toolbar nút cùng hàng có chiều rộng cân đối, màn hẹp xuống hai hàng; **Website (xx/yy)** với xx Web online đã xác minh, yy online+offline đã xác minh. Không cuộn ngoài danh sách phiên (chỉ dọc), màn quá hẹp sử dụng tab native và tooltip chi tiết. Owner cho phép deploy **Agent182 only**, không phải FIELD PASS. Không đổi Worker/Web/APK/D172/Stable/Host13. Xem `docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md`.
