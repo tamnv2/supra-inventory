@@ -57,3 +57,15 @@ Không tự tải ảnh hoặc log lên mạng. Các tọa độ chuột đượ
 6. V2.2 vẫn hỗ trợ **Chọn vùng trò chơi**, **Kiểm tra vùng (không kéo)** và **Xuất vùng đã duyệt**. Nút Test kéo tự động trên trang WMS không được bật.
 
 `SIM PASS` chỉ xác minh phép toán tọa độ trong hình giả lập có nhãn cố định, **không phải** độ chính xác nhận diện hình ngẫu nhiên, không chứng minh kéo CAPTCHA qua được trang đăng nhập và không xác minh tính năng Confirm Picklist.
+
+## V2.3 cập nhật — Phòng thử kéo THẬT trên trang offline WebView2
+
+Phần **Mô phỏng kéo (offline)** bên dưới là ghi chú lịch sử của bản dựng V2.3 đầu tiên. Ứng dụng hiện hiển thị nút **Phòng thử kéo thật (offline)**. Đây là thao tác chuột thực bằng CDP trên **trang thử nghiệm nội bộ**, không phải thao tác giải CAPTCHA hay đăng nhập WMS.
+
+1. Giải nén toàn bộ ZIP, mở `SUPRA.Puzzle.Tester.V2.exe`, chọn **Phòng thử kéo thật (offline)**. Không cần truy cập WMS.
+2. Trên trang mẫu, nhấn **Chọn vùng**, khoanh khu vực có ô vuông xanh (nguồn), khung viền cam (đích) và đường kéo. Sai lệch nhỏ vẫn được kiểm tra nhờ biên 16 px.
+3. Nhấn **Kéo thật 1 lần**. Chương trình chụp ảnh, nhận diện màu qua OpenCV trong ROI, gửi sự kiện chuột nhấn/di chuyển/thả qua WebView2 và đo ảnh sau kéo. Nếu không nhận diện đủ chắc chắn, sẽ không kéo.
+4. Nhấn **Mẫu mới** để thử hình khác; tối đa 8 lượt, không tự thử lại trong cùng lượt. Nếu vùng quá chặt hoặc bị cắt, chọn vùng lại.
+5. Nhấn **Lưu ZIP chẩn đoán**, lưu `puzzle-browser-drag-v23.zip` (JSON + ảnh trước/sau của trang mẫu) và gửi file để phân tích.
+
+Các kết quả `LOCAL_DRAG_PASS` chỉ xác nhận WebView2 đã kéo đúng trong trang thử offline. Không được coi là WMS CAPTCHA/đăng nhập FIELD PASS hoặc sự cho phép phát hành Agent Production.
