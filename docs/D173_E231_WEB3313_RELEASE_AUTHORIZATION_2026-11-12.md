@@ -16,3 +16,11 @@ Owner yêu cầu **"Triển khai 3.3.13 đi em"** sau khi nhận PR #957 ứng v
 
 ## Chưa phải bằng chứng triển khai
 Tài liệu này chỉ cấp quyền Owner và quy trình. CODE/CI/RELEASE/FIELD/OWNER cần nhận chứng cứ thực tế riêng. Không chứa dữ liệu nghiệp vụ hay secret.
+
+## CI source và phạm vi đã đối chiếu
+- PR957 source pre-authorization HEAD `b287887e6613ab60b750947a7b7133a201700288`, main base `b995b1f7ac6f822cd609cd499892f7dbd4fdaaed`.
+- E230 UI/TypeScript/Vite, D172 regression và E231 release preflight: [run 43227189692](https://github.com/tamnv2/supra-inventory/actions/runs/43227189692) **SUCCESS**.
+- Independent D172 isolation: [run 43227189986](https://github.com/tamnv2/supra-inventory/actions/runs/43227189986) **SUCCESS**.
+- Repo Authority: [run 43227189717](https://github.com/tamnv2/supra-inventory/actions/runs/43227189717) **SUCCESS**; Project State/continuity: [run 43227189801](https://github.com/tamnv2/supra-inventory/actions/runs/43227189801) **SUCCESS**.
+- UI Design Guard legacy continues failing same Agent D137/D130 and historic Web D063 assertions on baseline `main` (run `43221618297`) and on scoped PR (run `43227189362`). These are **not** considered a PASS or an E230 regression; no unrelated source edits authorized.
+- `ops/d173-e230-web3313-release-authorization.json` records those exact four green runs, Web immutable PIN, required_ci_failed=0 **only for four scoped required checks**. No release/physical FIELD/Owner PASS is claimed before actual deployment evidence.
