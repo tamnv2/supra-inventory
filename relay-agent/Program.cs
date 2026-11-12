@@ -1562,7 +1562,7 @@ namespace SupraInventoryRelayAgent
             _supraCard.Controls.Add(_wmsTest);
 
             _browserBundleDownload.SetBounds(278, 110, 180, 30);
-            _browserBundleDownload.Text = "Tải trình duyệt Agent";
+            _browserBundleDownload.Text = "Tải Web Agent";
             _browserBundleDownload.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _browserBundleDownload.Click += (sender, e) => StartAgentBrowserDownload();
             _supraCard.Controls.Add(_browserBundleDownload);
@@ -2497,7 +2497,7 @@ namespace SupraInventoryRelayAgent
 
             if (status.Ready)
             {
-                _browserBundleDownload.Text = "Web Agent đang khả dụng";
+                _browserBundleDownload.Text = "Tải Web Agent";
                 _browserBundleDownload.Enabled = false;
                 _wmsCapture.Enabled = HasAgentSession();
                 _browserBundleStatus.ForeColor = Color.FromArgb(42, 126, 82);
@@ -2517,7 +2517,7 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
-            _browserBundleDownload.Text = "Tải trình duyệt Agent";
+            _browserBundleDownload.Text = "Tải Web Agent";
             _browserBundleDownload.Enabled = HasAgentSession();
             _wmsCapture.Enabled = false;
             _browserBundleStatus.ForeColor = Color.FromArgb(88, 104, 115);
