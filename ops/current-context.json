@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E205",
-    "pr": 934,
-    "branch": "fix/d173-e204-agent191-ota-gate-20261112",
-    "status": "PR934_SCOPED_PUSH_SOURCE_NATIVE_D172_CI_PENDING__AGENT191_NOT_RELEASED",
+    "checkpoint_id": "D173-E206",
+    "pr": 936,
+    "branch": "docs/d173-e206-agent191-signed-ota-receipt-20261112",
+    "status": "AGENT191_CODE_CI_SIGNED_OTA_RELEASE_PASS__FIELD_PICKER_STALE__OWNER_PENDING",
     "owner_merge_approved": true,
     "owner_release_approved": true
   },
@@ -18,14 +18,14 @@
     "hostname": "inventory.supra.cc.cd",
     "technical_worker_name": "supra-inventory-beta",
     "agent": {
-      "tag": "relay-agent-v190",
-      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v190",
-      "source_change_id": "D173-E199",
+      "tag": "relay-agent-v191",
+      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v191",
+      "source_change_id": "D173-E202",
       "ci_release": "PASS_SIGNED_TAG_CHANNEL_SHA_MATCH__FIELD_OWNER_PENDING",
-      "field": "FAIL_AGENT_KICK_INVALID_ID__TEXT_FLICKER__PICKER_STALE",
+      "field": "PICKER_STALE_FAIL__REMOTE_AGENT_AND_60S_UI_FIELD_PENDING",
       "owner_pass": "PENDING",
-      "sha256": "9cc585d951ff48272b8ae5f96c8c7311e2c9ad04701825696d7e00fef1bc0819",
-      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43086165497",
+      "sha256": "6cebc31af550a90b7200bffced6c3b2dacff01e71a3f65641c88ec8d08b8c00f",
+      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43124630949",
       "host_build": 14
     },
     "web": {
@@ -43,7 +43,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E201_AGENT190_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+    "receipt": "docs/D173_E206_AGENT191_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
   },
   "d172": {
     "change_id": "D172",
@@ -74,23 +74,23 @@
   ],
   "main_source_at_reconciliation": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
   "active_implementation": {
-    "id": "D173-E205",
-    "source_main_sha": "637d9d384e2472945d87e2a43d9203e7ace10622",
+    "id": "D173-E206",
+    "source_main_sha": "c96e59a060614fdcd873acf4d4bc27ece4b88775",
     "source_pin": "673a1277ddc1592a4764b2bc57a1da7d3d482a9a",
     "source_tag": "relay-agent-v190",
-    "task": "AGENT191_PR934_SCOPED_PUSH_CI_RETRY__RELEASE_PENDING",
-    "source_status": "PR933_MERGED_MAIN_637D9D_SOURCE_NATIVE_CI_PASS",
-    "signed_release": "AGENT190_PASS__AGENT191_OTA_TRIGGER_REPAIR_PENDING",
-    "field": "FAIL_STALE_PICKER_UNRESOLVED",
+    "task": "AGENT191_POST_RELEASE_RECEIPT_ONLY__FIELD_UNVERIFIED",
+    "source_status": "PR934_MERGED_MAIN_C96E59",
+    "signed_release": "AGENT191_SIGNED_OTA_SHA_PASS__FIELD_OWNER_PENDING",
+    "field": "PICKER_STALE_FAIL__REMOTE_UI_PENDING",
     "owner_pass": "PENDING",
     "host14_ota_unchanged": true
   },
   "active_candidate": {
     "change_id": "D173-E202",
-    "pr": 934,
+    "pr": 936,
     "version": 191,
     "source_pin": "673a1277ddc1592a4764b2bc57a1da7d3d482a9a",
-    "release": "PR934_GATE_REPAIR_CI_PENDING__SIGNED190_CURRENT",
+    "release": "SIGNED_OTA_TECHNICAL_PASS__FIELD_OWNER_PENDING",
     "host_build": 14,
     "remote_agent_kick": "PRE_PROOF_TARGET_VALIDATION_CODE_CANDIDATE__FIELD_PENDING",
     "picker_presence": "SHARED_AUTHORITY_FIX_NOT_AUTHORIZED",
