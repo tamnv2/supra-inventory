@@ -1215,7 +1215,8 @@ function patchActiveSection(preserveContext = true): void {
 
 function syncNavigationSelection(): void {
   document.querySelectorAll<HTMLElement>("[data-section]").forEach((node) => {
-    const selected = node.dataset.section === activeSection;
+    const selected = node.dataset.section === activeSection ||
+      (node.dataset.section === "operations" && (activeSection === "overdue" || activeSection === "results"));
     node.classList.toggle("active", selected);
     if (selected) node.setAttribute("aria-current", "page");
     else node.removeAttribute("aria-current");
@@ -1300,7 +1301,8 @@ function navIcon(key: string): string {
 function navButton(section: Section, label: string): string {
   const noticeCount = section === "operations" && roleOperate() ? queueBadgeCount : null;
   const notice = noticeCount == null || noticeCount <= 0 ? "" : `<b class="nav-notice-badge" data-operations-nav-count>${noticeCount > 99 ? "99+" : noticeCount}</b>`;
-  return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}"${activeSection === section ? ' aria-current="page"' : ""}>${navIcon(section)}<span>${esc(label)}</span>${notice}</button>`;
+  const selected = section === activeSection || (section === "operations" && (activeSection === "overdue" || activeSection === "results"));
+  return `<button class="nav-button ${selected ? "active" : ""}" data-section="${section}"${selected ? ' aria-current="page"' : ""}>${navIcon(section)}<span>${esc(label)}</span>${notice}</button>`;
 }
 
 function syncOperationsNavBadge(): void {
@@ -1498,7 +1500,6 @@ function renderShell(content: string): void {
   app.innerHTML = `<div class="app-shell d173-tabler-shell role-${esc(profile.role.toLowerCase())}">
     <header class="topbar d173-tabler-navbar">
       <div class="header-product">
-        <button type="button" id="d173-sidebar-toggle" class="d173-menu-toggle" aria-label="Thu gọn hoặc mở thanh điều hướng" title="Thu gọn / mở menu">☰</button>
         <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
         <h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1>
         <div class="header-runtime">
@@ -1880,12 +1881,15 @@ function renderResults(): string {
   const waitingForResults = !loaded && !recentLoadError;
   const visible = loaded ? recentRows : [];
   const showFirstReport = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED";
-  const columnCount = showFirstReport ? 9 : 8;
+  const withdrawnOnly = recentFilter === "CLOSED";
+  const columnCount = withdrawnOnly ? 3 : 9;
   return `<section class="ops-route ops-business-workspace">
     ${skuDayBanner()}
     ${renderOperationalTabs("results")}
     <article class="ops-panel">
-      <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th>${showFirstReport ? "<th>Thời gian báo hàng đầu tiên</th>" : ""}<th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="table-wrap result-audit-table"><table><thead>${withdrawnOnly
+        ? "<tr><th>SKU / Sản phẩm</th><th>Picker thu hồi</th><th>Thời điểm thu hồi</th></tr>"
+        : '<tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Thời gian báo hàng đầu tiên</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr>'}</thead><tbody>
         ${visible.map((row) => { const correctionEnd = Date.parse(row.correction_deadline_at || "");
           const canCorrect = roleCanResolve() &&
             (row.status === "HAS_STOCK" || row.status === "SKIP_ALLOWED") &&
@@ -1894,7 +1898,11 @@ function renderResults(): string {
             correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED"
             ? [row.withdrawn_picker_employee_code, row.withdrawn_picker_display_name].filter(Boolean).join(" - ") || "—"
             : resolutionActorLabel(row);
-          return `<tr data-ops-sku-row="${esc(row.sku)}" data-ops-sku-primary="1" ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
+          if (withdrawnOnly) return `<tr data-ops-sku-row="${esc(row.sku)}" data-ops-sku-primary="1"><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.withdrawn_picker_withdrawn_at || row.first_report_at))}</td></tr>`;
+          const skipRowTone = row.status === "SKIP_ALLOWED"
+            ? (row.resolution_source === "SYSTEM_TIMEOUT" || row.resolution_source === "SYSTEM_DAY_END" ? "d173-skip-auto" : "d173-skip-human")
+            : "";
+          return `<tr class="${skipRowTone}" data-ops-sku-row="${esc(row.sku)}" data-ops-sku-primary="1" ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
           ${showFirstReport && expandedRecentPickerBatches.has(row.batch_id) ? `<tr class="d173-picker-detail-tr" data-ops-sku-row="${esc(row.sku)}"><td colspan="${columnCount}">${resultPickerMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="${columnCount}" class="empty">${waitingForResults ? "Đang tải toàn bộ dữ liệu trong ngày…" : recentLoadError || "Chưa có kết quả trong ngày đã chọn."}</td></tr>`}
       ${!waitingForResults && recentRows.length ? `<tr id="ops-sku-no-match" style="display:none"><td colspan="${columnCount}" class="empty">Không có SKU phù hợp.</td></tr>` : ""}
       </tbody></table></div>
@@ -4558,12 +4566,7 @@ async function loadSection(section: Section): Promise<void> {
 function bindShell(): void {
   const currentProfile = profile;
   if (!currentProfile) return;
-  document.body.dataset.d173Sidebar = localStorage.getItem("d173:sidebar-compact") === "1" ? "compact" : "expanded";
-  document.querySelector<HTMLButtonElement>("#d173-sidebar-toggle")?.addEventListener("click", () => {
-    const compact = document.body.dataset.d173Sidebar !== "compact";
-    document.body.dataset.d173Sidebar = compact ? "compact" : "expanded";
-    localStorage.setItem("d173:sidebar-compact", compact ? "1" : "0");
-  });
+  document.body.dataset.d173Sidebar = "expanded";
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.section as Section;
     if (!next || next === activeSection || !canAccessSection(next, currentProfile)) return;

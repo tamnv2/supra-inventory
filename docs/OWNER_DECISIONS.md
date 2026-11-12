@@ -1,3 +1,6 @@
+## D173-E227 — 12/11/2026: Owner duyệt Web UI 3.3.12 và triển khai
+Owner chốt 8 thay đổi giao diện Xử lý báo hàng gồm tab cùng phong cách Tổng quan/Báo cáo chi tiết; active sidebar ở cả năm tab; SKU search dài x2; Picker đã thu hồi bỏ năm cột; phân biệt tự động/nhân sự skip bằng màu nền; tên công ty to hơn; bỏ hamburger; ghim tab/ngày/tìm kiếm khi cuộn. **Duyệt CODE và guarded Production release Web D173; không sửa D172/Agent/APK/Firebase/Stable.** Chi tiết `docs/D173_E227_WEB3312_EIGHT_UI_OWNER_2026-11-12.md`.
+
 ## 12/11/2026 — D173-E216: Web3.3.9 FIELD NOT PASS, ba lỗi tìm SKU/bố cục
 
 Owner xác nhận Web 3.3.9 về cơ bản OK nhưng tìm SKU nhập xong vẫn thấy tất cả, ngày cần căn phải sát tìm SKU, và tab đang chọn phải có nền phân biệt liên tục. D173 xử lý cùng change, chỉ code Web giao diện và xác nhận truy vấn/response SKU trong phạm vi hiện hữu; không đổi nghiệp vụ, Worker API, Agent, APK, D172, schema, hạ tầng hoặc Stable. PR #950 là **code-only**; Owner **chưa yêu cầu release mới trong lượt này**. Giữ Web3.3.9 Production; CI/FIELD/Owner PASS phải có bằng chứng riêng. Chi tiết `docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md`.
