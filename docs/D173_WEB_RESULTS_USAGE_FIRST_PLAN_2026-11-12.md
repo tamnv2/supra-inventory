@@ -40,7 +40,7 @@
 - Search field on same tab row; narrow width wraps, không đè tab/button. Ngày đổi hợp lệ tự áp dụng, không nút Áp dụng.
 
 ## D. Kịch bản kiểm thử và tiêu chí PASS (đề xuất)
-1. Match: SKU `10011233`, `233` đúng, `1233` đúng, `123` sai; không trả row trùng SKU khác batch/different statuses ngoài khoảng. Nhập 0/1/2 số, dán chữ, nhập nhanh 3→4→5 số, xóa input ⇒ **0 request khi invalid**, ít nhất một request khi query valid ổn định; duplicate suppressed.
+1. Match: SKU `10011233`, `233` đúng, `1233` đúng, `123` sai; không trả row trùng SKU khác batch/different statuses ngoài khoảng. Nhập 0/1/2 số, dán chữ, nhập nhanh 3→4→5 số ⇒ **0 request khi chỉ nhập query không hợp lệ**, một request khi query hợp lệ đã ổn định; xóa input phục hồi kết quả nền từ cache nếu revision còn hợp lệ, nếu đã thay đổi thì được phép đúng một GET reconcile; duplicate suppressed.
 2. Toàn bộ >300 rows, query match record nằm ngoài trang đầu; `total` match chính xác, page50 ổn; badge/KPI không biến thành match count.
 3. CLOSED một hoặc nhiều Picker trong cùng batch trả đúng mã + tên từ WITHDRAWN tickets; không N+1 DO; tên trống fallback rõ ràng. HAS_STOCK/SKIP_ALLOWED double-click trả mọi ticket đúng batch + `reported_at`, cache reuse/invalidated; sai/missing id fail gracefully.
 4. Đổi tab/đổi ngày/nhập liên tục + realtime/ACK/correction/sửa status, logout/đổi role, request trễ, mất mạng ⇒ không stale UI, không reapply unfiltered read_model, không mất action hoặc ACK.
