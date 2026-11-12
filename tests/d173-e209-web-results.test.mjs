@@ -19,7 +19,7 @@ test("E209: suffix-only search, no prefix or middle match, numeric minimum 3", (
   assert.match(core, /INVALID_SKU_SUFFIX/);
   assert.match(core, /b\.sku LIKE \?/);
   assert.match(core, /sku_suffix/);
-  assert.match(web, /placeholder="Tìm SKU theo các chữ số cuối"/);
+  assert.match(web, /placeholder="Tìm SKU"/);
   assert.match(web, /opsInput\.value\.replace\(\/\\D\/g, ""\)/);
   assert.match(web, /if \(!wasSearching && opsSkuSuffix\.length < 3\) return/);
 });
@@ -32,7 +32,7 @@ test("E209: search is server-side before pagination and omits expensive aggregat
   assert.match(core, /totals_included: includeTotals/);
   assert.match(web, /recent\.totals_included !== false/);
   assert.match(web, /recentFilter === "CLOSED"/);
-  assert.match(web, /viewKey !== \[recentFilter, recentFrom, recentTo, opsSkuSuffix, recentOffset\]/);
+  assert.match(web, /viewKey !== recentPageKey\(\)/);
   assert.match(api, /if \(pickerRows\) params\.set\("picker_rows", "1"\)/);
 });
 
