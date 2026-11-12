@@ -1100,6 +1100,9 @@ function restoreUiContext(snapshot: UiContextSnapshot | null): void {
   // form controls from a pre-render snapshot; renderSla + slaDraftMode own them.
   if (snapshot.section !== "sla") {
     for (const saved of snapshot.fields) {
+      // The SKU filter is controlled by opsSkuSuffix; replaying old DOM text after
+      // a tab change can display a SKU while the underlying query is empty.
+      if (saved.id === "ops-sku-suffix") continue;
       let field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null = null;
       if (saved.id) field = document.getElementById(saved.id) as typeof field;
       if (!field && saved.name) {
