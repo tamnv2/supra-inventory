@@ -73,9 +73,15 @@ def main():
     if git("diff","--name-only",PIN,"HEAD","--","web/"):
         fail("WEB_RUNTIME_MODIFIED_AFTER_PIN")
     if not args.preflight:
-        # CI must have checked the exact merged PR HEAD, never an older pin.
-        if auth.get("source_ci_sha") != parents[2]:
-            fail("CI_SHA_NOT_MERGED_PR_HEAD")
+        # The CI evidence commit precedes the receipt-only authorization commit.
+        # No runtime, test, workflow or guard bytes may change after verified CI.
+        source_ci_sha = auth.get("source_ci_sha") or ""
+        if len(source_ci_sha) != 40 or any(c not in "0123456789abcdef" for c in source_ci_sha):
+            fail("INVALID_SOURCE_CI_SHA")
+        git("merge-base", "--is-ancestor", source_ci_sha, parents[2])
+        if git("diff", "--name-only", source_ci_sha, parents[2], "--",
+               "web/", "tests/", ".github/workflows/", "tools/"):
+            fail("CODE_OR_GUARD_DRIFT_AFTER_VERIFIED_CI")
     if args.preflight:
         print("D173_E233_WEB3314_PREFLIGHT_PASS_NO_PROVIDER_MUTATION")
         return
