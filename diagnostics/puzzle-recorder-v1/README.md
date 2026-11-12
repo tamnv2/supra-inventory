@@ -37,3 +37,12 @@ V2.1 giữ nguyên nút Test của V2, **không sửa thuật toán ghép hình*
 
 Không tự tải ảnh hoặc log lên mạng. Các tọa độ chuột được ghi là **đã gửi và được trình duyệt xác nhận**, không phải bằng chứng mảnh ghép đã thực sự di chuyển. Giao diện V2.1 giới hạn 20 lượt Test mỗi phiên để tránh lưu quá nhiều ảnh trong RAM.
 
+
+## V2.2 — WebView2 cố định và kiểm tra vùng đã chọn (không tự giải CAPTCHA)
+
+- Đây là bản **chẩn đoán thụ động**, chưa triển khai Agent, không tự động kéo mảnh ghép hoặc vượt xác minh đăng nhập.
+- WebView2 được giữ cố định **1178 × 600** đơn vị điều khiển, zoom 100%; khi thay kích thước cửa sổ, khung ngoài có thanh cuộn chứ WebView2 không bị kéo giãn. Nếu màn hình quá nhỏ, cần cuộn để xem hết. Kích thước ảnh pixel có thể khác khi DPI của Windows thay đổi.
+- Tại màn hình trò chơi, bấm **Chọn vùng trò chơi** và chỉ chọn vùng hình ghép. Kiểm tra trước khi duyệt. Tọa độ vùng và kích thước ảnh được lưu **cục bộ** dưới LocalApplicationData, không lưu URL, ảnh, tài khoản hay session. Lần sau chỉ tái sử dụng khi kích thước ảnh khớp chính xác; khác DPI/viewport phải chọn lại.
+- Bấm **Kiểm tra vùng (không kéo)**. Công cụ chỉ chụp vùng đã chọn trong RAM để anh xác nhận. Nút **Xuất vùng đã duyệt** sẽ ghi ZIP gồm `region-v22.png` và `region-v22.json`, không có màn hình đăng nhập đầy đủ. Đọc lại ZIP trước khi gửi.
+- Không bấm Test/kéo tự động; V2.2 không thử lại, không tự đăng nhập, không tự điều hướng trang Confirm. Hoàn thành thử thách phải do người dùng thực hiện hoặc qua API/SSO chính thức do WMS cho phép.
+- `--startup-smoke` kiểm tra OpenCV synthetic V2 và giới hạn tọa độ ROI synthetic V2.2, không truy cập WMS hoặc mạng thật.
