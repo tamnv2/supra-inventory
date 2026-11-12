@@ -1,3 +1,8 @@
+## D173-E230 — 12/11/2026: sửa FIELD UI Web 3.3.12, code Web3.3.13
+Owner yêu cầu ba điểm ở năm tab Xử lý báo hàng: (1) **chỉ Skip tự động** `SYSTEM_TIMEOUT`/`SYSTEM_DAY_END` có nền riêng; Skip do nhân sự hiển thị nền mặc định như các tab khác; (2) giảm khung/bo góc/viền/khoảng cách, bỏ các footer `Hiển thị xx / yy kết quả` để tăng diện tích đọc SKU; (3) placeholder chính xác **“Tìm SKU tối thiểu 3 chữ số cuối”**, không đổi `endsWith` tối thiểu ba số. Yêu cầu sửa code Web UI, chưa có lệnh phát hành Production Web3.3.13. Không thay đổi API/Worker/Agent/Android/Firebase/D172/Stable, dữ liệu, phân quyền hay realtime. FIELD/OWNER PASS vẫn chờ thử thực tế. Chi tiết `docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md`, PR #957 Draft.
+
+---
+
 ## D173-E227 — 12/11/2026: Owner duyệt Web UI 3.3.12 và triển khai
 Owner chốt 8 thay đổi giao diện Xử lý báo hàng gồm tab cùng phong cách Tổng quan/Báo cáo chi tiết; active sidebar ở cả năm tab; SKU search dài x2; Picker đã thu hồi bỏ năm cột; phân biệt tự động/nhân sự skip bằng màu nền; tên công ty to hơn; bỏ hamburger; ghim tab/ngày/tìm kiếm khi cuộn. **Duyệt CODE và guarded Production release Web D173; không sửa D172/Agent/APK/Firebase/Stable.** Chi tiết `docs/D173_E227_WEB3312_EIGHT_UI_OWNER_2026-11-12.md`.
 
