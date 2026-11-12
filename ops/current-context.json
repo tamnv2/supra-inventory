@@ -7,12 +7,15 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E213",
-    "pr": 945,
-    "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
-    "status": "AGENT193_OWNER_RELEASE_APPROVED__EXACT_CI_AND_PROTECTED_MERGE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "checkpoint_id": "D173-E214",
+    "pr": 947,
+    "branch": "fix/d173-e214-web339-field-release-20261112",
+    "status": "WEB339_OWNER_SCOPED_RELEASE_APPROVED__PR947_SOURCE_CI_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_merge_approved": true,
-    "owner_release_approved": true
+    "owner_release_approved": true,
+    "previous_production_web_version": "3.3.8",
+    "target_web_version": "3.3.9",
+    "source_doc": "docs/D173_E214_WEB339_FIELD_RELEASE_2026-11-12.md"
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",

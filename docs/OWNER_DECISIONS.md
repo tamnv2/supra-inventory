@@ -1,3 +1,9 @@
+## 12/11/2026 — D173-E214: Owner yêu cầu phát hành Web 3.3.9 sửa lỗi 3.3.8
+
+Owner yêu cầu tiếp tục và **phát hành Web phiên bản mới**, khắc phục đúng sáu lỗi thực tế: tiêu đề công ty tăng 150%, tìm kiếm SKU hoạt động đúng (không giữ giá trị DOM cũ khi thay tab), hiển thị đúng người Picker thu hồi, nhãn `Cho phép skip xx`, ô SKU giảm 50%, ô ngày gọn và thanh tab/ngày/tìm SKU trên một hàng desktop. Phạm vi được phép: Web chính thức + phép chiếu người thu hồi read-only trên Worker hiện hữu; không sửa schema, Agent, APK, Firebase, D172, Stable hoặc nhà cung cấp khác. Dùng PR #947 từ main mới nhất, tăng Web 3.3.9 và bắt buộc kiểm thử source exact-SHA, D172 độc lập, protected merge trước Production deploy. Đã **duyệt code + release có điều kiện**, không suy diễn FIELD/OWNER PASS nếu chưa kiểm tra Production và máy thực tế. Chi tiết `docs/D173_E214_WEB339_FIELD_RELEASE_2026-11-12.md`.
+
+---
+
 ## 12/11/2026 — D173-E213: Owner duyệt merge/phát hành Agent193
 
 Owner yêu cầu **phát hành Agent đã sửa lỗi**, phạm vi chính xác Agent193 đã sửa 5 vấn đề UI trong E212 và khắc phục `AgentConfig.AgentBuild` chưa đồng nhất. Cho phép protected merge PR #945 và signed OTA kênh `inventory-channel` **chỉ sau exact-source CI, Windows-native và D172 guard PASS**; có readback tag/EXE/manifest SHA. Không cấp quyền phát hành Worker, Web, Android, Firebase, Host14, D172 hay Stable. FIELD/OWNER PASS bản Agent193 chưa được suy diễn từ release. D172 vẫn độc lập HOLD. Chi tiết `docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md`.

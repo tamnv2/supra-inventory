@@ -2492,7 +2492,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E213_AGENT193_RELEASE_AUTHORIZED_EXACT_CI_PENDING__AGENT192_SIGNED_PRODUCTION_UNCHANGED__D172_HOLD",
+    "current_change_status": "D173_E214_WEB339_OWNER_RELEASE_APPROVED__PR947_SOURCE_CI_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7548,18 +7548,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
-    "pr": 945,
-    "latest_checkpoint_id": "D173-E213",
+    "working_branch": "fix/d173-e214-web339-field-release-20261112",
+    "pr": 947,
+    "latest_checkpoint_id": "D173-E214",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E213_OWNER_AGENT193_UI_ONLY_SIGNED_RELEASE_AUTHORIZED__EXACT_CI_AND_TWO_PARENT_MERGE_REQUIRED__D172_HOLD__STABLE_OWNER_GATED",
+    "owner_release_gate": "D173_E214_WEB339_OWNER_PRODUCTION_APPROVED__CI_PROTECTED_MERGE_REQUIRED__D172_HOLD__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 945,
-    "active_working_branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
-    "working_pr_lifecycle": "PR945_DRAFT_AGENT193_SOURCE__OWNER_APPROVED_PROTECTED_MERGE_AND_SIGNED_OTA_AFTER_EXACT_CI"
+    "working_pr": 947,
+    "active_working_branch": "fix/d173-e214-web339-field-release-20261112",
+    "working_pr_lifecycle": "PR947_DRAFT_WEB339_WORKER_READ_ONLY__OWNER_RELEASE_APPROVED_EXACT_CI_GATED"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13757,5 +13757,30 @@
     "auth": "ops/d173-e213-agent193-release-authorization.json",
     "doc": "docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md",
     "workflow": ".github/workflows/d173-e213-agent193-release.yml"
+  },
+  "d173_e214_web339_release": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173-E214",
+    "pr": 947,
+    "branch": "fix/d173-e214-web339-field-release-20261112",
+    "base_main_sha": "4775ace79a072241ae8832d32b4781f6efefb93a",
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "previous_web_release": {
+      "version": "3.3.8",
+      "source_main_sha": "b913f86bff209905f2d2dab3bf7a1ffa88c4a279",
+      "release_run_id": 43159857445,
+      "field_pass": false
+    },
+    "target_version": "3.3.9",
+    "scope": "WEB_AND_SHARED_WORKER_READ_ONLY_PROJECTION_ONLY",
+    "code": "CODE_SOURCE_CANDIDATE",
+    "ci": "PENDING_EXACT_PR_SHA",
+    "release": "OWNER_APPROVED_GATE_PENDING",
+    "field": "PENDING_AFTER_RELEASE",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E214_WEB339_FIELD_RELEASE_2026-11-12.md"
   }
 }
