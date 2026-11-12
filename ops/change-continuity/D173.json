@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e208-agent192-signed-ota-receipt-20261112",
-  "pr": 939,
+  "working_branch": "fix/d173-web338-field-six-issues-20261112",
+  "pr": 946,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E208",
+    "id": "D173-E213",
     "date_vn": "2026-11-12",
-    "summary": "Agent192 WinForms-only CODE, CI and signed OTA release technically PASS; exact tag/channel EXE SHA match. FIELD HD/HD+/Web controls/old Picker issue not proven; Owner PASS pending, D172 HOLD.",
-    "status": "AGENT192_CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E208_AGENT192_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+    "summary": "Owner reports six Web 3.3.8 field failures; targeted D173 Web/Worker read-only source repair in draft PR946; new CI and real field evidence pending; no production release.",
+    "status": "WEB338_FIELD_NOT_PASS__E213_SOURCE_CANDIDATE_CI_PENDING_RELEASE_HOLD__D172_HOLD",
+    "source": "docs/D173_E213_WEB338_FIELD_SIX_ISSUES_2026-11-12.md"
   },
-  "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "D173_E213_SOURCE_CI_ONLY_PR946__WEB338_EXISTING_PRODUCTION_UNCHANGED__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -3914,6 +3914,44 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E213",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_FIELD_NOT_PASS_AND_SOURCE_REPAIR",
+      "topic": "Web 3.3.8 corporate header, SKU search, withdrawn Picker identity, Skip tab, compact dates and one-line toolbar",
+      "status": "PR946_SOURCE_CANDIDATE__CI_PENDING__PRODUCTION_UNCHANGED",
+      "owner_approval": true,
+      "owner_release_approval": false,
+      "pr": 946,
+      "facts": [
+        "corporate_title_150pct",
+        "sku_search_correct_in_active_tab",
+        "withdrawn_picker_actual_actor",
+        "skip_label_total_only",
+        "sku_input_half_width",
+        "date_compact_one_desktop_row"
+      ],
+      "verified": [
+        "desktop_css_max1550_forces_second_row",
+        "suffix_api_exists_but_stale_filtered_rows_can_remain_visible_before_new_response",
+        "withdrawn_actor_from_latest_ticket_user_id_with_read_only_employee_code_fallback"
+      ],
+      "unverified": [
+        "exact_root_cause_of_all_search_failures_without_production_network_trace",
+        "real_withdrawn_identity_for_absent_user_record",
+        "HD_at_actual_device_scale",
+        "production_usage_delta"
+      ],
+      "evidence": "docs/D173_E213_WEB338_FIELD_SIX_ISSUES_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/946",
+      "next_action": "Review exact PR CI and source fixture, then gated Owner release decision separately; validate real Picker actor and search on deployed Web before field or Owner PASS",
+      "code": "SOURCE_CANDIDATE",
+      "ci": "PENDING",
+      "release": "HOLD",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -5096,5 +5134,60 @@
     "stable": "OWNER_GATED",
     "privacy_safe": true,
     "docs_only": true
+  },
+  "d173_e213_web338_field_six_issues_20261112": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E213",
+    "kind": "OWNER_WEB338_FIELD_FAIL_SOURCE_FIX",
+    "approved_code_scope": true,
+    "production_release_approved": false,
+    "pr": 946,
+    "branch": "fix/d173-web338-field-six-issues-20261112",
+    "base_main_sha": "d06d1342706a77d8afb9b43b4dd7c02e77694053",
+    "prior_production": {
+      "web": "3.3.8",
+      "release_source_sha": "b913f86bff209905f2d2dab3bf7a1ffa88c4a279",
+      "release_run": 43159857445,
+      "field_pass": false
+    },
+    "owner_requirements": [
+      "corporate_title_150pct",
+      "sku_search_correct_in_active_tab",
+      "withdrawn_picker_actual_actor",
+      "skip_label_total_only",
+      "sku_input_half_width",
+      "date_compact_one_desktop_row"
+    ],
+    "verified_source_findings": [
+      "desktop_css_max1550_forces_second_row",
+      "suffix_api_exists_but_stale_filtered_rows_can_remain_visible_before_new_response",
+      "withdrawn_actor_from_latest_ticket_user_id_with_read_only_employee_code_fallback"
+    ],
+    "unverified": [
+      "exact_root_cause_of_all_search_failures_without_production_network_trace",
+      "real_withdrawn_identity_for_absent_user_record",
+      "HD_at_actual_device_scale",
+      "production_usage_delta"
+    ],
+    "changes": [
+      "web/src/operational-app.ts",
+      "web/src/d173-tabler.css",
+      "web/src/d173-e036-unified-design.css",
+      "service/src/operational-v2-core.ts",
+      "tests/d173-e213-web338-field-six-issues.test.mjs",
+      "tests/d173-e209-web-results.test.mjs",
+      "tools/d173_e210_withdrawn_identity_sql.py",
+      ".github/workflows/d173-e213-web338-field.yml"
+    ],
+    "source_ci_sha": "e18b551a9903aa0459ad43542bdd1fd9e2ddba12",
+    "code": "BRANCH_PATCH_WRITTEN_PENDING_FULL_TEST",
+    "ci": "RUNNING_VERIFY_FROM_PR_946",
+    "release": "NO_NEW_RELEASE_OWNER_GATED",
+    "field": "WEB338_OWNER_FAIL_NEW_FIX_UNTESTED",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "evidence": "docs/D173_E213_WEB338_FIELD_SIX_ISSUES_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/946"
   }
 }
