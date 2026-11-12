@@ -1,0 +1,64 @@
+name: D173 E212 Agent193 code-only UI regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "relay-agent/**"
+      - "tests/d173-e207-agent192-overview-layout.test.mjs"
+      - ".github/workflows/d173-e212-agent193-code-only.yml"
+      - "ops/change-continuity/D173.json"
+      - "ops/project-state.json"
+      - "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'fix/d173-e212-agent193-ui-stable-columns-20261112'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Repo authority and Agent UI layout regressions
+        run: |
+          python3 tools/authority_guard.py
+          python3 tools/project_state_guard.py
+          python3 tools/change_continuity_guard.py
+          node --test tests/d173-e207-agent192-overview-layout.test.mjs
+      - name: D172 isolation regression dependencies
+        run: npm install --prefix service --ignore-scripts --no-audit --no-fund --no-package-lock
+      - name: Independent D172 source regression
+        run: node --test tests/d172-*.test.mjs
+
+  native:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'fix/d173-e212-agent193-ui-stable-columns-20261112'
+    needs: source
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build Agent193 and unchanged Host14; run native safety smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64
+          if ($LASTEXITCODE -ne 0) { throw 'Host14 native build failed' }
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64
+          if ($LASTEXITCODE -ne 0) { throw 'Agent193 native build failed' }
+          $exe = (Resolve-Path 'relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe').Path
+          foreach ($arg in @('--startup-smoke','--e100-roster-self-test','--e103-activity-self-test','--d140-sync-safety-self-test')) {
+            $process = Start-Process -FilePath $exe -ArgumentList $arg -PassThru
+            if (-not $process.WaitForExit(15000)) {
+              try { $process.Kill() } catch {}
+              throw "Agent193 native smoke timeout $arg"
+            }
+            if ($process.ExitCode -ne 0) { throw "Agent193 native smoke failed $arg" }
+          }
+          Write-Host 'D173_E212_AGENT193_CODE_ONLY_NATIVE_PASS'
