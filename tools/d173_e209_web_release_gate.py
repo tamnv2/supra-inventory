@@ -12,6 +12,8 @@ AUTH_PATH = ROOT / "ops/d173-e209-web-release-authorization.json"
 MARKER = "D173-E209_WEB337_RESULTS_WORKER_PRODUCTION_RELEASE:"
 RUNTIME = {
     "service/src/operational-v2-core.ts",
+    "service/src/read-api.ts",
+    "service/src/business-api.ts",
     "web/src/api.ts",
     "web/src/operational-app.ts",
     "web/src/d173-tabler.css",
