@@ -7,11 +7,11 @@
   "pr": 940,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R11",
+    "id": "D173-E204-R12",
     "date_vn": "2026-11-12",
-    "summary": "Owner confirms WMS explicitly permits automated company Confirm Picklist workflow and requests real V2.3 puzzle ROI detection + one-shot drag; existing PR940 offline simulation does NOT meet requirement. No new runtime change, FIELD/OWNER pending.",
-    "status": "OWNER_AUTHORIZATION_ATTESTED__REAL_V23_DRAG_REQUIRED__CURRENT_V23_UNMET__NO_NEW_CODE_OR_RELEASE",
-    "source": "Owner confirmation, PR940"
+    "summary": "Proposed real one-shot WebView2 drag in sanctioned WMS test page with V2.2 ROI tolerance, offline labeled precision metrics, no auto retries. No live CAPTCHA bypass or code; PR940 V2.3 remains unmet.",
+    "status": "PROPOSAL_ONLY__NO_NEW_CODE__NO_RELEASE__FIELD_OWNER_PENDING",
+    "source": "PR940 + Owner request for exact V2.3 work plan"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4238,6 +4238,34 @@
       "code": "NO_CHANGE",
       "ci": "EXISTING_SIM_CI_ONLY",
       "release": "NO_CHANGE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R12",
+      "date_vn": "2026-11-12",
+      "kind": "V23_TEST_PLAN_FOR_OWNER_REVIEW",
+      "topic": "Actionable scope to build a real WebView2 drag test while avoiding unauthorized CAPTCHA bypass",
+      "status": "PROPOSAL_ONLY__NO_NEW_CODE__NO_RELEASE__FIELD_OWNER_PENDING",
+      "owner_request": "Summarize exactly what needs doing to build a real auto-drag test after rejecting the offline simulator; WMS business automation permission attested by Owner.",
+      "verified_baseline": [
+        "V2.2 fixed browser size 1178x600 and local ROI persistence received positive Owner field report.",
+        "V2.1 one real drag Owner FAIL and seven image ambiguous; a single annotated sample cannot establish a fixed input correction.",
+        "PR940 V2.3 implements synthetic offline simulation only and is explicitly OWNER REQUIREMENT NOT MET."
+      ],
+      "proposal": [
+        "Use existing V2.2 fixed WebView2/ROI persistence, tolerate small selection drift with margin + bounds validation; stop when full control not in region.",
+        "Evaluate recognition precision using labeled local synthetic or sanctioned test images with measured pixel-error and confidence; do not infer success from synthetic CI.",
+        "Implement actual mouse drag only on a sanctioned test page/environment supported by WMS; use one-shot input, confirm resulting position visually and log bounded geometry without user/session/secret data.",
+        "Classify detection/prediction/input/observed-position errors independently, use fail-closed threshold and no automatic retry.",
+        "Require source/native CI and sanctioned FIELD evidence before any Agent Production integration; if live login anti-bot challenge must be crossed, obtain provider-supported API/SSO/test-mode rather than implementing a CAPTCHA bypass."
+      ],
+      "decision": "Offer the plan, not an unverified V2.3 release or commitment to bypass live CAPTCHA. Owner did not command a specific code change in this turn.",
+      "code": "NO_CHANGE",
+      "ci": "NO_CHANGE",
+      "release": "NONE",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
