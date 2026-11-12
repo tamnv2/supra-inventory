@@ -1,4 +1,4 @@
-name: D173 E216 Web339 Search Tabs Dates Source Regression
+name: D173 E216-E217 Web3310 Field Source and Release Preflight
 on:
   pull_request:
     paths:
@@ -7,6 +7,11 @@ on:
       - 'tests/d173-e216-web-search-tabs-dates.test.mjs'
       - 'tests/d173-e214-web339-field-six-issues.test.mjs'
       - '.github/workflows/d173-e216-web-search-tabs-dates.yml'
+      - 'web/src/web-version.ts'
+      - 'web/package.json'
+      - '.github/workflows/deploy-beta.yml'
+      - 'tools/d173_e217_web3310_release_gate.py'
+      - 'ops/d173-e217-web-release-authorization.json'
 permissions:
   contents: read
 jobs:
@@ -22,6 +27,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: E217 owner-scoped release preflight without provider writes
+        run: |
+          python3 tools/d173_e217_web3310_release_gate.py --component worker --preflight
+          python3 tools/d173_e217_web3310_release_gate.py --component web --preflight
       - name: Reproduce Web339 UI regressions and preserve existing result contracts
         run: |
           node --test tests/d173-e216-web-search-tabs-dates.test.mjs tests/d173-e214-web339-field-six-issues.test.mjs tests/d173-e209-web-results.test.mjs tests/d173-e209-field-ui.test.mjs
@@ -40,5 +49,5 @@ jobs:
         run: |
           python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
           node --test tests/d172-*.test.mjs
-      - name: No release
-        run: echo "D173_E216_CODE_CI_ONLY__WEB339_PRODUCTION_UNCHANGED__FIELD_OWNER_PENDING"
+      - name: No release from PR
+        run: echo "D173_E217_CI_ONLY_UNTIL_PROTECTED_MERGE__FIELD_OWNER_PENDING"
