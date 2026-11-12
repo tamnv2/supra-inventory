@@ -1197,6 +1197,7 @@ export async function getReporterRecent(
   to = "",
   suffix = "",
   pickerRows = false,
+  includeTotals = false,
 ): Promise<{
   items: ReporterRecentBatch[];
   count: number;
@@ -1223,6 +1224,7 @@ export async function getReporterRecent(
   if (to) params.set("to", to);
   if (suffix) params.set("sku_suffix", suffix);
   if (pickerRows) params.set("picker_rows", "1");
+  if (includeTotals) params.set("include_totals", "1");
   return readJson(await authorizedFetch(`/api/reporter/recent?${params.toString()}`));
 }
 
