@@ -1,3 +1,11 @@
+## D173 — Owner chốt phạm vi tìm và dòng Picker thu hồi (12/11/2026; chưa triển khai)
+- 5 tab dùng đúng ngữ cảnh hiện hành: `Đang xử lý`/`Quá hạn` tìm toàn bộ chưa hoàn tất, không tự áp ngày đã chọn ở tab kết quả; `Đã có hàng`/`Cho phép Skip`/`Picker đã thu hồi` chỉ tìm trong khoảng ngày đang áp dụng theo `first_report_at` của đợt. Tìm SKU theo **chữ số cuối**, không đầu/giữa.
+- Tab Picker đã thu hồi: **mỗi Picker riêng một dòng**, cùng SKU có thể nhiều dòng. Không gộp thành một dòng chứa danh sách Picker.
+- Ngữ nghĩa badge (batch vs picker) và trường hợp cùng Picker rút nhiều ticket trong cùng batch còn cần Owner chốt, không mặc định thay đổi số liệu.
+- Phạm vi chỉ là **bản đặc tả Owner chốt**, chưa có lệnh triển khai/mutation Worker/Web/DB; D172 HOLD và Stable OWNER-GATED.
+
+---
+
 ## D173 — Web vận hành: tìm SKU theo các chữ số cuối (Owner quyết định 12/11/2026; chưa triển khai)
 
 - Trên màn hình Vận hành báo hàng, placeholder của ô tìm kiếm phải đúng **`Tìm SKU theo các chữ số cuối`**; chỉ nhận số và tự kích hoạt khi đã nhập tối thiểu **3 chữ số**, không có nút tìm.
