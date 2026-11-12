@@ -27,9 +27,9 @@ test("E209: suffix-only search, no prefix or middle match, numeric minimum 3", (
 test("E209: search is server-side before pagination and omits expensive aggregates", () => {
   assert.match(core, /WHERE \$\{clause\}/);
   assert.match(core, /LIMIT \? OFFSET \?/);
-  assert.match(core, /const totalsRow = suffix \? \{\} : first/);
-  assert.match(core, /const ackTotals = suffix \? \{\} : first/);
-  assert.match(core, /totals_included: !suffix/);
+  assert.match(core, /const totalsRow = !includeTotals \? \{\} : first/);
+  assert.match(core, /const ackTotals = !includeTotals \? \{\} : first/);
+  assert.match(core, /totals_included: includeTotals/);
   assert.match(web, /recent\.totals_included !== false/);
   assert.match(web, /recentFilter === "CLOSED"/);
   assert.match(web, /viewKey !== \[recentFilter, recentFrom, recentTo, opsSkuSuffix, recentOffset\]/);
@@ -77,4 +77,11 @@ test("E209: Worker adapters forward suffix and picker-row params without opening
   assert.match(readApi, /params\.set\("picker_rows", "1"\)/);
   assert.match(businessApi, /\["limit", "offset", "sku_suffix"\]/);
   assert.match(web, /firstAt = String\(realtimeSnapshotRecord\(row\)\?\.first_report_at/);
+});
+
+test("E209: realtime exact totals are fetched only on filtered reconciliation, not every search keystroke", () => {
+  assert.match(core, /const includeTotals = !suffix \|\| url\.searchParams\.get\("include_totals"\) === "1"/);
+  assert.match(api, /if \(includeTotals\) params\.set\("include_totals", "1"\)/);
+  assert.match(readApi, /if \(url\.searchParams\.get\("include_totals"\) === "1"\)/);
+  assert.match(web, /loadReporterRecentSnapshot\(opsSkuSuffix\.length >= 3\)/);
 });
