@@ -7604,16 +7604,16 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e230-web3313-field-density-skip-20261112",
     "pr": 957,
-    "latest_checkpoint_id": "D173-E230",
+    "latest_checkpoint_id": "D173-E231",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "WEB3312_PRODUCTION_TECH_PASS__E230_WEB3313_NO_NEW_RELEASE_AUTH__D172_HOLD",
+    "owner_release_gate": "D173_E231_WEB3313_OWNER_APPROVED__EXACT_HEAD_CI__PROTECTED_MERGE_REQUIRED__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 957,
     "active_working_branch": "fix/d173-e230-web3313-field-density-skip-20261112",
-    "working_pr_lifecycle": "PR957_OPEN_DRAFT_CODE_ONLY_WEB3313_SOURCE_CI_PENDING"
+    "working_pr_lifecycle": "PR957_OPEN_READY_REVIEW__WEB3313_OWNER_RELEASE_APPROVED__EXACT_CI_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
