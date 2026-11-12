@@ -129,7 +129,25 @@ namespace SupraPuzzleRecorder
                 _test.Enabled = !_roi.IsEmpty && !_tested && !_busy;
                 _next.Enabled = !_busy && _reports.Count < MaxTests;
                 _status.Text = "Trang offline đã tạo. Nhấn Chọn vùng, sau đó Kéo thật 1 lần.";
-                if (_smokeMode) { SmokePassed = true; Close(); }
+                if (_smokeMode)
+                {
+                    try
+                    {
+                        var pixels = await ScreenshotAsync();
+                        _imageSize = ImageDimensions(pixels);
+                        _roi = new Rectangle(105, 185, 690, 145);
+                        await TestOnceAsync();
+                        SmokePassed = _reports.Count == 1 &&
+                            _reports[0].ContainsKey("result") &&
+                            (string)_reports[0]["result"] == "LOCAL_DRAG_PASS";
+                        TraceStartup("SMOKE_DRAG", SmokePassed ? "PASS" : (string)_reports[0]["reason"]);
+                    }
+                    catch (Exception ex)
+                    {
+                        TraceStartup("SMOKE_DRAG_ERROR", ex.GetType().Name + "_" + ex.HResult.ToString("X8"));
+                    }
+                    Close();
+                }
             }
             catch (Exception ex)
             {
