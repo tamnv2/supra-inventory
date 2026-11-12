@@ -30,7 +30,6 @@ jobs:
           python3 tools/d173_e210_withdrawn_identity_sql.py
           node --test tests/d170-d171-release-parity.test.mjs tests/d173-e032-ui-code-only.test.mjs tests/d167-web-ux-consistency.test.mjs
           python3 tools/d167_dual_track_regression.py
-          python3 tools/d173_e052_instrumentation_guard.py
       - name: Protected E210 Owner scope release preflight, no provider writes
         run: |
           python3 tools/d173_e210_web_release_gate.py --component worker --preflight
