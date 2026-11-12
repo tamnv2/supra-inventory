@@ -13,4 +13,4 @@ Owner vừa yêu cầu **"phát hành agent đã sửa lỗi đi"** sau khi đư
 - Nếu CI, release hoặc channel mismatch: báo lỗi và xử lý trong phạm vi; tuyệt đối không báo "DONE" khi chưa đạt bằng chứng kỹ thuật. D172 riêng biệt PENDING/HOLD, Stable OWNER-GATED.
 
 ## Source/CI/release receipt
-Sẽ được cập nhật sau khi GitHub chạy và xác minh. Không có thông tin cá nhân hoặc log thực tế trong repo public.
+E213 đã hoàn tất: [PR945 merged](https://github.com/tamnv2/supra-inventory/pull/945) `4775ace79a072241ae8832d32b4781f6efefb93a`; [source CI #43166575729](https://github.com/tamnv2/supra-inventory/actions/runs/43166575729) PASS 10/10 Agent UI + 74/74 D172 và Windows-native; [signed OTA #43166939885](https://github.com/tamnv2/supra-inventory/actions/runs/43166939885) SUCCESS; tag `relay-agent-v193` và `inventory-channel` cùng EXE SHA-256 `39ae9282bb56acbaee7b14a6e4b5e5748df50df12bd13f9e88ba4d8d6fec42ac`. FIELD/OWNER PASS chưa xác nhận. Xem receipt `docs/D173_E214_AGENT193_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md` (docs-only PR948). Không lưu thông tin cá nhân hoặc log thực tế trong repo public.
