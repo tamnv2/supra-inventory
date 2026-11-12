@@ -2492,7 +2492,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E215_WEB339_WORKER_WEB_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E218_WEB3310_E217_SOURCE_CI_5_PASS__MERGE_RELEASE_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7548,18 +7548,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e215-web339-production-receipt-20261112",
-    "pr": 949,
-    "latest_checkpoint_id": "D173-E215",
+    "working_branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "pr": 950,
+    "latest_checkpoint_id": "D173-E218",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E215_WEB339_TECH_PASS__NO_NEW_RUNTIME_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
+    "owner_release_gate": "D173_E217_WEB3310_OWNER_APPROVED_EXACT_SOURCE_CI_5_PASS__PROTECTED_MERGE_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 949,
-    "active_working_branch": "docs/d173-e215-web339-production-receipt-20261112",
-    "working_pr_lifecycle": "PR947_MERGED_WEB339_RELEASE_PASS__PR949_DOCS_ONLY_RECEIPT_OPEN__FIELD_OWNER_PENDING"
+    "working_pr": 950,
+    "active_working_branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "working_pr_lifecycle": "PR950_DRAFT_E217_WEB3310_RELEASE_AUTHORIZED_SOURCE_CI_PENDING__PRODUCTION_WEB339"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13813,5 +13813,58 @@
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
     "no_new_runtime_mutation": true
+  },
+  "d173_e216_web339_field_repair": {
+    "date_vn": "2026-11-12",
+    "pr": 950,
+    "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "base_main_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
+    "owner_reported": [
+      "SKU_SEARCH_LOAD_COMPLETES_UNFILTERED_LIST",
+      "DATE_PICKERS_RIGHT_ALIGNED_NEAR_SKU",
+      "ACTIVE_TAB_DISTINCT_BACKGROUND_PERSISTENT"
+    ],
+    "code": "PASS_EXACT_SOURCE",
+    "ci": "PASS_4_OF_4_EXACT_SHA",
+    "production_version": "3.3.9",
+    "release": "CODE_ONLY_NO_NEW_RELEASE_AUTHORIZED",
+    "field": "NOT_VERIFIED_AFTER_NEW_SOURCE",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md",
+    "source_ci_sha": "605242017a40288d45d87e6688205c6fd4751aed",
+    "ci_evidence": {
+      "web_ci": 43178722207,
+      "d172_independent": 43178721869,
+      "authority": 43178722392,
+      "state": 43178722565
+    }
+  },
+  "d173_e217_web3310_release": {
+    "pr": 950,
+    "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "base_main_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
+    "target_web_version": "3.3.10",
+    "owner_production_release_approved": true,
+    "scope": "D173_WEB_ASSETS_ONLY_EXISTING_WORKER_SERVICE_UNCHANGED",
+    "code": "E216_FIX_SOURCE_PREPARED",
+    "ci": "PASS_5_REQUIRED_WORKFLOWS_EXACT_HEAD",
+    "release": "SOURCE_PINNED_PROTECTED_MERGE_PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
+    "auth": "ops/d173-e217-web-release-authorization.json",
+    "gate": "tools/d173_e217_web3310_release_gate.py",
+    "source_ci_sha": "bd3f38d2e699356fa0dc90f49f63503f07373b31",
+    "ci_evidence": {
+      "e216_e217_web_build_sql_d172": 43182177953,
+      "e123_worker_web_sql_d172": 43182177602,
+      "d172_independent_guard": 43182177442,
+      "repo_authority": 43182177217,
+      "project_state": 43182177193
+    }
   }
 }

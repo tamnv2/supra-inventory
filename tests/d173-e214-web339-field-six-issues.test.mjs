@@ -31,8 +31,8 @@ test("D173 Web 3.3.9 field: changing SKU immediately invalidates and hides stale
   assert.match(app, /recentLoadedViewKey = viewKey;/);
   assert.match(app, /if \(saved\.id === "ops-sku-suffix"\) continue;/);
   assert.match(app, /const waitingForResults = recentLoadedViewKey !== recentPageKey\(\)/);
-  assert.match(app, /const visible = waitingForResults \? \[\] : recentRows;/);
-  assert.match(app, /if \(activeSection === "results" && \(wasSearching \|\| opsSkuSuffix\.length >= 3\)\) patchActiveSection\(true\);/);
+  assert.match(app, /recentRows\.filter\(\(row\) => String\(row\.sku\)\.endsWith\(opsSkuSuffix\)\)/);
+  assert.match(app, /if \(activeSection === "results" && \(wasSearching \|\| opsSkuSuffix\.length >= 3\)\) showRecentSearchPending\(\);/);
 });
 
 test("D173 Web 3.3.9 field: withdrawn identity comes from latest withdrawn ticket, not the batch resolver", () => {

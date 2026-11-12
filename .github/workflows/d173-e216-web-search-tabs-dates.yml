@@ -1,0 +1,53 @@
+name: D173 E216-E217 Web3310 Field Source and Release Preflight
+on:
+  pull_request:
+    paths:
+      - 'web/src/operational-app.ts'
+      - 'web/src/d173-tabler.css'
+      - 'tests/d173-e216-web-search-tabs-dates.test.mjs'
+      - 'tests/d173-e214-web339-field-six-issues.test.mjs'
+      - '.github/workflows/d173-e216-web-search-tabs-dates.yml'
+      - 'web/src/web-version.ts'
+      - 'web/package.json'
+      - '.github/workflows/deploy-beta.yml'
+      - 'tools/d173_e217_web3310_release_gate.py'
+      - 'ops/d173-e217-web-release-authorization.json'
+permissions:
+  contents: read
+jobs:
+  web-field:
+    if: contains(github.head_ref, 'd173-e216-web-search-tabs-dates')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: E217 owner-scoped release preflight without provider writes
+        run: |
+          python3 tools/d173_e217_web3310_release_gate.py --component worker --preflight
+          python3 tools/d173_e217_web3310_release_gate.py --component web --preflight
+      - name: Reproduce Web339 UI regressions and preserve existing result contracts
+        run: |
+          node --test tests/d173-e216-web-search-tabs-dates.test.mjs tests/d173-e214-web339-field-six-issues.test.mjs tests/d173-e209-web-results.test.mjs tests/d173-e209-field-ui.test.mjs
+          python3 tools/d173_e209_suffix_sql_regression.py
+      - name: Compile official Web without deployment
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Install TypeScript needed by D172 synthetic tests
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: D172 independent change boundary and regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: No release from PR
+        run: echo "D173_E217_CI_ONLY_UNTIL_PROTECTED_MERGE__FIELD_OWNER_PENDING"

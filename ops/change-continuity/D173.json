@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e215-web339-production-receipt-20261112",
-  "pr": 949,
+  "working_branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+  "pr": 950,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E215",
+    "id": "D173-E218",
     "date_vn": "2026-11-12",
-    "summary": "Web3.3.9 + D173 read-only Worker technical Production release verified on exact main source 331c2c1, Workflow 43168569077 SUCCESS, official health/Web shell PASS; FIELD/OWNER not yet verified, D172 HOLD.",
-    "status": "WEB339_WORKER_PRODUCTION_TECH_PASS__PR949_RECEIPT_ONLY__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
-    "branch": "docs/d173-e215-web339-production-receipt-20261112",
-    "pr": 949
+    "summary": "E217 Web3.3.10 PR950 exact source CI PASS five required groups at bd3f38d2; owner release approved, pin required, protected merge and official Worker/Web Production deployment pending.",
+    "status": "E217_WEB3310_EXACT_CI_PASS_5_GROUPS__PROTECTED_MERGE_PENDING__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
+    "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "pr": 950
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4050,6 +4050,94 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E216",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Web3.3.9 FIELD NOT PASS: searching all rows, right dates beside SKU, and persistent selected tabs",
+      "status": "PR950_SOURCE_CI_PASS_EXACT_PIN__RELEASE_HOLD_FIELD_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": false,
+      "pr": 950,
+      "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+      "facts": [
+        "Owner confirms Web 3.3.9 largely acceptable but SKU search appears unfiltered after loading.",
+        "Owner requests date input controls right aligned adjacent to SKU input.",
+        "Owner requests all five Xử lý báo hàng tabs show a distinct persistent selected background.",
+        "Source confirms current Web input handler calls full patchActiveSection synchronously while typing >=3 digits; production network root cause not verified without authenticated trace.",
+        "Existing DO SQL uses sku_suffix where and read API forwards it; response postcondition and in-place pending UI added, no new API request or business schema changes.",
+        "PR950 source SHA 605242017a40288d45d87e6688205c6fd4751aed verified CI: Web source/build/suffix run 43178722207 SUCCESS; D172 independent 43178721869 SUCCESS; Authority 43178722392 SUCCESS; Project State 43178722565 SUCCESS.",
+        "Earlier E216 CI failed only because service TypeScript test prerequisite had not been installed in the test job; workflow corrected and exact-source CI successfully re-run; no D172 business source changed."
+      ],
+      "evidence": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/950; current Web3.3.9 source main 75cc1b812c9491bf904c37175d8cc498105e2b5b",
+      "next_action": "Run exact source test Web build, suffix regression and D172 isolation on PR950; retain Web 3.3.9 production; Owner release instruction required separately; FIELD search and selected tabs must be verified after any release.",
+      "code": "PASS_EXACT_SOURCE",
+      "ci": "PASS_EXACT_SOURCE_4_OF_4",
+      "release": "HOLD_NO_RELEASE_AUTHORIZATION",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "605242017a40288d45d87e6688205c6fd4751aed",
+      "ci_evidence": {
+        "web_ci": 43178722207,
+        "d172_independent": 43178721869,
+        "authority": 43178722392,
+        "state": 43178722565
+      }
+    },
+    {
+      "id": "D173-E217",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Release Web after E216 SKU filter, date-right and active tabs repair",
+      "status": "OWNER_RELEASE_APPROVED__SOURCE_CI_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 950,
+      "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+      "source_base_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
+      "facts": [
+        "Owner explicitly ordered 'Phát hành web đi' after the Web3.3.9 E216 repair checkpoint.",
+        "Web release candidate is 3.3.10; only Web assets and existing Worker deployment wrapper (same service bytes), no new provider assets or D172 business changes.",
+        "Exact-source fresh Web test/build/SQL suffix + D172 regression + authority/state gate must succeed before protected merge and verified Production."
+      ],
+      "evidence": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/950",
+      "next_action": "Pin exact PR950 E217 source CI runs and SHA; guarded merge then official Worker/Web health+shell readback; FIELD/OWNER pending.",
+      "code": "E216_SOURCE_FIX_PRESENT",
+      "ci": "PENDING_FRESH_E217_EXACT_SOURCE",
+      "release": "PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E218",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Web3.3.10 E217 exact PR950 source/SQL/Web/D172/authority/state verification",
+      "status": "SOURCE_CI_PINNED_5_SUCCESS__RELEASE_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 950,
+      "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+      "source_ci_sha": "bd3f38d2e699356fa0dc90f49f63503f07373b31",
+      "facts": [
+        "Web E216-E217 build, UI contracts, SQL suffix and independent D172 regression passed on PR950 exact head bd3f38d2.",
+        "Worker/Web TypeScript + SQLite/SQL + D172 isolated source CI passed; project state and repo authority CI passed.",
+        "Unrelated legacy PR checks remain failing due historical Agent/SLA assumptions; no unapproved unrelated code changed."
+      ],
+      "evidence": "{\"e216_e217_web_build_sql_d172\":43182177953,\"e123_worker_web_sql_d172\":43182177602,\"d172_independent_guard\":43182177442,\"repo_authority\":43182177217,\"project_state\":43182177193}",
+      "next_action": "Protected merge via exact head and owner marker; trigger and confirm live Production Web/Worker run, /health readback and Web shell; FIELD/OWNER after browser test.",
+      "code": "PASS",
+      "ci": "PASS_EXACT_SOURCE_REQUIRED_5",
+      "release": "PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -4185,7 +4273,8 @@
       "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending.",
       "D173-E174 PR878 Agent176 focus-only source and exact CI verification in progress; no Worker/APK/Web production change.",
       "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes.",
-      "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending."
+      "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending.",
+      "D173-E216 Owner Web339 search returns all, date-right, selected tab visibility; PR950 Web-only source candidate CI pending, Production unchanged."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -5336,5 +5425,45 @@
     "field": "PENDING",
     "owner_pass": false,
     "doc": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
+  },
+  "d173_e216_web339_field_repair": {
+    "pr": 950,
+    "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "base_main_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
+    "code": "PASS_EXACT_SOURCE",
+    "ci": "PASS_4_OF_4_EXACT_SHA",
+    "release": "HOLD_OWNER_NOT_AUTHORIZED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "doc": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md",
+    "source_ci_sha": "605242017a40288d45d87e6688205c6fd4751aed",
+    "ci_evidence": {
+      "web_ci": 43178722207,
+      "d172_independent": 43178721869,
+      "authority": 43178722392,
+      "state": 43178722565
+    }
+  },
+  "d173_e217_web3310_release": {
+    "pr": 950,
+    "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "base_main_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
+    "owner_release_approved": true,
+    "target_web_version": "3.3.10",
+    "source_ci": "PASS_5_OF_5_EXACT_HEAD",
+    "release": "PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "doc": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
+    "auth": "ops/d173-e217-web-release-authorization.json",
+    "source_ci_sha": "bd3f38d2e699356fa0dc90f49f63503f07373b31",
+    "ci_evidence": {
+      "e216_e217_web_build_sql_d172": 43182177953,
+      "e123_worker_web_sql_d172": 43182177602,
+      "d172_independent_guard": 43182177442,
+      "repo_authority": 43182177217,
+      "project_state": 43182177193
+    }
   }
 }

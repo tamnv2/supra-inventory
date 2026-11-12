@@ -1610,6 +1610,20 @@ function render(): void {
   }, performance.now() - started);
 }
 
+function showRecentSearchPending(): void {
+  const body = document.querySelector<HTMLTableSectionElement>(".result-audit-table tbody");
+  if (!body) return;
+  const row = document.createElement("tr");
+  const cell = document.createElement("td");
+  cell.colSpan = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED" ? 9 : 8;
+  cell.className = "empty";
+  cell.textContent = "Đang tìm dữ liệu theo bộ lọc…";
+  row.appendChild(cell);
+  body.replaceChildren(row);
+  const footer = document.querySelector<HTMLElement>(".ops-business-workspace .user-pagination > span");
+  if (footer) footer.textContent = "Đang tìm dữ liệu theo bộ lọc…";
+}
+
 function recentPageKey(): string {
   return [recentFilter, recentFrom, recentTo, opsSkuSuffix.length >= 3 ? opsSkuSuffix : "", recentOffset].join("|");
 }
@@ -1618,7 +1632,7 @@ function renderOperationalTabs(current: "operations" | "overdue" | "results"): s
   // Five tabs share existing counters; suffix only applies to the active tab.
   const skipBreakdown = `Tổng ${resultTabBadgeCounts.SKIP_ALLOWED}: Tự động ${resultTabAutoSkipCount} - Nhân sự ${Math.max(0, resultTabBadgeCounts.SKIP_ALLOWED - resultTabAutoSkipCount)}`;
   const outcomeTab = (status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED", label: string) =>
-    `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}"${status === "SKIP_ALLOWED" ? ` title="${esc(skipBreakdown)}"` : ""}>${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
+    `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}" aria-selected="${current === "results" && recentFilter === status}"${status === "SKIP_ALLOWED" ? ` title="${esc(skipBreakdown)}"` : ""}>${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
   const today = dateDaysAgo(0);
   const preset = recentFrom === today && recentTo === today ? "TODAY"
     : recentFrom === dateDaysAgo(1) && recentTo === dateDaysAgo(1) ? "YESTERDAY"
@@ -1638,8 +1652,8 @@ function renderOperationalTabs(current: "operations" | "overdue" | "results"): s
   </div>`;
   return `<div class="d173-ops-toolbar">
     <div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
-      <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
-      <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
+      <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations" aria-selected="${current === "operations"}">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
+      <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue" aria-selected="${current === "overdue"}">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
       ${outcomeTab("HAS_STOCK", "Đã có hàng")}
       ${outcomeTab("SKIP_ALLOWED", "Cho phép skip")}
       ${outcomeTab("CLOSED", "Picker đã thu hồi")}
@@ -1875,7 +1889,8 @@ function resultPickerMarkup(batchId: string): string {
 
 function renderResults(): string {
   const waitingForResults = recentLoadedViewKey !== recentPageKey();
-  const visible = waitingForResults ? [] : recentRows;
+  const visible = waitingForResults ? [] : opsSkuSuffix.length >= 3
+    ? recentRows.filter((row) => String(row.sku).endsWith(opsSkuSuffix)) : recentRows;
   const pageFrom = !waitingForResults && recentTotal ? recentOffset + 1 : 0;
   const pageTo = waitingForResults ? 0 : Math.min(recentTotal, recentOffset + recentRows.length);
   const showFirstReport = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED";
@@ -3751,6 +3766,9 @@ async function loadReporterOverdueSnapshot(): Promise<void> {
     userId !== (profile?.user_id || "") ||
     searchKey !== [activeSection, opsSkuSuffix, overdueSearchOffset].join("|")
   ) return;
+  if (suffix && overdue.items.some((row) => !String(row.sku).endsWith(suffix))) {
+    throw new Error("Kết quả tìm SKU không khớp bộ lọc.");
+  }
   overdueRows = overdue.items;
   if (suffix) overdueSearchTotal = Math.max(0, Number(overdue.total || 0));
   else {
@@ -3786,6 +3804,10 @@ async function loadReporterRecentSnapshot(includeTotals = false): Promise<void> 
     userId !== (profile?.user_id || "") ||
     viewKey !== recentPageKey()
   ) return;
+  // Never present an unfiltered server response as the result of this SKU query.
+  if (suffix && recent.items.some((row) => !String(row.sku).endsWith(suffix))) {
+    throw new Error("Kết quả tìm SKU không khớp bộ lọc.");
+  }
   if (recent.total > 0 && recentOffset >= recent.total) {
     recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
     return loadReporterRecentSnapshot(includeTotals);
@@ -5165,7 +5187,7 @@ function bindSection(): void {
     expandedRecentPickerBatches.clear();
     if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
     opsSkuInputTimer = null;
-    if (activeSection === "results" && (wasSearching || opsSkuSuffix.length >= 3)) patchActiveSection(true);
+    if (activeSection === "results" && (wasSearching || opsSkuSuffix.length >= 3)) showRecentSearchPending();
     if (!wasSearching && opsSkuSuffix.length < 3) return; // No call for 1–2 digits.
     if (activeSection === "operations") {
       patchActiveSection(true); // Client-side filter of the complete queue: zero API calls.
