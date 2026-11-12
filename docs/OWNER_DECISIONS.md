@@ -28,7 +28,10 @@ Owner phản hồi Web 3.3.7 **chưa đạt FIELD**: tìm SKU đúng hậu tố 
 
 ---
 
-## D173-E209 — Owner 12/11/2026: chốt logic thu hồi và triển khai Web 3.3.7 (Worker/Web only)
+### D173-E223 — 12/11/2026: Owner yêu cầu triển khai Web 3.3.11
+Owner yêu cầu xử lý dứt điểm bản Web 3.3.11 đang ở PR #952, duyệt code **và phát hành Production** đúng ứng viên E221 sau source-pin CI, D172 independent regression và protected merge. Chỉ Web và D173 Core parameter bridge trên Worker hiện hữu; không đổi D172, database, Agent, APK, Firebase, Gateway hoặc Stable. FIELD/OWNER PASS phải có kiểm tra riêng. Chi tiết `docs/D173_E223_WEB3311_PRODUCTION_RELEASE_2026-11-12.md`.
+
+# D173-E209 — Owner 12/11/2026: chốt logic thu hồi và triển khai Web 3.3.7 (Worker/Web only)
 
 Owner duyệt triển khai trọn các thay đổi đã phân tích Web vận hành Báo hàng: (1) tìm SKU chỉ bằng **chữ số cuối** trong **tab đang chọn**, tối thiểu 3 số; Đang xử lý/Quá hạn tra toàn bộ chưa hoàn tất, 3 tab kết quả tra theo `first_report_at` trong đúng khoảng ngày đã chọn; (2) ẩn nút mở báo cáo chi tiết tại workspace; (3) Picker đã thu hồi **mỗi picker một dòng** nhưng badge/KPI **vẫn đếm số batch** như hiện tại và phân trang theo **dòng picker**; (4) một picker báo/thu hồi nhiều lượt trong cùng batch chỉ hiện **một dòng, lần thu hồi mới nhất**; (5) double-click chi tiết picker theo batch trong Đã có hàng/Cho phép Skip; (6) auto ngày, thu gọn toolbar, thêm cột first report.
 
@@ -5349,3 +5352,6 @@ Owner duyệt đúng bản WinForms mockup: vùng Tổng quan phía trên từ 3
 
 ## D173-E217 — 12/11/2026: Owner duyệt phát hành Web sửa E216
 Owner yêu cầu **phát hành Web** sau PR #950 sửa ba lỗi tìm SKU, ngày và nền tab. Duyệt Web **3.3.10** đúng phạm vi D173, chỉ Web assets trên Worker hiện hữu, không sửa service nghiệp vụ, DO/SQLite, Agent, APK, Firebase, D172 hoặc Stable. Bắt buộc source/SQL/Web build, D172 và authority/state CI theo SHA, protected merge và xác minh Production; không suy diễn FIELD/OWNER PASS. Chi tiết `docs/D173_E217_WEB3310_RELEASE_2026-11-12.md`.
+
+## D173-E221 — 12/11/2026: Owner duyệt bỏ phân trang, chấp nhận rủi ro usage
+Sau khi Web 3.3.10 tìm SKU FIELD FAIL và đã có phân tích một ngày/chỉ lọc trên trình duyệt ở D173-E220, Owner chốt: **“Cứ bỏ phân trang đi, nếu usage tăng đột biến anh sẽ yêu cầu sửa sau.”** Cho phép code bỏ phân trang hiển thị toàn bộ danh sách của năm tab Xử lý báo hàng; Web vẫn tải nội bộ theo nhóm 200 dòng, không mở giới hạn truy vấn vượt cap. Một ô chọn ngày chỉ áp dụng ba tab kết quả, mặc định hôm nay sau F5/đăng nhập; Đang xử lý và Quá hạn tiếp tục nhìn đủ tồn đọng từ các ngày trước. Tìm SKU trên dữ liệu đã tải, không request theo phím. Owner chấp nhận usage có thể tăng nhưng chưa duyệt chi phí phát sinh hay bỏ guard bảo mật; đo sau FIELD, chỉ sửa lại theo lệnh tiếp theo. **Code-only** cho E221, không tự suy diễn quyền merge/Production/Stable. Sửa tối thiểu whitelist các tham số Core D173 để giữ đúng Picker thu hồi, bắt buộc kiểm thử hồi quy D172 vì cùng Worker. Chi tiết `docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md`.

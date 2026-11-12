@@ -300,6 +300,9 @@ function clearRoleScopedViewState(): void {
   recentLoadedViewKey = "";
   recentOffset = 0;
   recentTotal = 0;
+  recentLoadError = "";
+  recentFrom = dateDaysAgo(0);
+  recentTo = recentFrom;
   recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
   batchDetails.clear();
   expandedRecentPickerBatches.clear();
@@ -423,7 +426,8 @@ let recentRows: ReporterRecentBatch[] = [];
 let recentLoadedViewKey = "";
 let recentOffset = 0;
 let recentTotal = 0;
-const RECENT_PAGE_SIZE = 50;
+let recentLoadError = "";
+const RECENT_PAGE_SIZE = 200;
 let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
 let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
 let resultTabAutoSkipCount = 0;
@@ -1610,22 +1614,23 @@ function render(): void {
   }, performance.now() - started);
 }
 
-function showRecentSearchPending(): void {
-  const body = document.querySelector<HTMLTableSectionElement>(".result-audit-table tbody");
-  if (!body) return;
-  const row = document.createElement("tr");
-  const cell = document.createElement("td");
-  cell.colSpan = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED" ? 9 : 8;
-  cell.className = "empty";
-  cell.textContent = "Đang tìm dữ liệu theo bộ lọc…";
-  row.appendChild(cell);
-  body.replaceChildren(row);
-  const footer = document.querySelector<HTMLElement>(".ops-business-workspace .user-pagination > span");
-  if (footer) footer.textContent = "Đang tìm dữ liệu theo bộ lọc…";
+function recentPageKey(): string {
+  return [recentFilter, recentFrom, recentTo].join("|");
 }
 
-function recentPageKey(): string {
-  return [recentFilter, recentFrom, recentTo, opsSkuSuffix.length >= 3 ? opsSkuSuffix : "", recentOffset].join("|");
+function filterOperationalSkuRows(): void {
+  if (activeSection !== "results" && activeSection !== "overdue") return;
+  const suffix = opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
+  let shown = 0;
+  document.querySelectorAll<HTMLTableRowElement>("[data-ops-sku-row]").forEach((row) => {
+    const matches = !suffix || (row.dataset.opsSkuRow || "").endsWith(suffix);
+    row.style.display = matches ? "" : "none";
+    if (matches && row.hasAttribute("data-ops-sku-primary")) shown += 1;
+  });
+  const empty = document.querySelector<HTMLTableRowElement>("#ops-sku-no-match");
+  if (empty) empty.style.display = suffix && shown === 0 ? "" : "none";
+  const count = document.querySelector<HTMLElement>("[data-ops-visible-count]");
+  if (count) count.textContent = shown.toLocaleString("vi-VN");
 }
 
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
@@ -1633,23 +1638,9 @@ function renderOperationalTabs(current: "operations" | "overdue" | "results"): s
   const skipBreakdown = `Tổng ${resultTabBadgeCounts.SKIP_ALLOWED}: Tự động ${resultTabAutoSkipCount} - Nhân sự ${Math.max(0, resultTabBadgeCounts.SKIP_ALLOWED - resultTabAutoSkipCount)}`;
   const outcomeTab = (status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED", label: string) =>
     `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}" aria-selected="${current === "results" && recentFilter === status}"${status === "SKIP_ALLOWED" ? ` title="${esc(skipBreakdown)}"` : ""}>${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
-  const today = dateDaysAgo(0);
-  const preset = recentFrom === today && recentTo === today ? "TODAY"
-    : recentFrom === dateDaysAgo(1) && recentTo === dateDaysAgo(1) ? "YESTERDAY"
-    : recentFrom === dateDaysAgo(6) && recentTo === today ? "D7"
-    : recentFrom === dateDaysAgo(29) && recentTo === today ? "D30" : "CUSTOM";
-  const range = current !== "results" ? "" : `<div class="d173-result-range">
-    <div class="d173-range-presets">
-      <button type="button" class="filter ${preset === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
-      <button type="button" class="filter ${preset === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
-      <button type="button" class="filter ${preset === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
-      <button type="button" class="filter ${preset === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
-    </div>
-    <div id="recent-range-form" class="d173-range-dates">
-      <label>Từ<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" /></label>
-      <label>Đến<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" /></label>
-    </div>
-  </div>`;
+  const range = current === "results" ? `<div id="recent-range-form" class="d173-result-range">
+    <label>Ngày <input type="date" id="recent-day" aria-label="Chọn ngày kết quả báo hàng" value="${esc(recentFrom)}" max="${esc(dateDaysAgo(0))}" /></label>
+  </div>` : "";
   return `<div class="d173-ops-toolbar">
     <div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
       <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations" aria-selected="${current === "operations"}">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
@@ -1857,7 +1848,7 @@ function renderOverdue(): string {
       <div class="ops-panel-title"><div><h3>SKU quá hạn</h3></div></div>
       ${!perPickerOverdueEnabled ? `<p class="muted">Tự động cho phép Skip theo từng Picker chưa được bật. Chưa có SKU quá hạn cần xử lý.</p>` : ""}
       <div class="table-wrap"><table><thead><tr><th>SKU / Sản phẩm</th><th>Picker quá hạn</th><th>Picker còn chờ</th><th>Quá hạn đầu tiên</th><th>Thao tác</th></tr></thead><tbody>
-        ${overdueRows.map((row) => `<tr>
+        ${overdueRows.map((row) => `<tr data-ops-sku-row="${esc(row.sku)}" data-ops-sku-primary="1">
           <td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td>
           <td><span class="badge warning">${Number(row.overdue_picker_count || 0)} Picker</span></td>
           <td>${Number(row.waiting_picker_count || 0)} Picker</td>
@@ -1865,12 +1856,9 @@ function renderOverdue(): string {
             `<div class="badge danger" style="margin-top:6px">CẢNH BÁO ${Number(row.reminder_level || 0) >= 60 ? "LẦN 2 · 60 PHÚT" : "NGHIÊM TRỌNG · 30 PHÚT"}</div>` : ""}</td>
           <td>${roleCanResolve() ? `<div class="user-row-actions"><button class="btn success small" data-overdue-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">ĐÃ CÓ HÀNG</button><button class="btn danger small" data-overdue-resolve="SKIP_ALLOWED" data-batch="${esc(row.batch_id)}">CHO PHÉP SKIP</button></div>` : "Chỉ xem"}</td>
         </tr>`).join("") || `<tr><td colspan="5" class="empty">Hiện không có SKU quá hạn.</td></tr>`}
+        ${overdueRows.length ? `<tr id="ops-sku-no-match" style="display:none"><td colspan="5" class="empty">Không có SKU phù hợp.</td></tr>` : ""}
       </tbody></table></div>
-      ${opsSkuSuffix.length >= 3 && overdueSearchTotal > 200 ? `<div class="user-pagination">
-        <span>Hiển thị ${overdueSearchOffset + (overdueRows.length ? 1 : 0)}–${overdueSearchOffset + overdueRows.length} / ${overdueSearchTotal} SKU quá hạn</span>
-        <div><button class="secondary" id="overdue-prev" ${overdueSearchOffset === 0 ? "disabled" : ""}>Trang trước</button>
-        <button class="secondary" id="overdue-next" ${overdueSearchOffset + 200 >= overdueSearchTotal ? "disabled" : ""}>Trang sau</button></div>
-      </div>` : ""}
+      <div class="user-pagination"><span>Hiển thị <b data-ops-visible-count>${overdueRows.length.toLocaleString("vi-VN")}</b> SKU quá hạn</span></div>
     </article>
   </section>`;
 }
@@ -1888,11 +1876,9 @@ function resultPickerMarkup(batchId: string): string {
 }
 
 function renderResults(): string {
-  const waitingForResults = recentLoadedViewKey !== recentPageKey();
-  const visible = waitingForResults ? [] : opsSkuSuffix.length >= 3
-    ? recentRows.filter((row) => String(row.sku).endsWith(opsSkuSuffix)) : recentRows;
-  const pageFrom = !waitingForResults && recentTotal ? recentOffset + 1 : 0;
-  const pageTo = waitingForResults ? 0 : Math.min(recentTotal, recentOffset + recentRows.length);
+  const loaded = recentLoadedViewKey === recentPageKey();
+  const waitingForResults = !loaded && !recentLoadError;
+  const visible = loaded ? recentRows : [];
   const showFirstReport = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED";
   const columnCount = showFirstReport ? 9 : 8;
   return `<section class="ops-route ops-business-workspace">
@@ -1908,10 +1894,11 @@ function renderResults(): string {
             correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED"
             ? [row.withdrawn_picker_employee_code, row.withdrawn_picker_display_name].filter(Boolean).join(" - ") || "—"
             : resolutionActorLabel(row);
-          return `<tr ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
-          ${showFirstReport && expandedRecentPickerBatches.has(row.batch_id) ? `<tr class="d173-picker-detail-tr"><td colspan="${columnCount}">${resultPickerMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="${columnCount}" class="empty">${waitingForResults ? "Đang tìm dữ liệu theo bộ lọc…" : "Chưa có kết quả phù hợp trong khoảng ngày đã chọn."}</td></tr>`}
+          return `<tr data-ops-sku-row="${esc(row.sku)}" data-ops-sku-primary="1" ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
+          ${showFirstReport && expandedRecentPickerBatches.has(row.batch_id) ? `<tr class="d173-picker-detail-tr" data-ops-sku-row="${esc(row.sku)}"><td colspan="${columnCount}">${resultPickerMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="${columnCount}" class="empty">${waitingForResults ? "Đang tải toàn bộ dữ liệu trong ngày…" : recentLoadError || "Chưa có kết quả trong ngày đã chọn."}</td></tr>`}
+      ${!waitingForResults && recentRows.length ? `<tr id="ops-sku-no-match" style="display:none"><td colspan="${columnCount}" class="empty">Không có SKU phù hợp.</td></tr>` : ""}
       </tbody></table></div>
-      <div class="user-pagination"><span>${waitingForResults ? "Đang tìm dữ liệu theo bộ lọc…" : `Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} ${recentFilter === "CLOSED" ? "dòng Picker thu hồi" : "kết quả"}`}</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
+      <div class="user-pagination"><span>${waitingForResults ? "Đang tải toàn bộ dữ liệu trong ngày…" : `Hiển thị <b data-ops-visible-count>${visible.length.toLocaleString("vi-VN")}</b> / ${recentTotal.toLocaleString("vi-VN")} ${recentFilter === "CLOSED" ? "dòng Picker thu hồi" : "kết quả"}`}</span></div>
     </article>
   </section>`;
 }
@@ -3663,10 +3650,7 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
       }
     }
 
-    if (touchesOverdue && activeSection === "overdue" && opsSkuSuffix.length >= 3) {
-      // Filtered/server-paged overdue view cannot accept an unfiltered batch.
-      overdueExact = false;
-    } else if (touchesOverdue) {
+    if (touchesOverdue) {
       const row = overdueRowFromSnapshot(snapshot);
       overdueRows = row
         ? replaceByBatch(overdueRows, row).sort((a, b) => a.first_overdue_at.localeCompare(b.first_overdue_at) || a.batch_id.localeCompare(b.batch_id))
@@ -3674,18 +3658,11 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
     }
 
     if (touchesRecent) {
-      if (activeSection === "results" && (recentFilter === "CLOSED" || opsSkuSuffix.length >= 3)) {
+      if (activeSection === "results" && recentFilter === "CLOSED") {
         // One bounded reconciliation preserves exact filtered picker rows.
         recentExact = false;
         continue;
       }
-      // Non-first pages can shift when a new/removed result arrives. Snapshot data
-      // is exact for the batch but not enough to preserve an arbitrary page window.
-      if (recentOffset > 0) {
-        recentExact = false;
-        continue;
-      }
-
       const beforeRow = recentRows.find((item) => item.batch_id === batchId) || null;
       const transition = event.metadata?.recent_counter;
       if (transition && typeof transition === "object" && !Array.isArray(transition)) {
@@ -3731,8 +3708,7 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
             const aAt = Date.parse(a.resolved_at || a.first_report_at);
             const bAt = Date.parse(b.resolved_at || b.first_report_at);
             return bAt - aAt || b.batch_id.localeCompare(a.batch_id);
-          })
-          .slice(0, RECENT_PAGE_SIZE);
+          });
         if (!beforeRow) {
           recentTotals.ack_target_count += Number(row.ack_target_count || 0);
           recentTotals.acknowledged_count += Number(row.acknowledged_count || 0);
@@ -3756,74 +3732,101 @@ async function loadReporterOverdueSnapshot(): Promise<void> {
   const requestGeneration = ++reporterOverdueLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const searchKey = [activeSection, opsSkuSuffix, overdueSearchOffset].join("|");
-  const suffix = activeSection === "overdue" && opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
-  const offset = suffix ? overdueSearchOffset : 0;
-  const overdue = await getReporterOverdue(200, offset, suffix);
-  if (
-    requestGeneration !== reporterOverdueLoadGeneration ||
-    generation !== sessionViewGeneration ||
-    userId !== (profile?.user_id || "") ||
-    searchKey !== [activeSection, opsSkuSuffix, overdueSearchOffset].join("|")
-  ) return;
-  if (suffix && overdue.items.some((row) => !String(row.sku).endsWith(suffix))) {
-    throw new Error("Kết quả tìm SKU không khớp bộ lọc.");
-  }
-  overdueRows = overdue.items;
-  if (suffix) overdueSearchTotal = Math.max(0, Number(overdue.total || 0));
-  else {
-    overdueSearchTotal = 0;
-    overdueBadgeCount = Math.max(0, Number(overdue.total || overdue.items.length));
+  const valid = () => requestGeneration === reporterOverdueLoadGeneration &&
+    generation === sessionViewGeneration && userId === (profile?.user_id || "");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const all: ReporterOverdueBatch[] = [];
+    const seen = new Set<string>();
+    let total = -1;
+    let offset = 0;
+    let enabled = false;
+    let mode: string | null = null;
+    while (true) {
+      const page = await getReporterOverdue(200, offset);
+      if (!valid()) return;
+      if (!Array.isArray(page.items) || !Number.isSafeInteger(page.total) || page.total < 0)
+        throw new Error("Dữ liệu quá hạn không hợp lệ.");
+      if (total < 0) { total = page.total; enabled = Boolean(page.enabled); mode = page.auto_skip_mode || null; }
+      if (page.total !== total) break;
+      for (const row of page.items) {
+        if (seen.has(row.batch_id)) continue;
+        seen.add(row.batch_id);
+        all.push(row);
+      }
+      offset += page.items.length;
+      if (!page.items.length || offset >= total) break;
+    }
+    if (all.length !== total) continue;
+    overdueRows = all;
+    overdueBadgeCount = total;
     overdueBadgeInitialized = true;
+    perPickerOverdueEnabled = enabled && mode === "PER_PICKER";
+    syncOperationalTabBadges();
+    markWebUpdateReceived();
+    return;
   }
-  perPickerOverdueEnabled = Boolean(overdue.enabled && overdue.auto_skip_mode === "PER_PICKER");
-  syncOperationalTabBadges();
-  markWebUpdateReceived();
+  if (valid()) throw new Error("Dữ liệu quá hạn thay đổi trong lúc tải. Vui lòng thử lại.");
 }
 
-async function loadReporterRecentSnapshot(includeTotals = false): Promise<void> {
+async function loadReporterRecentSnapshot(): Promise<void> {
   const requestGeneration = ++reporterRecentLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const viewKey = recentPageKey();
-  const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
-  const suffix = opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
-  const recent = await getReporterRecent(
-    RECENT_PAGE_SIZE,
-    recentOffset,
-    recentStatus,
-    apiRange(recentFrom, recentTo).from,
-    apiRange(recentFrom, recentTo).to,
-    suffix,
-    recentFilter === "CLOSED",
-    includeTotals,
-  );
-  if (
-    requestGeneration !== reporterRecentLoadGeneration ||
-    generation !== sessionViewGeneration ||
-    userId !== (profile?.user_id || "") ||
-    viewKey !== recentPageKey()
-  ) return;
-  // Never present an unfiltered server response as the result of this SKU query.
-  if (suffix && recent.items.some((row) => !String(row.sku).endsWith(suffix))) {
-    throw new Error("Kết quả tìm SKU không khớp bộ lọc.");
+  const status = recentFilter === "ALL" ? "" : recentFilter;
+  const pickerRows = recentFilter === "CLOSED";
+  const range = apiRange(recentFrom, recentTo);
+  const valid = () => requestGeneration === reporterRecentLoadGeneration &&
+    generation === sessionViewGeneration && userId === (profile?.user_id || "") &&
+    viewKey === recentPageKey();
+  recentLoadError = "";
+  try {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const all: ReporterRecentBatch[] = [];
+      const seen = new Set<string>();
+      let total = -1;
+      let offset = 0;
+      let totals: typeof recentTotals | null = null;
+      while (true) {
+        const page = await getReporterRecent(RECENT_PAGE_SIZE, offset, status, range.from, range.to, "", pickerRows, offset === 0);
+        if (!valid()) return;
+        if (!Array.isArray(page.items) || !Number.isSafeInteger(page.total) || page.total < 0)
+          throw new Error("Dữ liệu kết quả không hợp lệ.");
+        if (total < 0) { total = page.total; totals = page.totals; }
+        if (page.total !== total) break;
+        for (const row of page.items) {
+          const id = pickerRows ? row.batch_id + "|" + (row.withdrawn_picker_employee_code || "") : row.batch_id;
+          if (seen.has(id)) continue;
+          seen.add(id);
+          all.push(row);
+        }
+        offset += page.items.length;
+        if (!page.items.length || offset >= total) break;
+      }
+      if (all.length !== total) continue;
+      recentRows = all;
+      recentTotal = total;
+      recentLoadedViewKey = viewKey;
+      if (totals) {
+        recentTotals = totals;
+        resultTabAutoSkipCount = Math.min(Math.max(0, Number(totals.skip_allowed || 0)),
+          Math.max(0, Number(totals.automatic_skipped || 0)));
+        recentBadgeCount = Math.max(0, Number(totals.has_stock || 0) +
+          Number(totals.skip_allowed || 0) + Number(totals.withdrawn || 0));
+        recentBadgeInitialized = true;
+      }
+      syncOperationalTabBadges();
+      markWebUpdateReceived();
+      return;
+    }
+    throw new Error("Dữ liệu trong ngày thay đổi trong lúc tải. Vui lòng thử lại.");
+  } catch (error) {
+    if (valid()) {
+      recentLoadError = error instanceof Error ? error.message : "Không tải được toàn bộ dữ liệu.";
+      recentLoadedViewKey = "";
+    }
+    throw error;
   }
-  if (recent.total > 0 && recentOffset >= recent.total) {
-    recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
-    return loadReporterRecentSnapshot(includeTotals);
-  }
-  recentRows = recent.items;
-  recentTotal = recent.total;
-  recentLoadedViewKey = viewKey;
-  if (recent.totals_included !== false) {
-    recentTotals = recent.totals;
-    resultTabAutoSkipCount = Math.min(Math.max(0, Number(recentTotals.skip_allowed || 0)), Math.max(0, Number(recentTotals.automatic_skipped || 0)));
-    recentBadgeCount = Math.max(0, Number(recentTotals.has_stock || 0) +
-      Number(recentTotals.skip_allowed || 0) + Number(recentTotals.withdrawn || 0));
-    recentBadgeInitialized = true;
-  }
-  syncOperationalTabBadges();
-  markWebUpdateReceived();
 }
 
 async function loadOperationsSnapshot(): Promise<void> {
@@ -3913,10 +3916,8 @@ function applyPickerReadModel(value: unknown): boolean {
 function applyReporterReadModel(value: unknown): boolean {
   const snapshot = readModelSnapshot(value);
   if (!currentReadModel(value) || !snapshot) return false;
-  // The legacy mutation read model contains no suffix/picker-row predicate.
-  // Never overwrite the active filtered or withdrawn-picker page with it.
-  if ((activeSection === "results" && (recentFilter === "CLOSED" || opsSkuSuffix.length >= 3)) ||
-      (activeSection === "overdue" && opsSkuSuffix.length >= 3)) return false;
+  // A bounded mutation snapshot must not overwrite an unpaginated result/overdue list.
+  if (activeSection === "results" || activeSection === "overdue") return false;
   const queue = snapshot.queue as Awaited<ReturnType<typeof getReporterQueue>> | undefined;
   const recent = snapshot.recent as Awaited<ReturnType<typeof getReporterRecent>> | undefined;
   const counters = snapshot.counters as Awaited<ReturnType<typeof getReporterCounters>> | undefined;
@@ -3924,11 +3925,11 @@ function applyReporterReadModel(value: unknown): boolean {
   if (!Array.isArray(queue?.items) || !Array.isArray(recent?.items) || !counters ||
       !Number.isFinite(queue.total) || !Number.isFinite(recent.total) || !Number.isFinite(counters.recent_total) ||
       !Number.isFinite(counters.overdue_total) || !Number.isFinite(counters.queue_total) || (activeSection === "operations" && queue.total > queue.items.length) ||
-      (activeSection === "overdue" && !Array.isArray(overdue?.items)) ||
       (recent.total > 0 && recentOffset >= recent.total)) return false;
   queueRows = queue.items;
   queueBadgeCount = counters.queue_total;
   recentRows = recent.items;
+  recentLoadedViewKey = "";
   recentTotal = recent.total;
   recentTotals = recent.totals;
   resultTabAutoSkipCount = Math.min(Math.max(0, Number(counters.skip_allowed_total || 0)), Math.max(0, Number(counters.automatic_skipped_total || 0)));
@@ -4621,6 +4622,8 @@ function bindShell(): void {
       reporterBadgeLoadGeneration += 1;
       recentRows = [];
       recentLoadedViewKey = "";
+      recentFrom = dateDaysAgo(0);
+      recentTo = recentFrom;
       batchDetails.clear();
       pickerReports = [];
       pickerResults = [];
@@ -4871,6 +4874,7 @@ function bindSection(): void {
     opsSkuInputTimer = null;
     opsSkuSuffix = "";
     expandedRecentPickerBatches.clear();
+    recentLoadError = "";
     recentFilter = target as typeof recentFilter;
     recentOffset = 0;
     if (activeSection !== "results") navigateToSection("results", "push");
@@ -5129,85 +5133,38 @@ function bindSection(): void {
     patchActiveSection(true);
     setNotice("success", `${row.sku} đã xử lý: ${label}.`);
   })));
-  document.querySelectorAll<HTMLButtonElement>("[data-recent-range]").forEach((button) => button.addEventListener("click", () => {
-    const preset = button.dataset.recentRange || "";
-    const previousFrom = recentFrom, previousTo = recentTo;
-    const today = dateDaysAgo(0);
-    if (preset === "TODAY") { recentFrom = today; recentTo = today; }
-    else if (preset === "YESTERDAY") { recentFrom = dateDaysAgo(1); recentTo = dateDaysAgo(1); }
-    else if (preset === "D7") { recentFrom = dateDaysAgo(6); recentTo = today; }
-    else if (preset === "D30") { recentFrom = dateDaysAgo(29); recentTo = today; }
-    else return;
-    if (recentFrom === previousFrom && recentTo === previousTo) return;
-    syncVisibleDateRange("recent", recentFrom, recentTo);
-    recentOffset = 0;
+  document.querySelector<HTMLInputElement>("#recent-day")?.addEventListener("change", (event) => {
+    const day = (event.currentTarget as HTMLInputElement).value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day > dateDaysAgo(0)) {
+      setNotice("warning", "Ngày được chọn không hợp lệ.");
+      return;
+    }
+    if (recentFrom === day) return;
+    recentFrom = day;
+    recentTo = day;
+    recentLoadedViewKey = "";
+    recentLoadError = "";
     expandedRecentPickerBatches.clear();
-    // One counter reconcile for the new date scope, not one per tab.
-    void run(async () => { await Promise.all([
-      activeSection === "results" && opsSkuSuffix.length >= 3
-        ? loadReporterRecentSnapshot(true) : loadOperations(),
-      loadReporterTabCounters(true),
-    ]); });
-  }));
-  document.querySelectorAll<HTMLInputElement>("#recent-range-form input[type=date]").forEach((input) =>
-    input.addEventListener("change", () => {
-      const from = document.querySelector<HTMLInputElement>('#recent-range-form input[name="from"]')?.value || "";
-      const to = document.querySelector<HTMLInputElement>('#recent-range-form input[name="to"]')?.value || "";
-      if (!from || !to || from > to || to > dateDaysAgo(0)) {
-        setNotice("warning", "Khoảng ngày không hợp lệ hoặc vượt quá hôm nay.");
-        return;
-      }
-      const range = apiRange(from, to);
-      if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) {
-        setNotice("warning", "Kết quả gần đây chỉ cho phép tối đa 60 ngày.");
-        return;
-      }
-      if (from === recentFrom && to === recentTo) return;
-      recentFrom = from;
-      recentTo = to;
-      recentOffset = 0;
-      expandedRecentPickerBatches.clear();
-      void run(async () => { await Promise.all([
-        activeSection === "results" && opsSkuSuffix.length >= 3
-          ? loadReporterRecentSnapshot(true) : loadOperations(),
-        loadReporterTabCounters(true),
-      ]); });
-    })
-  );
-  // One input for the active tab, never search other tabs or extend its date range.
+    patchActiveSection(true);
+    void Promise.all([loadOperations(), loadReporterTabCounters(true)])
+      .then(() => { if (activeSection === "results" && recentFrom === day) patchActiveSection(true); })
+      .catch((error) => {
+        if (activeSection === "results" && recentFrom === day) {
+          setNotice("warning", error instanceof Error ? error.message : "Không tải được dữ liệu ngày đã chọn.");
+          patchActiveSection(true);
+        }
+      });
+  });
   const opsInput = document.querySelector<HTMLInputElement>("#ops-sku-suffix");
   opsInput?.addEventListener("input", () => {
     const next = opsInput.value.replace(/\D/g, "").slice(0, 32);
     if (opsInput.value !== next) opsInput.value = next;
     if (next === opsSkuSuffix) return;
-    const wasSearching = opsSkuSuffix.length >= 3;
     opsSkuSuffix = next;
-    recentOffset = 0;
-    overdueSearchOffset = 0;
-    expandedRecentPickerBatches.clear();
-    if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
-    opsSkuInputTimer = null;
-    if (activeSection === "results" && (wasSearching || opsSkuSuffix.length >= 3)) showRecentSearchPending();
-    if (!wasSearching && opsSkuSuffix.length < 3) return; // No call for 1–2 digits.
-    if (activeSection === "operations") {
-      patchActiveSection(true); // Client-side filter of the complete queue: zero API calls.
-      return;
-    }
-    opsSkuInputTimer = window.setTimeout(() => {
-      opsSkuInputTimer = null;
-      const expectedSuffix = opsSkuSuffix;
-      const section = activeSection;
-      // Bypass run(): an unrelated busy action must never silently drop SKU search.
-      const load = section === "results" ? loadReporterRecentSnapshot()
-        : section === "overdue" ? loadReporterOverdueSnapshot() : Promise.resolve();
-      void load.then(() => {
-        if (activeSection === section && opsSkuSuffix === expectedSuffix) patchActiveSection(true);
-      }).catch((error) => {
-        if (activeSection === section && opsSkuSuffix === expectedSuffix)
-          setNotice("warning", error instanceof Error ? error.message : "Không tìm được SKU. Vui lòng thử lại.");
-      });
-    }, 500);
+    if (activeSection === "operations") patchActiveSection(true);
+    else filterOperationalSkuRows();
   });
+  filterOperationalSkuRows();
   const toggleRecentDetails = (batchId: string) => {
     if (!batchId || recentFilter === "CLOSED") return;
     if (expandedRecentPickerBatches.has(batchId)) expandedRecentPickerBatches.delete(batchId);
@@ -5226,22 +5183,6 @@ function bindSection(): void {
       if (event.key === "Enter" && !(event.target as HTMLElement)?.closest("button")) toggleRecentDetails(tr.dataset.recentPickerBatch || "");
     });
   });
-  for (const [id, amount] of [["overdue-prev", -200], ["overdue-next", 200]] as const) {
-    document.querySelector<HTMLButtonElement>(`#${id}`)?.addEventListener("click", () => {
-      overdueSearchOffset = Math.max(0, overdueSearchOffset + amount);
-      void run(async () => { await loadReporterOverdueSnapshot(); patchActiveSection(true); });
-    });
-  }
-  document.querySelector<HTMLButtonElement>("#recent-prev")?.addEventListener("click", () => {
-    recentOffset = Math.max(0, recentOffset - RECENT_PAGE_SIZE);
-    void run(loadOperations);
-  });
-  document.querySelector<HTMLButtonElement>("#recent-next")?.addEventListener("click", () => {
-    if (recentOffset + RECENT_PAGE_SIZE >= recentTotal) return;
-    recentOffset += RECENT_PAGE_SIZE;
-    void run(loadOperations);
-  });
-
   const pickerInput = document.querySelector<HTMLInputElement>("#picker-sku-input");
   let searchTimer = 0;
   pickerInput?.addEventListener("input", () => {
@@ -5932,7 +5873,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
       const recentBadgeExact = !reporterRecentChanged || applyReporterRecentBadgeEvents(events);
       const patched = applyReporterSnapshotEvents(events);
 
-      if (recentBadgeExact && recentFilter !== "CLOSED" && opsSkuSuffix.length < 3) recentTotal = recentBadgeCount;
+      if (recentBadgeExact && recentFilter !== "CLOSED" && recentLoadedViewKey === recentPageKey()) recentTotal = recentRows.length;
       syncOperationsNavBadge();
       syncOperationalTabBadges();
 
@@ -5944,7 +5885,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
         tasks.push(loadReporterOverdueSnapshot());
       }
       if (reporterRecentChanged && activeSection === "results" && !patched.recentExact) {
-        tasks.push(loadReporterRecentSnapshot(opsSkuSuffix.length >= 3));
+        tasks.push(loadReporterRecentSnapshot());
       }
 
       const needsCounterReconcile =

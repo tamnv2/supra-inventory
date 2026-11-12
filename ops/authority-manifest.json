@@ -139,7 +139,11 @@
     "current_d173_web339_release_receipt": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
     "current_d173_e217_web3310_release": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
     "current_d173_e217_web3310_release_authorization": "ops/d173-e217-web-release-authorization.json",
-    "current_d173_web3310_release_receipt": "docs/D173_E219_WEB3310_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
+    "current_d173_web3310_release_receipt": "docs/D173_E219_WEB3310_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "current_d173_e223_web3311_release": "docs/D173_E223_WEB3311_PRODUCTION_RELEASE_2026-11-12.md",
+    "current_d173_e223_web3311_authorization": "ops/d173-e223-web3311-release-authorization.json",
+    "current_d173_e220_web_daily_local_search_review": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md",
+    "current_d173_e221_web_daily_unpaginated": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -226,9 +230,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 951,
-    "ref_rule": "D173_E219_WEB3310_PRODUCTION_TECH_PASS_PR951_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_11_12_E219_WEB3310_WORKER_WEB_RELEASE_PASS_RUN43183196333",
+    "active_working_pr": 952,
+    "ref_rule": "D173_E223_WEB3311_RELEASE_OWNER_APPROVED__PR952_SOURCE_CI_5_PASS__D172_HOLD",
+    "freshness": "2026_11_12_E222_WEB3311_SOURCE_CI_PIN_1CB83F32",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -358,7 +362,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "docs/d173-e219-web3310-release-receipt-20261112",
+    "active_working_branch": "docs/d173-e220-web-daily-client-search-review-20261112",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,

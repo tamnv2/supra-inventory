@@ -1,0 +1,51 @@
+name: D173 E221 Web Daily Unpaginated Local SKU Source CI
+on:
+  pull_request:
+    paths:
+      - 'web/src/operational-app.ts'
+      - 'web/src/d173-tabler.css'
+      - 'web/src/web-version.ts'
+      - 'web/package.json'
+      - 'service/src/core.ts'
+      - 'tests/d173-e221-web-daily-local-search.test.mjs'
+      - '.github/workflows/d173-e221-web-daily-local-search.yml'
+      - '.github/workflows/deploy-beta.yml'
+      - 'tools/d173_e223_web3311_release_gate.py'
+      - 'ops/d173-e223-web3311-release-authorization.json'
+permissions:
+  contents: read
+jobs:
+  web-daily-local:
+    if: contains(github.head_ref, 'd173-e220-web-daily-client-search')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce dropped Core parameters and local search requirements
+        run: node --test tests/d173-e221-web-daily-local-search.test.mjs
+      - name: Compile Web without provider changes
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Compile shared Worker/InventoryCore without deployment
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: D172 separate protected business regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: E223 Owner exact-source preflight without Provider mutation
+        run: python3 tools/d173_e223_web3311_release_gate.py --component worker --preflight
+      - name: E223 code preflight complete; protected merge separately gated
+        run: echo "D173_E223_CODE_AND_PREFLIGHT_PASS__PRODUCTION_REQUIRES_MAIN_MERGE"

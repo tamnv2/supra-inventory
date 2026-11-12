@@ -67,3 +67,8 @@ body[data-theme="dark"] .d173-ops-toolbar .workspace-tab[aria-selected="true"] {
   #ops-sku-suffix { margin-left:0; }
   .d173-result-picker { grid-template-columns:minmax(75px,100px) minmax(110px,1fr) minmax(155px,180px); }
 }
+
+/* D173-E220: one day picker beside local SKU filter, without preset/range controls. */
+.d173-result-range { flex:0 0 auto; justify-content:flex-end; }
+.d173-result-range > label { display:flex; align-items:center; gap:5px; white-space:nowrap; font-size:12px; }
+#recent-day { box-sizing:border-box; height:35px; min-height:35px; width:135px; padding:4px 5px; font-size:12px; }
