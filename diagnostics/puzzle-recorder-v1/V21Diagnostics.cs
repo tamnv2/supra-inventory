@@ -50,6 +50,7 @@ namespace SupraPuzzleRecorder
             bar.Controls.Add(_v22Export);
             bar.Controls.Add(_v23Sim);
             bar.Controls.Add(_v21Bundle);
+            _v21Bundle.Visible = false; // V2.3 has no live Test; retain V2.1 evidence code but hide its inactive action.
             var label = new Label
             {
                 Text = "Ảnh chỉ lưu khi duyệt vùng đã cắt; không ghi URL, tài khoản hoặc token.",
