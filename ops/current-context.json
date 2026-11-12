@@ -10,21 +10,27 @@
     "checkpoint_id": "D173-E231",
     "pr": 957,
     "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
-    "status": "OWNER_APPROVED_WEB3313_PRODUCTION__EXACT_SOURCE_CI_AND_GATED_MERGE_PENDING",
+    "status": "WEB3313_OWNER_RELEASE_APPROVED__SCOPED_SOURCE_CI_PASS__PROTECTED_MERGE_PRODUCTION_PENDING",
     "owner_merge_approved": true,
     "owner_release_approved": true,
     "source_doc": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
     "production_web_version": "3.3.12",
     "source_main_sha": "b995b1f7ac6f822cd609cd499892f7dbd4fdaaed",
     "target_web_version": "3.3.13",
-    "source_ci_sha": "a4ec0e052418608850a19c9217541e69afb0e6c2",
+    "source_ci_sha": "b287887e6613ab60b750947a7b7133a201700288",
     "ci_run_ids": {
       "e230": 43224546702,
       "d172": 43224547266,
       "authority": 43224547001,
       "continuity": 43224546938
     },
-    "owner_command": "2026-11-12_TRIEN_KHAI_3.3.13"
+    "owner_command": "2026-11-12_TRIEN_KHAI_3.3.13",
+    "required_ci_run_ids": [
+      43227189692,
+      43227189986,
+      43227189717,
+      43227189801
+    ]
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
