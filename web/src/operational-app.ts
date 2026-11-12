@@ -3644,6 +3644,11 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
     }
 
     if (touchesRecent) {
+      if (activeSection === "results" && (recentFilter === "CLOSED" || opsSkuSuffix.length >= 3)) {
+        // One bounded reconciliation preserves exact filtered picker rows.
+        recentExact = false;
+        continue;
+      }
       // Non-first pages can shift when a new/removed result arrives. Snapshot data
       // is exact for the batch but not enough to preserve an arbitrary page window.
       if (recentOffset > 0) {
@@ -3716,13 +3721,15 @@ async function loadReporterOverdueSnapshot(): Promise<void> {
   const requestGeneration = ++reporterOverdueLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
+  const searchKey = [activeSection, opsSkuSuffix, overdueSearchOffset].join("|");
   const suffix = activeSection === "overdue" && opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
   const offset = suffix ? overdueSearchOffset : 0;
   const overdue = await getReporterOverdue(200, offset, suffix);
   if (
     requestGeneration !== reporterOverdueLoadGeneration ||
     generation !== sessionViewGeneration ||
-    userId !== (profile?.user_id || "")
+    userId !== (profile?.user_id || "") ||
+    searchKey !== [activeSection, opsSkuSuffix, overdueSearchOffset].join("|")
   ) return;
   overdueRows = overdue.items;
   if (suffix) overdueSearchTotal = Math.max(0, Number(overdue.total || 0));
@@ -3740,6 +3747,7 @@ async function loadReporterRecentSnapshot(): Promise<void> {
   const requestGeneration = ++reporterRecentLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
+  const viewKey = [recentFilter, recentFrom, recentTo, opsSkuSuffix, recentOffset].join("|");
   const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
   const suffix = opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
   const recent = await getReporterRecent(
@@ -3754,7 +3762,8 @@ async function loadReporterRecentSnapshot(): Promise<void> {
   if (
     requestGeneration !== reporterRecentLoadGeneration ||
     generation !== sessionViewGeneration ||
-    userId !== (profile?.user_id || "")
+    userId !== (profile?.user_id || "") ||
+    viewKey !== [recentFilter, recentFrom, recentTo, opsSkuSuffix, recentOffset].join("|")
   ) return;
   if (recent.total > 0 && recentOffset >= recent.total) {
     recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
@@ -3859,6 +3868,10 @@ function applyPickerReadModel(value: unknown): boolean {
 function applyReporterReadModel(value: unknown): boolean {
   const snapshot = readModelSnapshot(value);
   if (!currentReadModel(value) || !snapshot) return false;
+  // The legacy mutation read model contains no suffix/picker-row predicate.
+  // Never overwrite the active filtered or withdrawn-picker page with it.
+  if ((activeSection === "results" && (recentFilter === "CLOSED" || opsSkuSuffix.length >= 3)) ||
+      (activeSection === "overdue" && opsSkuSuffix.length >= 3)) return false;
   const queue = snapshot.queue as Awaited<ReturnType<typeof getReporterQueue>> | undefined;
   const recent = snapshot.recent as Awaited<ReturnType<typeof getReporterRecent>> | undefined;
   const counters = snapshot.counters as Awaited<ReturnType<typeof getReporterCounters>> | undefined;
@@ -4807,6 +4820,10 @@ function bindSection(): void {
     const target = button.dataset.workspaceResultFilter;
     if (!profile || !roleOperate() || !["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(target || "")) return;
     if (activeSection === "results" && recentFilter === target) return;
+    if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
+    opsSkuInputTimer = null;
+    opsSkuSuffix = "";
+    expandedRecentPickerBatches.clear();
     recentFilter = target as typeof recentFilter;
     recentOffset = 0;
     if (activeSection !== "results") navigateToSection("results", "push");
@@ -4815,6 +4832,11 @@ function bindSection(): void {
   document.querySelectorAll<HTMLButtonElement>("[data-workspace-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.workspaceSection as Section;
     if (!profile || !next || next === activeSection || !canAccessSection(next, profile)) return;
+    if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
+    opsSkuInputTimer = null;
+    opsSkuSuffix = "";
+    overdueSearchOffset = 0;
+    expandedRecentPickerBatches.clear();
     navigateToSection(next, "push");
   }));
 
@@ -5070,36 +5092,84 @@ function bindSection(): void {
     else return;
     syncVisibleDateRange("recent", recentFrom, recentTo);
     recentOffset = 0;
+    expandedRecentPickerBatches.clear();
     // One counter reconcile for the new date scope, not one per tab.
     void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
   }));
-  document.querySelector<HTMLFormElement>("#recent-range-form")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget as HTMLFormElement);
-    const from = String(data.get("from") || "");
-    const to = String(data.get("to") || "");
-    const range = apiRange(from, to);
-    if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) {
-      setNotice("warning", "Kết quả gần đây chỉ cho phép tối đa 60 ngày.");
-      return;
-    }
-    if (to > dateDaysAgo(0)) {
-      setNotice("warning", "Không thể chọn ngày tương lai.");
-      return;
-    }
-    recentFrom = from;
-    recentTo = to;
+  document.querySelectorAll<HTMLInputElement>("#recent-range-form input[type=date]").forEach((input) =>
+    input.addEventListener("change", () => {
+      const from = document.querySelector<HTMLInputElement>('#recent-range-form input[name="from"]')?.value || "";
+      const to = document.querySelector<HTMLInputElement>('#recent-range-form input[name="to"]')?.value || "";
+      if (!from || !to || from > to || to > dateDaysAgo(0)) {
+        setNotice("warning", "Khoảng ngày không hợp lệ hoặc vượt quá hôm nay.");
+        return;
+      }
+      const range = apiRange(from, to);
+      if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) {
+        setNotice("warning", "Kết quả gần đây chỉ cho phép tối đa 60 ngày.");
+        return;
+      }
+      if (from === recentFrom && to === recentTo) return;
+      recentFrom = from;
+      recentTo = to;
+      recentOffset = 0;
+      expandedRecentPickerBatches.clear();
+      void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
+    })
+  );
+  // One input for the active tab, never search other tabs or extend its date range.
+  const opsInput = document.querySelector<HTMLInputElement>("#ops-sku-suffix");
+  opsInput?.addEventListener("input", () => {
+    const next = opsInput.value.replace(/\D/g, "").slice(0, 32);
+    if (opsInput.value !== next) opsInput.value = next;
+    if (next === opsSkuSuffix) return;
+    opsSkuSuffix = next;
     recentOffset = 0;
-    // Match all five badge counts to the selected reporting range.
-    void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
+    overdueSearchOffset = 0;
+    expandedRecentPickerBatches.clear();
+    if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
+    opsSkuInputTimer = window.setTimeout(() => {
+      opsSkuInputTimer = null;
+      if (activeSection === "operations") {
+        patchActiveSection(true); // Already holds the complete pending queue: zero API calls.
+      } else {
+        void run(async () => { await loadOperations(); patchActiveSection(true); });
+      }
+    }, 500);
   });
-  document.querySelector<HTMLButtonElement>("#recent-open-report")?.addEventListener("click", () => {
-    reportFrom = recentFrom;
-    reportTo = recentTo;
-    reportStatus = recentFilter === "ALL" || recentFilter === "CLOSED" ? "" : recentFilter;
-    reportOffset = 0;
-    navigateToSection("reports");
+  const toggleRecentDetails = (batchId: string) => {
+    if (!batchId || recentFilter === "CLOSED") return;
+    if (expandedRecentPickerBatches.has(batchId)) expandedRecentPickerBatches.delete(batchId);
+    else expandedRecentPickerBatches.add(batchId);
+    patchActiveSection(true);
+    if (expandedRecentPickerBatches.has(batchId)) {
+      prefetchBatchDetails(batchId);
+      // Existing queue-only refresh must not be used for result rows.
+      if (!batchDetails.has(batchId)) {
+        void getReporterBatchTickets(batchId).then((result) => {
+          batchDetails.set(batchId, result.items);
+          if (activeSection === "results" && expandedRecentPickerBatches.has(batchId)) patchActiveSection(true);
+        }).catch(() => {
+          if (activeSection === "results") setNotice("warning", "Không tải được thông tin Picker của đợt SKU.");
+        });
+      }
+    }
+  };
+  document.querySelectorAll<HTMLElement>("[data-recent-picker-batch]").forEach((tr) => {
+    tr.addEventListener("dblclick", (event) => {
+      if ((event.target as HTMLElement)?.closest("button")) return;
+      toggleRecentDetails(tr.dataset.recentPickerBatch || "");
+    });
+    tr.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !(event.target as HTMLElement)?.closest("button")) toggleRecentDetails(tr.dataset.recentPickerBatch || "");
+    });
   });
+  for (const [id, amount] of [["overdue-prev", -200], ["overdue-next", 200]] as const) {
+    document.querySelector<HTMLButtonElement>(`#${id}`)?.addEventListener("click", () => {
+      overdueSearchOffset = Math.max(0, overdueSearchOffset + amount);
+      void run(async () => { await loadReporterOverdueSnapshot(); patchActiveSection(true); });
+    });
+  }
   document.querySelector<HTMLButtonElement>("#recent-prev")?.addEventListener("click", () => {
     recentOffset = Math.max(0, recentOffset - RECENT_PAGE_SIZE);
     void run(loadOperations);
@@ -5800,7 +5870,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
       const recentBadgeExact = !reporterRecentChanged || applyReporterRecentBadgeEvents(events);
       const patched = applyReporterSnapshotEvents(events);
 
-      if (recentBadgeExact) recentTotal = recentBadgeCount;
+      if (recentBadgeExact && recentFilter !== "CLOSED" && opsSkuSuffix.length < 3) recentTotal = recentBadgeCount;
       syncOperationsNavBadge();
       syncOperationalTabBadges();
 
