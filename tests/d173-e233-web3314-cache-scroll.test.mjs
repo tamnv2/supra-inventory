@@ -68,6 +68,7 @@ import { runInNewContext } from "node:vm";
 const loaderBody = part("async function loadReporterRecentSnapshot()", "async function loadOperationsSnapshot()")
   .replace("async function loadReporterRecentSnapshot(): Promise<void>", "async function loadReporterRecentSnapshot()")
   .replace("const all: ReporterRecentBatch[] = []", "const all = []")
+  .replace("new Set<string>()", "new Set()")
   .replace("let totals: typeof recentTotals | null = null", "let totals = null");
 
 function loaderFixture(count) {
