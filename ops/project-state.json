@@ -13574,5 +13574,62 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E208_AGENT192_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+  },
+  "d173_e209_web_results": {
+    "change_id": "D173",
+    "subchange": "E209",
+    "date_vn": "2026-11-12",
+    "project": "SUPRA_Inventory_Bao_Hang",
+    "source_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "pr": 942,
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "owner_approvals": [
+      "3 decisions on five tabs/search/first_report_at",
+      "CLOSED badge stays per batch; footer per picker row",
+      "same picker in same batch only latest withdrawn ticket shown",
+      "implement tested Web/Worker D173 only; usage first then stability then speed"
+    ],
+    "scope": [
+      "web/src/operational-app.ts",
+      "web/src/api.ts",
+      "web/src/d173-tabler.css",
+      "web/src/web-version.ts",
+      "web/package.json",
+      "service/src/operational-v2-core.ts",
+      "docs/specs/REPORTING_DASHBOARD.md",
+      "tests/d173-e209-web-results.test.mjs",
+      "tools/d173_e209_suffix_sql_regression.py",
+      "targeted release guard and workflows"
+    ],
+    "target_web_version": "3.3.7",
+    "database_schema": "UNCHANGED",
+    "worker_shared_guard": "D172_AND_D173_TEST_REQUIRED",
+    "agent_apk_firebase_d172_stable": "NO_CHANGE",
+    "code": "PASS_TESTED_SOURCE",
+    "ci": "SIX_REQUIRED_E209_SCOPE_CHECKS_PASS__LEGACY_OPTIONAL_FAILURES_REMAIN",
+    "release": "OWNER_GATED_PROTECTED_MERGE_PENDING",
+    "field": "NOT_TESTED",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "release_permission": "ONLY_GATED_D173_WORKER_WEB_AFTER_REQUIRED_EXACT_CI_PASS",
+    "outstanding": [
+      "test source SQL and web build",
+      "release gate review/Owner-source pin",
+      "protected merge and deploy receipt",
+      "physical field acceptance"
+    ],
+    "source_ci_sha": "c29364446bd081d573fcb53e6b36984ef4b46006",
+    "source_ci_evidence": {
+      "e209": 43152827669,
+      "d172": 43152827768,
+      "authority": 43152827408,
+      "continuity": 43152827605,
+      "log_sql": 43152827820,
+      "official_host": 43152827361
+    },
+    "test_claim_scope": "E209_SOURCE_WEB_BUILD_WORKER_TYPECHECK_SQL_FIXTURE_D172_ISOLATION"
   }
 }

@@ -1,3 +1,29 @@
+## D173-E209 — Owner 12/11/2026: chốt logic thu hồi và triển khai Web 3.3.7 (Worker/Web only)
+
+Owner duyệt triển khai trọn các thay đổi đã phân tích Web vận hành Báo hàng: (1) tìm SKU chỉ bằng **chữ số cuối** trong **tab đang chọn**, tối thiểu 3 số; Đang xử lý/Quá hạn tra toàn bộ chưa hoàn tất, 3 tab kết quả tra theo `first_report_at` trong đúng khoảng ngày đã chọn; (2) ẩn nút mở báo cáo chi tiết tại workspace; (3) Picker đã thu hồi **mỗi picker một dòng** nhưng badge/KPI **vẫn đếm số batch** như hiện tại và phân trang theo **dòng picker**; (4) một picker báo/thu hồi nhiều lượt trong cùng batch chỉ hiện **một dòng, lần thu hồi mới nhất**; (5) double-click chi tiết picker theo batch trong Đã có hàng/Cho phép Skip; (6) auto ngày, thu gọn toolbar, thêm cột first report.
+
+Ưu tiên **Usage > Ổn định > Tốc độ**. Cho phép code, kiểm thử rồi phát hành riêng **Web 3.3.7 và Worker D173 API đọc hiện hữu** sau khi exact CI + independent D172 regression + scope/auth/release gates PASS; không cấp quyền thay đổi APK, Agent, Firebase, dữ liệu nghiệp vụ D172 hay Stable. Không tự coi CI/Release là FIELD hoặc OWNER PASS. Bất kỳ gate fail phải sửa theo phạm vi được duyệt, không bỏ qua gate. Nguồn: `docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md`, PR #942.
+
+---
+
+## D173 — Owner 12/11/2026: chốt 3 quyết định phạm vi Web tìm SKU và Picker thu hồi
+- **Tìm kiếm đúng tab đang mở.** Tab Đang xử lý/Quá hạn tìm **toàn bộ đơn chưa hoàn tất**; ba tab Đã có hàng/Cho phép Skip/Picker đã thu hồi chỉ tìm đúng phạm vi ngày đã chọn, không tự mở rộng. Vẫn dùng tìm SKU theo hậu tố đã chốt (>=3 chữ số, placeholder `Tìm SKU theo các chữ số cuối`).
+- **Picker đã thu hồi:** mỗi picker một dòng riêng, cùng SKU/batch có thể hiện nhiều dòng; không tự gộp nhiều picker vào một dòng.
+- **Ngày của 3 tab kết quả:** theo `report_batches.first_report_at` như source hiện tại, không chuyển sang ngày xử lý/thu hồi.
+- **Chưa chốt:** (1) badge/KPI CLOSED theo số batch hay picker; (2) một picker thu hồi nhiều lần trong một batch: một dòng picker hay một dòng/lượt. Chưa cấp quyền code/merge/release. D172 độc lập PENDING/HOLD, Stable OWNER-GATED.
+- Bằng chứng và kịch bản: `docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md`, PR #942 docs-only.
+
+---
+
+## D173 — Owner 12/11/2026: chốt tìm SKU bằng các chữ số cuối trên Web Vận hành
+
+- Quy tắc tìm SKU đã chốt: **khớp hậu tố duy nhất**, không tìm tiền tố hoặc chuỗi ở giữa. SKU `10011233`: nhập `233` **có**, `1233` **có**, `123` **không**. Chỉ chấp nhận chữ số; tối thiểu 3 số mới tự tìm.
+- Input phải có placeholder chính xác: **`Tìm SKU theo các chữ số cuối`**. Áp dụng theo tab hiện hành và **tất cả kết quả trong khoảng ngày**, lọc phía server trước phân trang (không chỉ 50 dòng đầu).
+- Đây là quyết định **cụ thể về hành vi tìm kiếm**, không phải lệnh CODE/RELEASE. Phải đo chi phí Rows Read/latency của suffix search, không tự thay đổi sang prefix để tối ưu. Các mục Web khác vẫn là đề xuất chưa duyệt triển khai. D172 độc lập PENDING/HOLD; Stable OWNER-GATED.
+- Phương án và bằng chứng: `docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md`, PR #942 (docs-only).
+
+---
+
 ## D173-E199 — Owner 12/11/2026: triển khai sửa lỗi Agent189 trong phạm vi Agent-only
 
 Owner xem kết quả rà soát 8 lỗi Agent189 và yêu cầu: **“oke tiến hành triển khai”**. Cho phép tiếp tục code, CI, PR bảo vệ và phát hành signed OTA **Agent190** đối với phạm vi Agent-only đã được mô tả tại PR #929, không có quyền sửa Worker/Core chung, Web/APK/Firebase/D172 hoặc Stable. Host14 đang phân phối giữ nguyên; không phát sinh quyền tự động thay Host/đổi WMS/Auth.

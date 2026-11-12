@@ -1,3 +1,20 @@
+## D173 — Owner chốt phạm vi tìm và dòng Picker thu hồi (12/11/2026; chưa triển khai)
+- 5 tab dùng đúng ngữ cảnh hiện hành: `Đang xử lý`/`Quá hạn` tìm toàn bộ chưa hoàn tất, không tự áp ngày đã chọn ở tab kết quả; `Đã có hàng`/`Cho phép Skip`/`Picker đã thu hồi` chỉ tìm trong khoảng ngày đang áp dụng theo `first_report_at` của đợt. Tìm SKU theo **chữ số cuối**, không đầu/giữa.
+- Tab Picker đã thu hồi: **mỗi Picker riêng một dòng**, cùng SKU có thể nhiều dòng. Không gộp thành một dòng chứa danh sách Picker.
+- Ngữ nghĩa badge (batch vs picker) và trường hợp cùng Picker rút nhiều ticket trong cùng batch còn cần Owner chốt, không mặc định thay đổi số liệu.
+- Phạm vi chỉ là **bản đặc tả Owner chốt**, chưa có lệnh triển khai/mutation Worker/Web/DB; D172 HOLD và Stable OWNER-GATED.
+
+---
+
+## D173 — Web vận hành: tìm SKU theo các chữ số cuối (Owner quyết định 12/11/2026; chưa triển khai)
+
+- Trên màn hình Vận hành báo hàng, placeholder của ô tìm kiếm phải đúng **`Tìm SKU theo các chữ số cuối`**; chỉ nhận số và tự kích hoạt khi đã nhập tối thiểu **3 chữ số**, không có nút tìm.
+- Quy tắc khớp duy nhất: **hậu tố SKU** (suffix/`endsWith`), không khớp phần đầu hoặc chữ số nằm giữa. Với SKU `10011233`, nhập `233` hoặc `1233` phải có kết quả; nhập `123` không được có kết quả.
+- Lọc trên **toàn bộ dữ liệu của tab và khoảng ngày** trước phân trang; không giới hạn trang 50 dòng. Giữ bộ đếm KPI theo phạm vi ngày, không làm sai nhãn tab; tránh request lặp và cần đo DO Rows Read vì SQL suffix matching có thể không tận dụng index SKU thông thường.
+- Đây là **đặc tả nghiệp vụ đã chốt**, không tự cấp quyền chỉnh sửa Worker/Web, merge hoặc Production release. D172 giữ độc lập PENDING/HOLD và Stable OWNER-GATED. Căn cứ: `docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md`.
+
+---
+
 ## D173-E093 — Usage Agent156: dữ liệu ca và quota ngày/chu kỳ
 
 - Mở Agent sau 06:00 phải truy vấn lại lịch sử 24 giờ từ Provider rồi lọc các mẫu thuộc ca từ 06:00; không phụ thuộc thời điểm mở Agent. Giữ nhịp sync từng metric đã cấu hình, không bổ sung polling ngắn.

@@ -159,6 +159,9 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     if (url.searchParams.has("scope")) params.set("scope", url.searchParams.get("scope") || "");
     if (url.searchParams.has("from")) params.set("from", url.searchParams.get("from") || "");
     if (url.searchParams.has("to")) params.set("to", url.searchParams.get("to") || "");
+    if (url.searchParams.has("sku_suffix")) params.set("sku_suffix", url.searchParams.get("sku_suffix") || "");
+    if (url.searchParams.get("picker_rows") === "1") params.set("picker_rows", "1");
+    if (url.searchParams.get("include_totals") === "1") params.set("include_totals", "1");
     return authorizedGet(request, env, `/authorized/operational/reporter/recent?${params.toString()}`);
   }
 

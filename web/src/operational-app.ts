@@ -301,6 +301,12 @@ function clearRoleScopedViewState(): void {
   recentTotal = 0;
   recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
   batchDetails.clear();
+  expandedRecentPickerBatches.clear();
+  opsSkuSuffix = "";
+  if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
+  opsSkuInputTimer = null;
+  overdueSearchOffset = 0;
+  overdueSearchTotal = 0;
   expandedBatchDetails.clear();
   batchDetailLoads.clear();
   pendingReporterResolutions.clear();
@@ -419,6 +425,11 @@ let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdr
 let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "HAS_STOCK";
+let opsSkuSuffix = "";
+let opsSkuInputTimer: number | null = null;
+let overdueSearchOffset = 0;
+let overdueSearchTotal = 0;
+const expandedRecentPickerBatches = new Set<string>();
 let recentFrom = dateDaysAgo(0);
 let recentTo = dateDaysAgo(0);
 let queueFilter: "ALL" | "WARNING" | "ESCALATED" = "ALL";
@@ -1593,16 +1604,38 @@ function render(): void {
 }
 
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
-  // D166: exactly five visible status tabs. All badges use ONE existing
-  // counter snapshot and ONE versioned realtime delta stream, not five polls.
+  // Five tabs share existing counters; suffix only applies to the active tab.
   const outcomeTab = (status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED", label: string) =>
     `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}">${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
-  return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
-    <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
-    <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
-    ${outcomeTab("HAS_STOCK", "Đã có hàng")}
-    ${outcomeTab("SKIP_ALLOWED", "Cho phép Skip")}
-    ${outcomeTab("CLOSED", "Picker đã thu hồi")}
+  const today = dateDaysAgo(0);
+  const preset = recentFrom === today && recentTo === today ? "TODAY"
+    : recentFrom === dateDaysAgo(1) && recentTo === dateDaysAgo(1) ? "YESTERDAY"
+    : recentFrom === dateDaysAgo(6) && recentTo === today ? "D7"
+    : recentFrom === dateDaysAgo(29) && recentTo === today ? "D30" : "CUSTOM";
+  const range = current !== "results" ? "" : `<div class="d173-result-range">
+    <div class="d173-range-presets">
+      <button type="button" class="filter ${preset === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
+      <button type="button" class="filter ${preset === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
+      <button type="button" class="filter ${preset === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
+      <button type="button" class="filter ${preset === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
+    </div>
+    <div id="recent-range-form" class="d173-range-dates">
+      <label>Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" /></label>
+      <label>Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" /></label>
+    </div>
+  </div>`;
+  return `<div class="d173-ops-toolbar">
+    <div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
+      <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
+      <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
+      ${outcomeTab("HAS_STOCK", "Đã có hàng")}
+      ${outcomeTab("SKIP_ALLOWED", "Cho phép Skip")}
+      ${outcomeTab("CLOSED", "Picker đã thu hồi")}
+    </div>
+    <div class="d173-ops-toolbar-right">
+      <input id="ops-sku-suffix" aria-label="Tìm SKU theo các chữ số cuối" placeholder="Tìm SKU theo các chữ số cuối" inputmode="numeric" autocomplete="off" maxlength="32" value="${esc(opsSkuSuffix)}" />
+      ${range}
+    </div>
   </div>`;
 }
 
@@ -1618,8 +1651,10 @@ function syncOperationalTabBadges(): void {
 }
 
 function filteredQueueRows(): ReporterBatch[] {
-  if (queueFilter === "ALL") return queueRows;
-  return queueRows.filter((row) => liveQueueTiming(row).state === queueFilter);
+  return queueRows.filter((row) =>
+    (queueFilter === "ALL" || liveQueueTiming(row).state === queueFilter) &&
+    (opsSkuSuffix.length < 3 || row.sku.endsWith(opsSkuSuffix))
+  );
 }
 
 function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | undefined, forceVisible = false): string {
@@ -1674,6 +1709,7 @@ function prefetchBatchDetails(batchId: string): void {
     .then((result) => {
       batchDetails.set(batchId, result.items);
       if (activeSection === "operations" && selectedBatchId === batchId) refreshFastDetailOnly();
+      if (activeSection === "results" && expandedRecentPickerBatches.has(batchId)) patchActiveSection(true);
     })
     .catch((error) => runtimeLogEvent(`Không tải được danh sách Picker: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"))
     .finally(() => batchDetailLoads.delete(batchId));
@@ -1806,20 +1842,29 @@ function renderOverdue(): string {
           <td>${roleCanResolve() ? `<div class="user-row-actions"><button class="btn success small" data-overdue-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">ĐÃ CÓ HÀNG</button><button class="btn danger small" data-overdue-resolve="SKIP_ALLOWED" data-batch="${esc(row.batch_id)}">CHO PHÉP SKIP</button></div>` : "Chỉ xem"}</td>
         </tr>`).join("") || `<tr><td colspan="5" class="empty">Hiện không có SKU quá hạn.</td></tr>`}
       </tbody></table></div>
+      ${opsSkuSuffix.length >= 3 && overdueSearchTotal > 200 ? `<div class="user-pagination">
+        <span>Hiển thị ${overdueSearchOffset + (overdueRows.length ? 1 : 0)}–${overdueSearchOffset + overdueRows.length} / ${overdueSearchTotal} SKU quá hạn</span>
+        <div><button class="secondary" id="overdue-prev" ${overdueSearchOffset === 0 ? "disabled" : ""}>Trang trước</button>
+        <button class="secondary" id="overdue-next" ${overdueSearchOffset + 200 >= overdueSearchTotal ? "disabled" : ""}>Trang sau</button></div>
+      </div>` : ""}
     </article>
   </section>`;
 }
 
+function resultPickerMarkup(batchId: string): string {
+  const details = batchDetails.get(batchId);
+  if (!details) return '<div class="d173-result-picker-loading">Đang tải Picker đã báo trong đợt này…</div>';
+  return `<div class="d173-result-picker-list">
+    <strong>Picker đã báo trong đợt SKU này</strong>
+    ${details.length ? details.map((item) => `<div class="d173-result-picker">
+      <span>${esc(item.picker_employee_code)} — ${esc(item.picker_display_name || "Chưa có họ tên")}</span>
+      <time>${esc(fmt(item.reported_at))}</time>
+    </div>`).join("") : "<span>Không có bản ghi picker trong đợt này.</span>"}
+  </div>`;
+}
+
 function renderResults(): string {
   const visible = recentRows;
-  const today = dateDaysAgo(0);
-  const yesterday = dateDaysAgo(1);
-  const rangeId =
-    recentFrom === today && recentTo === today ? "TODAY" :
-    recentFrom === yesterday && recentTo === yesterday ? "YESTERDAY" :
-    recentFrom === dateDaysAgo(6) && recentTo === today ? "D7" :
-    recentFrom === dateDaysAgo(29) && recentTo === today ? "D30" :
-    "CUSTOM";
   const hasStock = Number(recentTotals.has_stock || 0);
   const skipped = Number(recentTotals.skip_allowed || 0);
   const withdrawn = Number(recentTotals.withdrawn || 0);
@@ -1829,6 +1874,8 @@ function renderResults(): string {
   const humanSkipped = Math.max(0, skipped - automaticSkipped);
   const pageFrom = recentTotal ? recentOffset + 1 : 0;
   const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
+  const showFirstReport = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED";
+  const columnCount = showFirstReport ? 10 : 9;
   return `<section class="ops-route ops-business-workspace">
     ${skuDayBanner()}
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
@@ -1841,29 +1888,19 @@ function renderResults(): string {
       <article class="business-summary-card primary"><span>Đã hiển thị trên PDA/Web</span><strong>${displayedCount}/${targets}</strong></article>
     </section>
     <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Khoảng kết quả</h3></div><button class="secondary" id="recent-open-report">Mở báo cáo chi tiết</button></div>
-      <div class="toolbar recent-range-toolbar" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
-        <div class="filters" style="display:flex;gap:6px;flex-wrap:wrap;align-self:flex-end">
-          <button class="filter ${rangeId === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
-          <button class="filter ${rangeId === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
-          <button class="filter ${rangeId === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
-          <button class="filter ${rangeId === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
-        </div>
-        <form id="recent-range-form" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;min-width:0">
-          <label style="min-width:146px">Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" required /></label>
-          <label style="min-width:146px">Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" required /></label>
-          <button class="secondary" type="submit">Áp dụng</button>
-        </form>
-      </div>
-      <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th>${showFirstReport ? "<th>Thời gian báo hàng đầu tiên</th>" : ""}<th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
         ${visible.map((row) => { const correctionEnd = Date.parse(row.correction_deadline_at || "");
           const canCorrect = roleCanResolve() &&
             (row.status === "HAS_STOCK" || row.status === "SKIP_ALLOWED") &&
             row.correction_allowed === true &&
             Number.isFinite(correctionEnd) &&
-            correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
+            correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED"
+            ? [row.withdrawn_picker_employee_code, row.withdrawn_picker_display_name].filter(Boolean).join(" - ") || "—"
+            : resolutionActorLabel(row);
+          return `<tr ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
+          ${showFirstReport && expandedRecentPickerBatches.has(row.batch_id) ? `<tr class="d173-picker-detail-tr"><td colspan="${columnCount}">${resultPickerMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="${columnCount}" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
       </tbody></table></div>
-      <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
+      <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} ${recentFilter === "CLOSED" ? "dòng Picker thu hồi" : "kết quả"}</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
   </section>`;
 }
@@ -3369,6 +3406,12 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
     const before = recentCounterEndpoint(values.before_status, values.before_at);
     const after = recentCounterEndpoint(values.after_status, values.after_at);
     if (!before.valid || !after.valid) return false;
+    // Outcome tab dates are based on the batch's FIRST report, never the
+    // resolution/withdrawal event time (which can fall on the next day).
+    const firstAt = String(realtimeSnapshotRecord(row)?.first_report_at || "");
+    if (!firstAt || !Number.isFinite(Date.parse(firstAt))) return false;
+    if (before.endpoint.status) before.endpoint.at = firstAt;
+    if (after.endpoint.status) after.endpoint.at = firstAt;
     next += (recentCounterMatches(after.endpoint) ? 1 : 0) - (recentCounterMatches(before.endpoint) ? 1 : 0);
     // Every inactive tab remains realtime on the same authoritative delta.
     if (before.endpoint.status && before.endpoint.at && recentDateRangeContains(before.endpoint.at))
@@ -3600,7 +3643,10 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
       }
     }
 
-    if (touchesOverdue) {
+    if (touchesOverdue && activeSection === "overdue" && opsSkuSuffix.length >= 3) {
+      // Filtered/server-paged overdue view cannot accept an unfiltered batch.
+      overdueExact = false;
+    } else if (touchesOverdue) {
       const row = overdueRowFromSnapshot(snapshot);
       overdueRows = row
         ? replaceByBatch(overdueRows, row).sort((a, b) => a.first_overdue_at.localeCompare(b.first_overdue_at) || a.batch_id.localeCompare(b.batch_id))
@@ -3608,6 +3654,11 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
     }
 
     if (touchesRecent) {
+      if (activeSection === "results" && (recentFilter === "CLOSED" || opsSkuSuffix.length >= 3)) {
+        // One bounded reconciliation preserves exact filtered picker rows.
+        recentExact = false;
+        continue;
+      }
       // Non-first pages can shift when a new/removed result arrives. Snapshot data
       // is exact for the batch but not enough to preserve an arbitrary page window.
       if (recentOffset > 0) {
@@ -3621,7 +3672,12 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
         const values = transition as Record<string, unknown>;
         const before = recentCounterEndpoint(values.before_status, values.before_at);
         const after = recentCounterEndpoint(values.after_status, values.after_at);
-        if (!before.valid || !after.valid) {
+        const firstAt = snapshotText(snapshot, "first_report_at");
+        if (firstAt && Number.isFinite(Date.parse(firstAt))) {
+          if (before.endpoint.status) before.endpoint.at = firstAt;
+          if (after.endpoint.status) after.endpoint.at = firstAt;
+        }
+        if (!before.valid || !after.valid || !firstAt) {
           recentExact = false;
         } else {
           const beforeInRange = before.endpoint.status && before.endpoint.at
@@ -3680,46 +3736,63 @@ async function loadReporterOverdueSnapshot(): Promise<void> {
   const requestGeneration = ++reporterOverdueLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const overdue = await getReporterOverdue(200, 0);
+  const searchKey = [activeSection, opsSkuSuffix, overdueSearchOffset].join("|");
+  const suffix = activeSection === "overdue" && opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
+  const offset = suffix ? overdueSearchOffset : 0;
+  const overdue = await getReporterOverdue(200, offset, suffix);
   if (
     requestGeneration !== reporterOverdueLoadGeneration ||
     generation !== sessionViewGeneration ||
-    userId !== (profile?.user_id || "")
+    userId !== (profile?.user_id || "") ||
+    searchKey !== [activeSection, opsSkuSuffix, overdueSearchOffset].join("|")
   ) return;
   overdueRows = overdue.items;
-  overdueBadgeCount = Math.max(0, Number(overdue.total || overdue.items.length));
-  overdueBadgeInitialized = true;
+  if (suffix) overdueSearchTotal = Math.max(0, Number(overdue.total || 0));
+  else {
+    overdueSearchTotal = 0;
+    overdueBadgeCount = Math.max(0, Number(overdue.total || overdue.items.length));
+    overdueBadgeInitialized = true;
+  }
   perPickerOverdueEnabled = Boolean(overdue.enabled && overdue.auto_skip_mode === "PER_PICKER");
   syncOperationalTabBadges();
   markWebUpdateReceived();
 }
 
-async function loadReporterRecentSnapshot(): Promise<void> {
+async function loadReporterRecentSnapshot(includeTotals = false): Promise<void> {
   const requestGeneration = ++reporterRecentLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
+  const viewKey = [recentFilter, recentFrom, recentTo, opsSkuSuffix, recentOffset].join("|");
   const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
+  const suffix = opsSkuSuffix.length >= 3 ? opsSkuSuffix : "";
   const recent = await getReporterRecent(
     RECENT_PAGE_SIZE,
     recentOffset,
     recentStatus,
     apiRange(recentFrom, recentTo).from,
     apiRange(recentFrom, recentTo).to,
+    suffix,
+    recentFilter === "CLOSED",
+    includeTotals,
   );
   if (
     requestGeneration !== reporterRecentLoadGeneration ||
     generation !== sessionViewGeneration ||
-    userId !== (profile?.user_id || "")
+    userId !== (profile?.user_id || "") ||
+    viewKey !== [recentFilter, recentFrom, recentTo, opsSkuSuffix, recentOffset].join("|")
   ) return;
   if (recent.total > 0 && recentOffset >= recent.total) {
     recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
-    return loadReporterRecentSnapshot();
+    return loadReporterRecentSnapshot(includeTotals);
   }
   recentRows = recent.items;
   recentTotal = recent.total;
-  recentBadgeCount = Math.max(0, Number(recent.total || 0));
-  recentBadgeInitialized = true;
-  recentTotals = recent.totals;
+  if (recent.totals_included !== false) {
+    recentTotals = recent.totals;
+    recentBadgeCount = Math.max(0, Number(recentTotals.has_stock || 0) +
+      Number(recentTotals.skip_allowed || 0) + Number(recentTotals.withdrawn || 0));
+    recentBadgeInitialized = true;
+  }
   syncOperationalTabBadges();
   markWebUpdateReceived();
 }
@@ -3811,6 +3884,10 @@ function applyPickerReadModel(value: unknown): boolean {
 function applyReporterReadModel(value: unknown): boolean {
   const snapshot = readModelSnapshot(value);
   if (!currentReadModel(value) || !snapshot) return false;
+  // The legacy mutation read model contains no suffix/picker-row predicate.
+  // Never overwrite the active filtered or withdrawn-picker page with it.
+  if ((activeSection === "results" && (recentFilter === "CLOSED" || opsSkuSuffix.length >= 3)) ||
+      (activeSection === "overdue" && opsSkuSuffix.length >= 3)) return false;
   const queue = snapshot.queue as Awaited<ReturnType<typeof getReporterQueue>> | undefined;
   const recent = snapshot.recent as Awaited<ReturnType<typeof getReporterRecent>> | undefined;
   const counters = snapshot.counters as Awaited<ReturnType<typeof getReporterCounters>> | undefined;
@@ -4759,6 +4836,10 @@ function bindSection(): void {
     const target = button.dataset.workspaceResultFilter;
     if (!profile || !roleOperate() || !["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(target || "")) return;
     if (activeSection === "results" && recentFilter === target) return;
+    if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
+    opsSkuInputTimer = null;
+    opsSkuSuffix = "";
+    expandedRecentPickerBatches.clear();
     recentFilter = target as typeof recentFilter;
     recentOffset = 0;
     if (activeSection !== "results") navigateToSection("results", "push");
@@ -4767,6 +4848,11 @@ function bindSection(): void {
   document.querySelectorAll<HTMLButtonElement>("[data-workspace-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.workspaceSection as Section;
     if (!profile || !next || next === activeSection || !canAccessSection(next, profile)) return;
+    if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
+    opsSkuInputTimer = null;
+    opsSkuSuffix = "";
+    overdueSearchOffset = 0;
+    expandedRecentPickerBatches.clear();
     navigateToSection(next, "push");
   }));
 
@@ -5014,44 +5100,96 @@ function bindSection(): void {
   })));
   document.querySelectorAll<HTMLButtonElement>("[data-recent-range]").forEach((button) => button.addEventListener("click", () => {
     const preset = button.dataset.recentRange || "";
+    const previousFrom = recentFrom, previousTo = recentTo;
     const today = dateDaysAgo(0);
     if (preset === "TODAY") { recentFrom = today; recentTo = today; }
     else if (preset === "YESTERDAY") { recentFrom = dateDaysAgo(1); recentTo = dateDaysAgo(1); }
     else if (preset === "D7") { recentFrom = dateDaysAgo(6); recentTo = today; }
     else if (preset === "D30") { recentFrom = dateDaysAgo(29); recentTo = today; }
     else return;
+    if (recentFrom === previousFrom && recentTo === previousTo) return;
     syncVisibleDateRange("recent", recentFrom, recentTo);
     recentOffset = 0;
+    expandedRecentPickerBatches.clear();
     // One counter reconcile for the new date scope, not one per tab.
-    void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
+    void run(async () => { await Promise.all([
+      activeSection === "results" && opsSkuSuffix.length >= 3
+        ? loadReporterRecentSnapshot(true) : loadOperations(),
+      loadReporterTabCounters(true),
+    ]); });
   }));
-  document.querySelector<HTMLFormElement>("#recent-range-form")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget as HTMLFormElement);
-    const from = String(data.get("from") || "");
-    const to = String(data.get("to") || "");
-    const range = apiRange(from, to);
-    if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) {
-      setNotice("warning", "Kết quả gần đây chỉ cho phép tối đa 60 ngày.");
-      return;
-    }
-    if (to > dateDaysAgo(0)) {
-      setNotice("warning", "Không thể chọn ngày tương lai.");
-      return;
-    }
-    recentFrom = from;
-    recentTo = to;
+  document.querySelectorAll<HTMLInputElement>("#recent-range-form input[type=date]").forEach((input) =>
+    input.addEventListener("change", () => {
+      const from = document.querySelector<HTMLInputElement>('#recent-range-form input[name="from"]')?.value || "";
+      const to = document.querySelector<HTMLInputElement>('#recent-range-form input[name="to"]')?.value || "";
+      if (!from || !to || from > to || to > dateDaysAgo(0)) {
+        setNotice("warning", "Khoảng ngày không hợp lệ hoặc vượt quá hôm nay.");
+        return;
+      }
+      const range = apiRange(from, to);
+      if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) {
+        setNotice("warning", "Kết quả gần đây chỉ cho phép tối đa 60 ngày.");
+        return;
+      }
+      if (from === recentFrom && to === recentTo) return;
+      recentFrom = from;
+      recentTo = to;
+      recentOffset = 0;
+      expandedRecentPickerBatches.clear();
+      void run(async () => { await Promise.all([
+        activeSection === "results" && opsSkuSuffix.length >= 3
+          ? loadReporterRecentSnapshot(true) : loadOperations(),
+        loadReporterTabCounters(true),
+      ]); });
+    })
+  );
+  // One input for the active tab, never search other tabs or extend its date range.
+  const opsInput = document.querySelector<HTMLInputElement>("#ops-sku-suffix");
+  opsInput?.addEventListener("input", () => {
+    const next = opsInput.value.replace(/\D/g, "").slice(0, 32);
+    if (opsInput.value !== next) opsInput.value = next;
+    if (next === opsSkuSuffix) return;
+    const wasSearching = opsSkuSuffix.length >= 3;
+    opsSkuSuffix = next;
     recentOffset = 0;
-    // Match all five badge counts to the selected reporting range.
-    void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
+    overdueSearchOffset = 0;
+    expandedRecentPickerBatches.clear();
+    if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
+    opsSkuInputTimer = null;
+    if (!wasSearching && next.length < 3) return; // No request for 1–2 digits.
+    opsSkuInputTimer = window.setTimeout(() => {
+      opsSkuInputTimer = null;
+      if (activeSection === "operations") {
+        patchActiveSection(true); // Already holds the complete pending queue: zero API calls.
+      } else {
+        void run(async () => { await loadOperations(); patchActiveSection(true); });
+      }
+    }, 500);
   });
-  document.querySelector<HTMLButtonElement>("#recent-open-report")?.addEventListener("click", () => {
-    reportFrom = recentFrom;
-    reportTo = recentTo;
-    reportStatus = recentFilter === "ALL" || recentFilter === "CLOSED" ? "" : recentFilter;
-    reportOffset = 0;
-    navigateToSection("reports");
+  const toggleRecentDetails = (batchId: string) => {
+    if (!batchId || recentFilter === "CLOSED") return;
+    if (expandedRecentPickerBatches.has(batchId)) expandedRecentPickerBatches.delete(batchId);
+    else expandedRecentPickerBatches.add(batchId);
+    patchActiveSection(true);
+    if (expandedRecentPickerBatches.has(batchId)) {
+      prefetchBatchDetails(batchId);
+    }
+  };
+  document.querySelectorAll<HTMLElement>("[data-recent-picker-batch]").forEach((tr) => {
+    tr.addEventListener("dblclick", (event) => {
+      if ((event.target as HTMLElement)?.closest("button")) return;
+      toggleRecentDetails(tr.dataset.recentPickerBatch || "");
+    });
+    tr.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !(event.target as HTMLElement)?.closest("button")) toggleRecentDetails(tr.dataset.recentPickerBatch || "");
+    });
   });
+  for (const [id, amount] of [["overdue-prev", -200], ["overdue-next", 200]] as const) {
+    document.querySelector<HTMLButtonElement>(`#${id}`)?.addEventListener("click", () => {
+      overdueSearchOffset = Math.max(0, overdueSearchOffset + amount);
+      void run(async () => { await loadReporterOverdueSnapshot(); patchActiveSection(true); });
+    });
+  }
   document.querySelector<HTMLButtonElement>("#recent-prev")?.addEventListener("click", () => {
     recentOffset = Math.max(0, recentOffset - RECENT_PAGE_SIZE);
     void run(loadOperations);
@@ -5752,7 +5890,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
       const recentBadgeExact = !reporterRecentChanged || applyReporterRecentBadgeEvents(events);
       const patched = applyReporterSnapshotEvents(events);
 
-      if (recentBadgeExact) recentTotal = recentBadgeCount;
+      if (recentBadgeExact && recentFilter !== "CLOSED" && opsSkuSuffix.length < 3) recentTotal = recentBadgeCount;
       syncOperationsNavBadge();
       syncOperationalTabBadges();
 
@@ -5764,7 +5902,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
         tasks.push(loadReporterOverdueSnapshot());
       }
       if (reporterRecentChanged && activeSection === "results" && !patched.recentExact) {
-        tasks.push(loadReporterRecentSnapshot());
+        tasks.push(loadReporterRecentSnapshot(opsSkuSuffix.length >= 3));
       }
 
       const needsCounterReconcile =

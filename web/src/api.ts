@@ -168,6 +168,9 @@ export interface ReporterRecentBatch {
   ack_target_count: number;
   acknowledged_count: number;
   displayed_count: number;
+  withdrawn_picker_employee_code?: string | null;
+  withdrawn_picker_display_name?: string | null;
+  withdrawn_picker_withdrawn_at?: string | null;
 }
 
 export interface BatchPickerTicket {
@@ -1131,8 +1134,9 @@ export async function getReporterQueue(limit = 100, offset = 0): Promise<{ items
   return readJson(await authorizedFetch(`/api/reporter/queue?${params.toString()}`));
 }
 
-export async function getReporterOverdue(limit = 100, offset = 0): Promise<{ items: ReporterOverdueBatch[]; count: number; total: number; limit: number; offset: number; server_now?: string; enabled?: boolean; auto_skip_mode?: AutoSkipMode | null }> {
+export async function getReporterOverdue(limit = 100, offset = 0, suffix = ""): Promise<{ items: ReporterOverdueBatch[]; count: number; total: number; limit: number; offset: number; server_now?: string; enabled?: boolean; auto_skip_mode?: AutoSkipMode | null }> {
   const params = new URLSearchParams({ limit: String(limit), offset: String(Math.max(0, offset)) });
+  if (suffix) params.set("sku_suffix", suffix);
   return readJson(await authorizedFetch(`/api/reporter/overdue?${params.toString()}`));
 }
 
@@ -1191,6 +1195,9 @@ export async function getReporterRecent(
   status = "",
   from = "",
   to = "",
+  suffix = "",
+  pickerRows = false,
+  includeTotals = false,
 ): Promise<{
   items: ReporterRecentBatch[];
   count: number;
@@ -1200,6 +1207,7 @@ export async function getReporterRecent(
   filter_status: string;
   server_now?: string;
   server_now_ms?: number;
+  totals_included?: boolean;
   totals: {
     has_stock: number;
     skip_allowed: number;
@@ -1214,6 +1222,9 @@ export async function getReporterRecent(
   if (status) params.set("status", status);
   if (from) params.set("from", from);
   if (to) params.set("to", to);
+  if (suffix) params.set("sku_suffix", suffix);
+  if (pickerRows) params.set("picker_rows", "1");
+  if (includeTotals) params.set("include_totals", "1");
   return readJson(await authorizedFetch(`/api/reporter/recent?${params.toString()}`));
 }
 

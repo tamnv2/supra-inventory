@@ -4703,5 +4703,274 @@
     "owner_pass": false,
     "owner_code_authorization": false,
     "d172": "INDEPENDENT_HOLD"
+  },
+  "d173_web_results_ux_review_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "NEW_OWNER_WEB_UX_REQUEST_AND_VERIFIED_ANALYSIS_ONLY",
+    "owner_request": "Web operations: remove extra report navigation; show withdrawn picker employee code/name; inline per-batch picker report details on HAS_STOCK/SKIP_ALLOWED double-click; numeric >=3 SKU search across entire date-scoped server result before pagination and active tab; consolidate date controls right of tabs and auto-apply; add first_report_at next to resolved time in two resolved tabs",
+    "verified_source_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "verified_live_pr_939": "MERGED_CLOSED",
+    "verified_web_version": "3.3.6",
+    "source_evidence": [
+      "web/src/operational-app.ts:renderResults/renderOperationalTabs/loadReporterRecentSnapshot/bindSection",
+      "web/src/api.ts:getReporterRecent/getReporterBatchTickets",
+      "service/src/operational-v2-core.ts:reporterRecent/reporterBatchTickets",
+      "service/src/core.ts:report_batches/report_tickets"
+    ],
+    "analysis_doc": "docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "commit_doc": "4b9d5f339b4df86318a3a63158a7746a61f92a3b",
+    "confirmed": [
+      "recent search endpoint currently lacks SKU query and pages at 50 rows",
+      "batch-tickets endpoint already exposes employee code/name/reported_at within batch_id",
+      "first_report_at exists in result rows",
+      "current UI uses literal Picker for CLOSED and date form Apply button"
+    ],
+    "proposed_not_approved": [
+      "server-filter prior to pagination; search total separate from KPI totals",
+      "one page-bounded actor aggregation for CLOSED; double-click lazy batched ticket lookup",
+      "responsive toolbar/date immediate change and request race safeguards",
+      "DO Rows Read/request, p50/p95 measurement and D172 isolation regression before any shared release"
+    ],
+    "uncertain": [
+      "five-tab vs completed-tab search scope; scope must be confirmed before code if behavior differs"
+    ],
+    "code": "NOT_STARTED_ANALYSIS_ONLY",
+    "ci": "NOT_RUN",
+    "release": "NO_CHANGE",
+    "field": "NOT_TESTED",
+    "owner_pass": false,
+    "owner_code_approval": false,
+    "owner_release_approval": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "privacy": "NO_PERSONNEL_OR_OPERATIONAL_ROWS_COMMITTED",
+    "owner_approved_search_semantics": {
+      "approved": true,
+      "date_vn": "2026-11-12",
+      "match": "SKU_SUFFIX_ONLY_ENDSWITH",
+      "placeholder": "Tìm SKU theo các chữ số cuối",
+      "input": "DIGITS_ONLY_MIN_3_NO_BUTTON_AUTO_SEARCH",
+      "matching_examples": [
+        {
+          "sku": "10011233",
+          "query": "233",
+          "match": true
+        },
+        {
+          "sku": "10011233",
+          "query": "1233",
+          "match": true
+        },
+        {
+          "sku": "10011233",
+          "query": "123",
+          "match": false
+        }
+      ],
+      "search_scope": "ACTIVE_TAB_AND_ALL_RESULTS_IN_SELECTED_DATE_RANGE_BEFORE_PAGINATION",
+      "backend_guard": "DO_NOT_SILENTLY_SWITCH_TO_PREFIX_OR_CONTAINS_FOR_INDEX_PERFORMANCE",
+      "usage_guard": "MEASURE_DO_ROWS_READ_AND_LATENCY_BEFORE_IMPLEMENTATION",
+      "authority": "BUSINESS_SEMANTICS_APPROVED_ONLY__NO_CODE_MERGE_RELEASE_PERMISSION"
+    },
+    "status": "OWNER_APPROVED_SUFFIX_SEARCH_SEMANTICS__DOCS_ONLY_CODE_NOT_STARTED"
+  },
+  "d173_web_results_usage_first_plan_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "OWNER_PRIORITY_AND_IMPLEMENTATION_SCENARIO_ANALYSIS",
+    "approved_owner_priority": [
+      "1_USAGE",
+      "2_STABILITY",
+      "3_SPEED"
+    ],
+    "owner_command": "Analyze scripts and business logic before implementation; request Owner decisions on unknowns; no code/release instruction",
+    "source_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "pr": 942,
+    "document": "docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md",
+    "confirmed": [
+      "Existing reporterRecent performs page, status totals and ACK/display aggregate SQL; blind per-keystroke refresh would repeat expensive aggregates",
+      "Existing five tabs use queue/overdue APIs without date range; three result statuses share date-scoped recent endpoint",
+      "Existing result-list realtime delta patches and mutation read_model can overwrite a future filtered search list unless guarded",
+      "Existing batch tickets are indexed by batch_id and contain employee code/name/reported_at; first_report_at already in recent row",
+      "Owner suffix-only search and exact placeholder previously approved"
+    ],
+    "proposed_not_approved": [
+      "User input debounce 450–500ms and coalesce identical requests; no DO request while 1–2 digits",
+      "Single authorized recent list response per query; search matching total only, no repeated unrelated ACK/status aggregate on every suffix",
+      "Page-only CLOSED picker aggregation inside existing DO invocation, lazy per-batch detail GET cached/invalidation",
+      "Search view identity/revision key and realtime guarded reconciliation; no polling; baseline parity",
+      "Only consider indexed reversed-SKU after actual EXPLAIN/rowsRead and Owner approval; default read-only SQL suffix filter",
+      "Measure request/SQL rows read/p50-p95 at 1/7/30/60-day scopes; D172+D173 regression if shared Worker touched"
+    ],
+    "questions_for_owner": [
+      "Search scope and date semantics for 5 tabs: recommended 5-tab search but pending/overdue all open regardless date, three outcomes within date",
+      "Withdrawn batch with >1 Picker: recommended one batch row and grouped actor names vs separate picker rows",
+      "Outcome tab date semantics: retain existing first_report_at vs change to resolved_at"
+    ],
+    "code": "NOT_STARTED",
+    "ci": "NOT_RUN",
+    "production_release": "UNCHANGED",
+    "field": "NOT_TESTED",
+    "owner_pass": false,
+    "owner_code_approval": false,
+    "owner_release_approval": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "sanitized": true
+  },
+  "d173_web_results_owner_3_decisions_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "OWNER_DECISION_THREE_WEB_RESULTS_RULES__TWO_UNRESOLVED_FOR_REVIEW",
+    "pr": 942,
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "verified_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "owner_approved": {
+      "sku_search_scope": "ONLY_ACTIVE_TAB; PENDING_AND_OVERDUE_ALL_NOT_FINISHED_INDEPENDENT_OF_RESULTS_DATE; HAS_STOCK_SKIP_ALLOWED_CLOSED_WITHIN_SELECTED_DATE_RANGE_ONLY",
+      "closed_rendering": "ONE_ROW_PER_PICKER_PER_SKU_BATCH__MULTIPLE_ROWS_SAME_SKU_ALLOWED",
+      "result_date_scope": "report_batches.first_report_at; EXISTING_SEMANTICS_PRESERVED",
+      "suffix": "DIGITS_ONLY_MIN_3__ENDS_WITH__PLACEHOLDER_TIM_SKU_THEO_CAC_CHU_SO_CUOI",
+      "priority": [
+        "USAGE",
+        "STABILITY",
+        "SPEED"
+      ]
+    },
+    "unresolved_owner_review": [
+      {
+        "id": "CLOSED_TAB_COUNTER_SEMANTICS",
+        "question": "CLOSED badge/KPI retains batch count while pagination counts picker rows, OR switch badge/KPI to picker count?",
+        "recommended": "KEEP_BATCH_BADGES_AND_KPI; SHOW_PICKER_ROW_COUNT_IN_FOOTER",
+        "reason": "Current APIs/realtime badges count report_batches not tickets; changing would alter current operational metric."
+      },
+      {
+        "id": "REPEAT_WITHDRAW_SAME_PICKER_BATCH",
+        "question": "One row per unique picker per batch (latest withdrawal), OR one row per ticket/withdrawal attempt when same picker reports again?",
+        "recommended": "ONE_ROW_PER_UNIQUE_PICKER_PER_BATCH_WITH_LATEST_WITHDRAWAL",
+        "reason": "Existing create/withdraw code allows report again after withdrawing while another picker keeps batch PENDING."
+      }
+    ],
+    "facts_from_code": [
+      "service/src/business-core.ts withdrawReport marks ticket WITHDRAWN at withdrawn_at, CLOSED only when no remaining active tickets",
+      "service/src/operational-v2-core.ts reporterRecent totals CLOSED from batch counts and reporterBatchTickets returns picker ticket rows",
+      "service/src/business-core.ts createReport checks only OPEN ticket uniqueness; same picker can report again after withdraw in still-open batch"
+    ],
+    "docs": [
+      "docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md",
+      "docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md",
+      "docs/OWNER_DECISIONS.md",
+      "docs/specs/REPORTING_DASHBOARD.md"
+    ],
+    "authorization": {
+      "code": false,
+      "merge": false,
+      "release": false
+    },
+    "code": "NOT_STARTED",
+    "ci": "NOT_RUN",
+    "release": "NO_CHANGE",
+    "field": "NOT_TESTED",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "privacy": "NO_OPERATIONAL_PERSONAL_DATA"
+  },
+  "d173_e209_owner_implementation_20261112": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "issue": "E209",
+    "kind": "OWNER_FINAL_BUSINESS_SELECTION_AND_WEB_IMPLEMENTATION_PERMISSION",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "pr": 942,
+    "accepted_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "owner_decisions": {
+      "search": "active_tab_only+suffix_digits_min3; queue_overdue_all_open; three outcomes date_first_report_at",
+      "closed_row": "one distinct picker_employee_code per batch latest_withdrawn_at",
+      "closed_kpi": "batch_count_unchanged; paging_picker_row_count",
+      "priority": [
+        "usage",
+        "stability",
+        "speed"
+      ],
+      "owner_code_permission": true,
+      "owner_production_release_permission": true,
+      "approved_component_scope": "D173_EXISTING_WORKER_READ_API_AND_WEB_3_3_7_ONLY"
+    },
+    "implementation": {
+      "web": [
+        "web/src/operational-app.ts",
+        "web/src/api.ts",
+        "web/src/d173-tabler.css",
+        "web/src/web-version.ts",
+        "web/package.json"
+      ],
+      "service": [
+        "service/src/operational-v2-core.ts"
+      ],
+      "tests": [
+        "tests/d173-e209-web-results.test.mjs",
+        "tools/d173_e209_suffix_sql_regression.py"
+      ],
+      "workflow": ".github/workflows/d173-e209-web-results.yml",
+      "schema_migration": false,
+      "provider_resource_changes": false,
+      "agent_apk_firebase_d172_stable": "unchanged"
+    },
+    "requirements": [
+      "exact source Web TypeScript build",
+      "Worker TypeScript check",
+      "real SQL fixture suffix/per-picker/pagination",
+      "D172 independent regression",
+      "PR protected gates",
+      "Owner-specific Worker/Web release guard",
+      "Production SHA receipt"
+    ],
+    "status": {
+      "code": "SOURCE_TEST_PASS",
+      "ci": "SIX_SCOPED_CHECKS_SUCCESS",
+      "release": "PENDING_PROTECTED_MERGE",
+      "field": "PENDING",
+      "owner_pass": false
+    },
+    "risks": [
+      "CLOSED page per picker may raise SQLite rowsRead; must measure and not N+1",
+      "search must not recalc ACK SQL for every suffix",
+      "existing pending/overdue APIs and realtime must retain original behavior",
+      "shared Worker route must satisfy D172 isolation"
+    ],
+    "docs": [
+      "docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md",
+      "docs/OWNER_DECISIONS.md"
+    ],
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "privacy_safe": true,
+    "source_ci_sha": "c29364446bd081d573fcb53e6b36984ef4b46006"
+  },
+  "d173_e209_source_ci_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "EXACT_E209_SOURCE_CI_EVIDENCE",
+    "owner_authorized_code_release": true,
+    "source_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "source_tested_sha": "c29364446bd081d573fcb53e6b36984ef4b46006",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "pr": 942,
+    "passed_runs": {
+      "E209": 43152827669,
+      "D172_ISOLATION": 43152827768,
+      "REPO_AUTHORITY": 43152827408,
+      "CONTINUITY": 43152827605,
+      "D166_LOG_SQL": 43152827820,
+      "D170_OFFICIAL_ORIGIN": 43152827361
+    },
+    "verified": "E209 8 contract assertions, actual SQLite suffix and picker-page fixtures, Web Vite compile, Worker TS typecheck, 74 D172 independent cases; owner release preflight",
+    "non_gating_legacy_workflows": "Some old version/source-specific checks fail due old fixed release pins and unrelated Agent source; not marked PASS or used for release proof",
+    "code": "SOURCE_CI_PASS",
+    "release": "PENDING_PROTECTED_MERGE",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "privacy": "NO_RAW_LOGS"
   }
 }

@@ -540,7 +540,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
 
   if (key === "GET /api/reporter/overdue") {
     const params = new URLSearchParams();
-    for (const name of ["limit", "offset"]) {
+    for (const name of ["limit", "offset", "sku_suffix"]) {
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
     return authorizedGet(request, env, `/authorized/operational/reporter/overdue?${params.toString()}`);
