@@ -18,6 +18,16 @@
     "source_main_sha": "93e677cb99963a90455da446dbe1f03678153603",
     "target_web_version": "3.3.11"
   },
+  "web3311_release_candidate": {
+    "change_id": "D173-E223",
+    "pr": 952,
+    "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0",
+    "owner_release_approved": true,
+    "code": "PASS_SCOPED_5",
+    "release": "GATED_PENDING",
+    "field_pass": false,
+    "owner_pass": false
+  },
   "production": {
     "hostname": "inventory.supra.cc.cd",
     "technical_worker_name": "supra-inventory-beta",

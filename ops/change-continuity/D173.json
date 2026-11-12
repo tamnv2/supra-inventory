@@ -4251,6 +4251,40 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E223",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_RELEASE_COMMAND",
+      "topic": "Owner Web3.3.11 not deployed; demands complete Production release",
+      "status": "OWNER_PRODUCTION_APPROVED__PINNED_SOURCE_CI_5_PASS__PROTECTED_PR_PREDEPLOY_IN_PROGRESS",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 952,
+      "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+      "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0",
+      "base_main_sha": "da5f6948852777528ced565cf894b35364841ee0",
+      "facts": [
+        "Web3.3.10 SKU search field NOT PASS, Web3.3.11 code in PR952, source scoped CI 5 groups SUCCESS.",
+        "Owner explicitly requests Web3.3.11 Production deployment, superseding E221 code-only hold.",
+        "Restricted to Web D173 and existing service/src/core.ts parameter forwarding; D172 independent regression; no DB/Agent/APK/Stable."
+      ],
+      "source_ci_runs": [
+        43202503500,
+        43202503880,
+        43202503474,
+        43202503719,
+        43202503313
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/952; docs/D173_E223_WEB3311_PRODUCTION_RELEASE_2026-11-12.md",
+      "next_action": "New E223 PR preflight -> protected two-parent merge -> official Worker/Web exact-source runtime readback; FIELD/OWNER pending.",
+      "code": "PASS",
+      "ci": "SOURCE_5_PASS_NEW_GATE_PENDING",
+      "release": "GATED_PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {

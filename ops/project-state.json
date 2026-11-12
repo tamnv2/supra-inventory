@@ -1,5 +1,20 @@
 {
   "schema_version": 1,
+  "d173_e223_web3311_release": {
+    "change_id": "D173",
+    "owner_release_approved": true,
+    "target_version": "3.3.11",
+    "production_at_approval": "3.3.10",
+    "pr": 952,
+    "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0",
+    "source_ci_runs": [43202503500, 43202503880, 43202503474, 43202503719, 43202503313],
+    "release_gate": "D173-E223_WEB3311_PRODUCTION_RELEASE",
+    "release": "GATED_PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED"
+  },
   "project_key": "supra-inventory",
   "display_name": "SUPRA Inventory — Báo hàng",
   "timezone": "Asia/Ho_Chi_Minh",

@@ -28,7 +28,10 @@ Owner phản hồi Web 3.3.7 **chưa đạt FIELD**: tìm SKU đúng hậu tố 
 
 ---
 
-## D173-E209 — Owner 12/11/2026: chốt logic thu hồi và triển khai Web 3.3.7 (Worker/Web only)
+### D173-E223 — 12/11/2026: Owner yêu cầu triển khai Web 3.3.11
+Owner yêu cầu xử lý dứt điểm bản Web 3.3.11 đang ở PR #952, duyệt code **và phát hành Production** đúng ứng viên E221 sau source-pin CI, D172 independent regression và protected merge. Chỉ Web và D173 Core parameter bridge trên Worker hiện hữu; không đổi D172, database, Agent, APK, Firebase, Gateway hoặc Stable. FIELD/OWNER PASS phải có kiểm tra riêng. Chi tiết `docs/D173_E223_WEB3311_PRODUCTION_RELEASE_2026-11-12.md`.
+
+# D173-E209 — Owner 12/11/2026: chốt logic thu hồi và triển khai Web 3.3.7 (Worker/Web only)
 
 Owner duyệt triển khai trọn các thay đổi đã phân tích Web vận hành Báo hàng: (1) tìm SKU chỉ bằng **chữ số cuối** trong **tab đang chọn**, tối thiểu 3 số; Đang xử lý/Quá hạn tra toàn bộ chưa hoàn tất, 3 tab kết quả tra theo `first_report_at` trong đúng khoảng ngày đã chọn; (2) ẩn nút mở báo cáo chi tiết tại workspace; (3) Picker đã thu hồi **mỗi picker một dòng** nhưng badge/KPI **vẫn đếm số batch** như hiện tại và phân trang theo **dòng picker**; (4) một picker báo/thu hồi nhiều lượt trong cùng batch chỉ hiện **một dòng, lần thu hồi mới nhất**; (5) double-click chi tiết picker theo batch trong Đã có hàng/Cho phép Skip; (6) auto ngày, thu gọn toolbar, thêm cột first report.
 
