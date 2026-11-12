@@ -153,7 +153,8 @@
     "current_d173_e231_web3313_release_authorization": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
     "current_d173_web3313_release_receipt": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
     "current_d173_e233_web3313_field_review": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md",
-    "current_d173_e234_web3314_owner_code_release": "docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md"
+    "current_d173_e234_web3314_owner_code_release": "docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md",
+    "current_d173_e236_web3314_production_receipt": "docs/D173_E236_WEB3314_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -240,9 +241,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 959,
-    "ref_rule": "D173_E233_WEB3313_FIELD_NOT_PASS_REVIEW_ONLY_PR959__NO_NEW_RELEASE__D172_HOLD",
-    "freshness": "2026_11_12_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW",
+    "active_working_pr": 960,
+    "ref_rule": "D173_E236_WEB3314_PRODUCTION_TECH_PASS_PR960_DOCS_ONLY_NO_NEW_PROVIDER_MUTATION__D172_HOLD",
+    "freshness": "2026_11_12_E236_WEB3314_PRODUCTION_RECEIPT",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -372,7 +373,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
+    "active_working_branch": "docs/d173-e236-web3314-production-receipt-20261112",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,
@@ -451,7 +452,7 @@
       "stable": "OWNER_GATED",
       "owner_command": "2026-11-10_YEU_CAU_PHAT_HANH"
     },
-    "working_pr_lifecycle": "PR959_OPEN_WEB3314_SOURCE_CANDIDATE__CI_PENDING"
+    "working_pr_lifecycle": "PR960_OPEN_DOCS_ONLY__WEB3314_TECH_RELEASE_PASS_FIELD_OWNER_PENDING"
   },
   "bootstrap_read_policy": {
     "mode": "CURRENT_ESSENTIALS_ONLY__HISTORY_ON_DEMAND",
