@@ -13,6 +13,7 @@ const toolbar = section('private int D173E182FitAgentHeader(', 'private void Ins
 
 test('overview is exactly two 60/40 columns with the existing lower roster untouched', () => {
   assert.match(overview, /new ColumnStyle\(SizeType\.Percent, 60F\)/);
+  assert.match(overview, /viewport\.ClientSize\.Height >= 375/);
   assert.match(overview, /new ColumnStyle\(SizeType\.Percent, 40F\)/);
   assert.match(overview, /twoColumns\.ColumnCount = 2;/);
   assert.match(overview, /overview\.RowStyles\[0\]\.Height = 40F/);

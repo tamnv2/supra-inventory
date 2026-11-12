@@ -20,4 +20,4 @@ Owner approved the already reviewed WinForms screenshot, and explicitly forbids 
 ## Evidence references
 - Owner instruction and reviewed WinForms mockup in the current conversation, 12/11/2026. No screenshot or private log bytes are committed to the public repo.
 - Accepted baseline: main `385875072386c39c612ede14f813dc5ae4dfc7cc`; signed `relay-agent-v191` SHA-256 `6cebc31af550a90b7200bffced6c3b2dacff01e71a3f65641c88ec8d08b8c00f`; Host14 unchanged.
-- Working source candidate pin `793af2c84832f9032f23b74d2677b9ebe362b103`.
+- Working source candidate pin `e8dc8a8ebb6c99949840529f3163fef7682332aa`.

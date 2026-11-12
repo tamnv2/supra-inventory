@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "385875072386c39c612ede14f813dc5ae4dfc7cc"
-SOURCE = "793af2c84832f9032f23b74d2677b9ebe362b103"
+SOURCE = "e8dc8a8ebb6c99949840529f3163fef7682332aa"
 MARKER = "D173-E207_AGENT192_ONLY_RELEASE:"
 AUTH = "ops/d173-e207-agent192-release-authorization.json"
 ALLOWED = {
