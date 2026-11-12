@@ -45,6 +45,7 @@ namespace SupraPuzzleRecorder
             };
             bar.Controls.Add(_v21ChooseRegion);
             bar.Controls.Add(_v22Inspect);
+            bar.Controls.Add(_v22Export);
             bar.Controls.Add(_v21Bundle);
             var label = new Label
             {
@@ -54,6 +55,7 @@ namespace SupraPuzzleRecorder
             bar.Controls.Add(label);
             _v21ChooseRegion.Click += async (sender, args) => await V21SelectRegionAsync();
             _v22Inspect.Click += async (sender, args) => await V22InspectRegionAsync();
+            _v22Export.Click += (sender, args) => V22ExportApprovedRegion();
             _v21Bundle.Click += (sender, args) => V21SaveBundle();
             return bar;
         }
