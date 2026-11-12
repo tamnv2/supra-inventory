@@ -60,7 +60,15 @@ namespace SupraPuzzleRecorder
             _v21ChooseRegion.Click += async (sender, args) => await V21SelectRegionAsync();
             _v22Inspect.Click += async (sender, args) => await V22InspectRegionAsync();
             _v22Export.Click += (sender, args) => V22ExportApprovedRegion();
-            _v23Sim.Click += (sender, args) => { using (var sim = new V23BrowserDragLab()) sim.ShowDialog(this); };
+            _v23Sim.Click += (sender, args) =>
+            {
+                try { using (var sim = new V23BrowserDragLab()) sim.ShowDialog(this); }
+                catch (Exception ex)
+                {
+                    _status.Text = "Phòng thử offline không mở được: " + ex.GetType().Name +
+                        " (0x" + ex.HResult.ToString("X8") + "). Không ảnh hưởng phiên Web thật.";
+                }
+            };
             _v21Bundle.Click += (sender, args) => V21SaveBundle();
             return bar;
         }
