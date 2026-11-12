@@ -135,7 +135,8 @@
     "current_d173_agent192_ui_spec": "docs/D173_E207_AGENT192_TWO_COLUMN_LAYOUT_2026-11-12.md",
     "current_d173_agent192_release_receipt": "docs/D173_E208_AGENT192_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
     "current_d173_agent193_ui_code_only": "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md",
-    "current_d173_agent193_release_authorization": "docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md"
+    "current_d173_agent193_release_authorization": "docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md",
+    "current_d173_web339_release_receipt": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -222,9 +223,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 947,
-    "ref_rule": "D173_E214_OWNER_WEB339_PRODUCTION_RELEASE_AUTHORIZED__PR947_EXACT_SOURCE_CI_REQUIRED__D172_HOLD",
-    "freshness": "2026_11_12_D173_E214_WEB339_OWNER_RELEASE_AFTER_WEB338_FIELD_FAIL",
+    "active_working_pr": 949,
+    "ref_rule": "D173_E215_WEB339_PRODUCTION_TECH_PASS__PR949_RECEIPT_ONLY_FIELD_OWNER_PENDING",
+    "freshness": "2026_11_12_D173_E215_WEB339_WORKER_WEB_RELEASE_PASS_RUN43168569077",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -354,7 +355,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e214-web339-field-release-20261112",
+    "active_working_branch": "docs/d173-e215-web339-production-receipt-20261112",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,

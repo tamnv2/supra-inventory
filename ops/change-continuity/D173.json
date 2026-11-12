@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e214-web339-field-release-20261112",
-  "pr": 947,
+  "working_branch": "docs/d173-e215-web339-production-receipt-20261112",
+  "pr": 949,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E214",
+    "id": "D173-E215",
     "date_vn": "2026-11-12",
-    "summary": "Owner authorizes Web3.3.9 Worker/Web release of six field repairs on new PR947 after exact CI. Main Agent193 untouched; D172 HOLD, Stable gated; FIELD and Owner PASS pending.",
-    "status": "WEB339_4_REQUIRED_CI_PASS__OWNER_RELEASE_AUTHORIZED_PENDING_GUARDED_MERGE__D172_HOLD",
-    "source": "docs/D173_E214_WEB339_FIELD_RELEASE_2026-11-12.md",
-    "branch": "fix/d173-e214-web339-field-release-20261112",
-    "pr": 947
+    "summary": "Web3.3.9 + D173 read-only Worker technical Production release verified on exact main source 331c2c1, Workflow 43168569077 SUCCESS, official health/Web shell PASS; FIELD/OWNER not yet verified, D172 HOLD.",
+    "status": "WEB339_WORKER_PRODUCTION_TECH_PASS__PR949_RECEIPT_ONLY__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "branch": "docs/d173-e215-web339-production-receipt-20261112",
+    "pr": 949
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4022,6 +4022,34 @@
         "repo_authority": 43168108075,
         "project_state": 43168107890
       }
+    },
+    {
+      "id": "D173-E215",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Web3.3.9 + Worker Production exact main SHA technical release receipt",
+      "status": "CODE_CI_WORKER_WEB339_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 949,
+      "source_pr": 947,
+      "source_main_sha": "331c2c1e99c5113f258acba8ab12ac3e8d5ca946",
+      "facts": [
+        "Owner Web3.3.9 PR947 protected merged main SHA 331c2c1e99c5113f258acba8ab12ac3e8d5ca946 after four exact-source CI checks passed.",
+        "Deploy Beta Worker Workflow 43168569077 completed SUCCESS on exact main SHA, release gate Web/Worker PASS; Wrangler existing Worker version ID a5b37c86-3dbe-4276-a433-510b296c7561.",
+        "GitHub release logs verify official and historical host same Worker source, /health storage/SQLite and source, Web shell, OAuth and D166 read-only source preservation.",
+        "Web version declared 3.3.9, no D172 business, Agent, APK, Firebase or Stable runtime changes; PR946 closed unmerged after PR947 release.",
+        "Authenticated real-browser suffix search and historic withdrawn Picker actor not FIELD verified; OWNER PASS false."
+      ],
+      "evidence": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/947; https://github.com/tamnv2/supra-inventory/actions/runs/43168569077",
+      "next_action": "Owner field check on official Web3.3.9: six visual/search cases and true withdrawn Picker names; if fails, same D173 scope targeted repair with logs, never infer Owner PASS.",
+      "code": "PASS",
+      "ci": "PASS_SOURCE_AND_RELEASE",
+      "release": "PASS_PRODUCTION_WEB339_WORKER",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -4157,7 +4185,7 @@
       "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending.",
       "D173-E174 PR878 Agent176 focus-only source and exact CI verification in progress; no Worker/APK/Web production change.",
       "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes.",
-      "D173-E214 Web 3.3.9 owner-authorized release after Web338 field fail: PR947 fresh main scope, CI pending, do not infer field/owner PASS."
+      "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -5282,8 +5310,8 @@
     "target_web_version": "3.3.9",
     "source_candidate_sha": "bf59d647e28b82bc1daecc6804f8da17a092bcac",
     "source_ci_sha": "e742d4b5b748458a50d46cdf7ab0d3c7926d63ac",
-    "source_ci": "PASS_E214_4_REQUIRED_CHECKS",
-    "release": "APPROVED_GATED_MERGE_PENDING",
+    "source_ci": "PASS_EXACT_SHA",
+    "release": "PASS_PRODUCTION_WORKER_WEB_43168569077",
     "field_pass": false,
     "owner_pass": false,
     "authorization": "ops/d173-e214-web-release-authorization.json",
@@ -5294,6 +5322,19 @@
       "d172_independent": 43168108212,
       "repo_authority": 43168108075,
       "project_state": 43168107890
-    }
+    },
+    "release_main_sha": "331c2c1e99c5113f258acba8ab12ac3e8d5ca946"
+  },
+  "d173_e215_web339_release_receipt": {
+    "pr": 949,
+    "source_pr": 947,
+    "source_main_sha": "331c2c1e99c5113f258acba8ab12ac3e8d5ca946",
+    "run_id": 43168569077,
+    "code": "PASS",
+    "ci": "PASS",
+    "release": "PASS",
+    "field": "PENDING",
+    "owner_pass": false,
+    "doc": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
   }
 }
