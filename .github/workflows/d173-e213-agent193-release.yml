@@ -48,7 +48,7 @@ jobs:
           python3 tools/authority_guard.py
           python3 tools/project_state_guard.py
           python3 tools/change_continuity_guard.py
-          node --test tests/d173-e213-agent192-overview-layout.test.mjs
+          node --test tests/d173-e207-agent192-overview-layout.test.mjs
       - name: Install service TypeScript dev dependency for read-only D172 tests
         run: npm install --prefix service --ignore-scripts --no-audit --no-fund --no-package-lock
       - name: Independent D172 source tests (no external providers)
