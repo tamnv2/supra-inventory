@@ -13607,9 +13607,9 @@
     "database_schema": "UNCHANGED",
     "worker_shared_guard": "D172_AND_D173_TEST_REQUIRED",
     "agent_apk_firebase_d172_stable": "NO_CHANGE",
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING_EXACT_SHA",
-    "release": "NOT_YET_PUBLISHED",
+    "code": "PASS_TESTED_SOURCE",
+    "ci": "SIX_REQUIRED_E209_SCOPE_CHECKS_PASS__LEGACY_OPTIONAL_FAILURES_REMAIN",
+    "release": "OWNER_GATED_PROTECTED_MERGE_PENDING",
     "field": "NOT_TESTED",
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
@@ -13620,6 +13620,16 @@
       "release gate review/Owner-source pin",
       "protected merge and deploy receipt",
       "physical field acceptance"
-    ]
+    ],
+    "source_ci_sha": "02bc15ae241581e79527c67f7ec77c89dbd484b0",
+    "source_ci_evidence": {
+      "e209": 43152254899,
+      "d172": 43152254918,
+      "authority": 43152255053,
+      "continuity": 43152255040,
+      "log_sql": 43152254823,
+      "official_host": 43152254783
+    },
+    "test_claim_scope": "E209_SOURCE_WEB_BUILD_WORKER_TYPECHECK_SQL_FIXTURE_D172_ISOLATION"
   }
 }
