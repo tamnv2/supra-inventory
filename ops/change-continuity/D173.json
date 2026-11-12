@@ -7,11 +7,11 @@
   "pr": 957,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E230",
+    "id": "D173-E231",
     "date_vn": "2026-11-12",
-    "summary": "Web3.3.13 D173 E230 code-only: human Skip neutral, auto marked; compact SKU lists, footer gone, exact suffix placeholder. Exact-source a4ec0e CI E230 12/12 UI, Web build, D172 74/74, authority/continuity PASS. UI Design legacy baseline FAIL pre-existing. No Production authorization.",
-    "status": "WEB3313_SOURCE_SCOPED_CI_PASS__PRODUCTION_WEB3312_UNCHANGED__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md",
+    "summary": "Owner explicitly authorizes Web3.3.13 Production release for E230 UI-only; PR957 release gate now requires immutable source pin, CI/D172 and protected merge. No deployment/field PASS yet.",
+    "status": "WEB3313_OWNER_RELEASE_APPROVED__PR957_SOURCE_PREFLIGHT_PENDING__NO_PROVIDER_DEPLOY_YET",
+    "source": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
     "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
     "pr": 957
   },
@@ -4491,6 +4491,34 @@
         "ui_baseline_fail": 43221618297,
         "ui_current_fail": 43224546814
       }
+    },
+    {
+      "id": "D173-E231",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly requests protected Production release of D173 Web3.3.13 candidate after Web3.3.12 field UI corrections",
+      "status": "WEB3313_OWNER_RELEASE_APPROVED__PR957_SOURCE_PREFLIGHT_PENDING__NO_PROVIDER_DEPLOY_YET",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 957,
+      "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+      "base_main_sha": "b995b1f7ac6f822cd609cd499892f7dbd4fdaaed",
+      "source_pin": "a4ec0e052418608850a19c9217541e69afb0e6c2",
+      "facts": [
+        "Owner command: Triển khai 3.3.13 đi em; applies only E230 three Web UI corrections, not general Worker/Service/Agent/Android/D172/Stable release.",
+        "PR957 is open Draft at intake; Web3.3.12 Production technical PASS E229, code-only Web3.3.13 scoped UI/build and D172 regressions were successful before release authorization.",
+        "Guarded release uses registered Production Worker/Web static assets and requires exactly two-parent PR merge marker, exact main base and immutable Web runtime PIN, D172 isolation and source-scoped CI before any provider writes.",
+        "Unrelated legacy UI Design Guard already failed on identical main baseline, not treated as E230 scoped source PASS; no bypass of required E230 or D172 guards."
+      ],
+      "evidence": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/957",
+      "next_action": "Complete final PR957 head source preflight + D172 CI and capture exact run IDs; update release auth CI receipt, protect merge with exact head and marker; verify Production run/health afterwards.",
+      "code": "SOURCE_CANDIDATE",
+      "ci": "PENDING_FINAL_E231",
+      "release": "NOT_DEPLOYED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
