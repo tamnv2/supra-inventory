@@ -7608,7 +7608,7 @@
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E231_WEB3313_OWNER_APPROVED__EXACT_HEAD_CI__PROTECTED_MERGE_REQUIRED__D172_HOLD",
+    "owner_release_gate": "D173_E231_WEB3313_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_PRODUCTION_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 957,
@@ -14013,13 +14013,13 @@
     ],
     "code": "SOURCE_TEST_PASS",
     "ci": "PASS_E230_SCOPED_12_UI_WEB_BUILD_D172_74_AND_REPO_GUARDS",
-    "release": "OWNER_APPROVED_EXACT_SOURCE_CI_AND_PROTECTED_MERGE_REQUIRED",
+    "release": "OWNER_APPROVED_SOURCE_CI_PASS__PROTECTED_MERGE_PRODUCTION_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md",
-    "source_ci_sha": "a4ec0e052418608850a19c9217541e69afb0e6c2",
+    "source_ci_sha": "b287887e6613ab60b750947a7b7133a201700288",
     "ci_run_ids": {
       "e230": 43224546702,
       "d172": 43224547266,
@@ -14035,6 +14035,12 @@
     "release_workflow": ".github/workflows/deploy-beta.yml",
     "owner_release_command": "2026-11-12_TRIEN_KHAI_3.3.13",
     "working_pr": 957,
-    "source_ci_final": "PENDING_E231_PRELIMINARY"
+    "source_ci_final": "PASS_FOUR_SCOPED_EXACT_SOURCE_RUNS",
+    "required_ci_run_ids": [
+      43227189692,
+      43227189986,
+      43227189717,
+      43227189801
+    ]
   }
 }
