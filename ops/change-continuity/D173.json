@@ -5018,13 +5018,49 @@
       "tools/d173_e210_withdrawn_identity_sql.py"
     ],
     "status": {
-      "code": "IN_PROGRESS",
-      "ci": "NOT_VERIFIED",
+      "code": "SOURCE_TEST_PASS",
+      "ci": "SIX_SCOPED_GATES_PASS",
       "release": "PENDING",
-      "field": "NOT_PASS_WEB337",
+      "field": "WEB337_NOT_PASS_WEB338_PENDING",
       "owner_pass": false
     },
     "privacy_safe": true,
-    "next": "run exact Web/Worker/D172 source CI and release only via new Owner-scoped gate"
+    "next": "run exact Web/Worker/D172 source CI and release only via new Owner-scoped gate",
+    "source_ci_sha": "08e7b214c8a1ec27bd17190e0e4f2c33ce31a702",
+    "proof": {
+      "e210": 43159132749,
+      "d172": 43159131977,
+      "authority": 43159132755,
+      "continuity": 43159132613,
+      "d166": 43159132500,
+      "d170": 43159132223
+    },
+    "gates_note": "historical Agent-only/old release pin jobs failing, not counted as E210 PASS"
+  },
+  "d173_e210_source_ci_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "SOURCE_CI_EVIDENCE",
+    "change_id": "D173",
+    "subchange": "E210",
+    "field_source": "OWNER_WEB337_NOT_PASS",
+    "tested_sha": "08e7b214c8a1ec27bd17190e0e4f2c33ce31a702",
+    "base_main_sha": "7d67e5f0510ef98c3b0222b6c8000ac06aa1e141",
+    "pr": 943,
+    "proof": {
+      "e210": 43159132749,
+      "d172": 43159131977,
+      "authority": 43159132755,
+      "continuity": 43159132613,
+      "d166": 43159132500,
+      "d170": 43159132223
+    },
+    "code": "PASS_SOURCE",
+    "ci": "SIX_E210_RELEVANT_SUCCESS",
+    "release": "PENDING_GATED",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "privacy_safe": true
   }
 }
