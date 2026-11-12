@@ -3758,7 +3758,7 @@ async function loadReporterOverdueSnapshot(): Promise<void> {
   markWebUpdateReceived();
 }
 
-async function loadReporterRecentSnapshot(): Promise<void> {
+async function loadReporterRecentSnapshot(includeTotals = false): Promise<void> {
   const requestGeneration = ++reporterRecentLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
@@ -3773,6 +3773,7 @@ async function loadReporterRecentSnapshot(): Promise<void> {
     apiRange(recentFrom, recentTo).to,
     suffix,
     recentFilter === "CLOSED",
+    includeTotals,
   );
   if (
     requestGeneration !== reporterRecentLoadGeneration ||
@@ -3782,7 +3783,7 @@ async function loadReporterRecentSnapshot(): Promise<void> {
   ) return;
   if (recent.total > 0 && recentOffset >= recent.total) {
     recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
-    return loadReporterRecentSnapshot();
+    return loadReporterRecentSnapshot(includeTotals);
   }
   recentRows = recent.items;
   recentTotal = recent.total;
@@ -5891,7 +5892,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
         tasks.push(loadReporterOverdueSnapshot());
       }
       if (reporterRecentChanged && activeSection === "results" && !patched.recentExact) {
-        tasks.push(loadReporterRecentSnapshot());
+        tasks.push(loadReporterRecentSnapshot(opsSkuSuffix.length >= 3));
       }
 
       const needsCounterReconcile =
