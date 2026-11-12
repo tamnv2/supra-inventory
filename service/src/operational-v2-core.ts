@@ -926,6 +926,10 @@ function reporterOverdue(state: DurableObjectState, url: URL, capture?: D173View
   const parsedOffset = Number(url.searchParams.get("offset") || 0);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
   const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
+  const suffix = String(url.searchParams.get("sku_suffix") || "").trim();
+  if (suffix && !/^[0-9]{3,32}$/.test(suffix)) return capturedView({ error: "INVALID_SKU_SUFFIX" }, capture, 400);
+  const skuPredicate = suffix ? " AND b.sku LIKE ?" : "";
+  const skuArgs = suffix ? [`%${suffix}`] : [];
   const config = readSlaConfig(state);
   const serverNow = new Date(nowMs).toISOString();
   if (!config?.auto_skip_enabled || config.auto_skip_mode !== "PER_PICKER") {
@@ -937,7 +941,8 @@ function reporterOverdue(state: DurableObjectState, url: URL, capture?: D173View
        FROM report_batches b
        JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE b.status = 'PENDING'
-        AND s.overdue_picker_count > 0`,
+        AND s.overdue_picker_count > 0${skuPredicate}`,
+    ...skuArgs,
   )) || {};
 
   const rows = d166MeasuredSqlRows<SqlRow>(state, "REPORTER_OVERDUE_PAGE", 
@@ -958,9 +963,10 @@ function reporterOverdue(state: DurableObjectState, url: URL, capture?: D173View
        FROM report_batches b
        JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE b.status = 'PENDING'
-        AND s.overdue_picker_count > 0
+        AND s.overdue_picker_count > 0${skuPredicate}
       ORDER BY first_overdue_at ASC, b.batch_id ASC
       LIMIT ? OFFSET ?`,
+    ...skuArgs,
     limit,
     offset,
   );
@@ -984,6 +990,9 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
   const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
   const statusValue = String(url.searchParams.get("status") || "").trim().toUpperCase();
   const status = ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
+  const suffix = String(url.searchParams.get("sku_suffix") || "").trim();
+  if (suffix && !/^[0-9]{3,32}$/.test(suffix)) return capturedView({ error: "INVALID_SKU_SUFFIX" }, capture, 400);
+  const pickerRows = status === "CLOSED" && url.searchParams.get("picker_rows") === "1";
   const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
   const todayStart = appTodayOpen ? appTodayStartIso(nowMs) : "";
   const from = String(url.searchParams.get("from") || "").trim();
@@ -1007,15 +1016,32 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     args.push(to);
   }
   if (status) { where.push("b.status = ?"); args.push(status); }
+  if (suffix) { where.push("b.sku LIKE ?"); args.push(`%${suffix}`); }
   const clause = where.join(" AND ");
 
+  // The CLOSED view has one row per distinct picker *inside* each batch.
+  // Page AFTER expanding pickers: never truncate to 50 batches first.
+  const pageSql = pickerRows
+    ? `WITH withdrawn AS MATERIALIZED (
+         SELECT b.batch_id, t.picker_employee_code, MAX(t.withdrawn_at) AS withdrawn_at
+           FROM report_batches b JOIN report_tickets t ON t.batch_id = b.batch_id
+          WHERE ${clause} AND t.status = 'WITHDRAWN'
+          GROUP BY b.batch_id, t.picker_employee_code
+       ), page_ids AS MATERIALIZED (
+         SELECT w.batch_id, w.picker_employee_code, w.withdrawn_at
+           FROM withdrawn w JOIN report_batches b ON b.batch_id = w.batch_id
+          ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC, w.picker_employee_code ASC
+          LIMIT ? OFFSET ?
+       )`
+    : `WITH page_ids AS MATERIALIZED (
+         SELECT b.batch_id FROM report_batches b
+          WHERE ${clause}
+          ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC
+          LIMIT ? OFFSET ?
+       )`;
+
   const rows = d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE",
-    `WITH page_ids AS MATERIALIZED (
-       SELECT b.batch_id FROM report_batches b
-       WHERE ${clause}
-       ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC
-       LIMIT ? OFFSET ?
-     )
+    `${pageSql}
      SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
@@ -1031,6 +1057,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
               ''
             ) AS resolved_by_employee_code,
             b.version, p.batch_id AS previous_batch_id, p.resolved_at AS previous_resolved_at,
+            ${pickerRows ? "page.picker_employee_code AS withdrawn_picker_employee_code, COALESCE(withdrawn_user.display_name, '') AS withdrawn_picker_display_name, page.withdrawn_at AS withdrawn_picker_withdrawn_at," : ""}
             CASE
               WHEN b.status = 'CLOSED' THEN
                 (SELECT COUNT(DISTINCT COALESCE(t.picker_user_id, t.picker_employee_code))
@@ -1062,7 +1089,8 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
           AND date(p.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours')
        LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
-      ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC`,
+       ${pickerRows ? "LEFT JOIN users withdrawn_user ON withdrawn_user.employee_code = page.picker_employee_code" : ""}
+      ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC${pickerRows ? ", page.picker_employee_code ASC" : ""}`,
     ...args,
     limit,
     offset,
@@ -1092,6 +1120,22 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     };
   });
 
+  // Search requests must not re-run the expensive account-wide result ACK
+  // and status aggregates. The unfiltered, realtime-updated view owns those.
+  const filteredTotal = (suffix || pickerRows) ? Number(first(
+    d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT",
+      pickerRows
+        ? `SELECT COUNT(*) AS total FROM (
+             SELECT b.batch_id, t.picker_employee_code FROM report_batches b
+             JOIN report_tickets t ON t.batch_id = b.batch_id
+             WHERE ${clause} AND t.status = 'WITHDRAWN'
+             GROUP BY b.batch_id, t.picker_employee_code
+           )`
+        : `SELECT COUNT(*) AS total FROM report_batches b WHERE ${clause}`,
+      ...args,
+    ),
+  )?.total || 0) : null;
+
   const summaryWhere = ["b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')"];
   const summaryArgs: SqlStorageValue[] = [];
   if (appTodayOpen) { summaryWhere.push("b.first_report_at >= ?"); summaryArgs.push(todayStart); }
@@ -1102,7 +1146,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     summaryArgs.push(to);
   }
   const summaryClause = summaryWhere.join(" AND ");
-  const totalsRow = first(
+  const totalsRow = suffix ? {} : first(
     d166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS",
       `SELECT
          COALESCE(SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
@@ -1118,7 +1162,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
   // Avoid materializing and grouping the entire ACK table three times per query.
   // DISPLAYED remains an exact per-batch DISTINCT lookup because summary rows
   // do not carry displayed_count. Missing summaries retain SQL fallback parity.
-  const ackTotals = first(
+  const ackTotals = suffix ? {} : first(
     d166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS",
       `SELECT
          COUNT(*) AS candidate_batches,
@@ -1147,7 +1191,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     ),
   ) || {};
   // Existing SQL aggregate doubles as low-cardinality diagnosis; no second SQL read.
-  recordD173AckShape(state, Number(ackTotals.candidate_batches || 0),
+  if (!suffix) recordD173AckShape(state, Number(ackTotals.candidate_batches || 0),
     Number(ackTotals.missing_summaries || 0));
 
   return capturedView({
@@ -1157,7 +1201,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     server_now_ms: serverNowMs,
     // One aggregate already covers all outcome statuses, including when the
     // current page is empty. Do not re-scan report_batches solely for COUNT.
-    total: status === "HAS_STOCK" ? Number(totalsRow.has_stock || 0)
+    total: filteredTotal !== null ? filteredTotal : status === "HAS_STOCK" ? Number(totalsRow.has_stock || 0)
       : status === "SKIP_ALLOWED" ? Number(totalsRow.skip_allowed || 0)
       : status === "CLOSED" ? Number(totalsRow.withdrawn || 0)
       : Number(totalsRow.has_stock || 0) + Number(totalsRow.skip_allowed || 0)
@@ -1165,6 +1209,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     limit,
     offset,
     filter_status: status,
+    totals_included: !suffix,
     totals: {
       has_stock: Number(totalsRow.has_stock || 0),
       skip_allowed: Number(totalsRow.skip_allowed || 0),
