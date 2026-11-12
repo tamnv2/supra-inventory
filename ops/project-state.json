@@ -2492,7 +2492,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E208_AGENT192_CODE_CI_SIGNED_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E213_WEB338_FIELD_FAIL__SOURCE_CANDIDATE_PR946_CI_PENDING_RELEASE_HOLD__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7548,18 +7548,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e208-agent192-signed-ota-receipt-20261112",
-    "pr": 939,
-    "latest_checkpoint_id": "D173-E208",
+    "working_branch": "fix/d173-web338-field-six-issues-20261112",
+    "pr": 946,
+    "latest_checkpoint_id": "D173-E213",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E208_AGENT192_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 939,
-    "active_working_branch": "docs/d173-e208-agent192-signed-ota-receipt-20261112",
-    "working_pr_lifecycle": "PR939_OPEN_AGENT192_RELEASE_RECEIPT_DOCS_ONLY__PR937_MERGED_MAIN_7CB003__FIELD_OWNER_PENDING"
+    "working_pr": 946,
+    "active_working_branch": "fix/d173-web338-field-six-issues-20261112",
+    "working_pr_lifecycle": "PR946_OPEN_DRAFT_WEB338_SOURCE_ONLY__PRODUCTION_REMAINS_E211_TECH_PASS_FIELD_FAIL"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13691,5 +13691,35 @@
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E211_WEB338_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
     "no_new_runtime_mutation": true
+  },
+  "d173_e213_web338_field_six_issues": {
+    "id": "D173-E213",
+    "date_vn": "2026-11-12",
+    "pr": 946,
+    "branch": "fix/d173-web338-field-six-issues-20261112",
+    "base_main_sha": "d06d1342706a77d8afb9b43b4dd7c02e77694053",
+    "old_release": {
+      "version": "3.3.8",
+      "source_main_sha": "b913f86bff209905f2d2dab3bf7a1ffa88c4a279",
+      "deploy_run": 43159857445,
+      "field": "OWNER_NOT_PASS"
+    },
+    "owner_requirements": "TITLE_150_PERCENT__SEARCH_ACTUAL_RESULTS__WITHDRAWN_PICKER_IDENTITY__SKIP_TOTAL_ONLY__HALF_WIDTH_SKU__COMPACT_ONE_LINE_DESKTOP",
+    "changed_runtime": "D173_WEB_AND_OPERATIONAL_CORE_READ_ONLY_PROJECTION",
+    "excluded": [
+      "D172_BUSINESS",
+      "AGENT",
+      "APK",
+      "FIREBASE",
+      "DB_SCHEMA",
+      "STABLE"
+    ],
+    "source_test": "NEW_FIXTURE_AND_CI_WORKFLOW_PR946",
+    "code": "SOURCE_PATCH_CANDIDATE",
+    "ci": "PENDING_EXACT_HEAD_PASS",
+    "release": "NOT_AUTHORIZED_NO_NEW_DEPLOY",
+    "field": "FAIL_WEB338_REPAIR_UNVERIFIED",
+    "owner_pass": false,
+    "doc": "docs/D173_E213_WEB338_FIELD_SIX_ISSUES_2026-11-12.md"
   }
 }
