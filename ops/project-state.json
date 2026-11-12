@@ -2492,7 +2492,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E220_WEB3310_FIELD_SKU_NOT_PASS__ONE_DAY_LOCAL_SEARCH_DESIGN_REVIEW_ONLY__D172_HOLD",
+    "current_change_status": "D173_E221_WEB3311_CODE_CANDIDATE_SOURCE_CI_PENDING__FIELD_3310_SKU_FAIL__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7550,16 +7550,16 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e220-web-daily-client-search-review-20261112",
     "pr": 952,
-    "latest_checkpoint_id": "D173-E220",
+    "latest_checkpoint_id": "D173-E221",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E220_WEB3310_FIELD_SKU_NOT_PASS__REVIEW_ONLY_NO_NEW_CODE_OR_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
+    "owner_release_gate": "D173_E221_WEB3311_OWNER_CODE_APPROVED__CI_PENDING__NO_MERGE_NO_RELEASE__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 952,
     "active_working_branch": "docs/d173-e220-web-daily-client-search-review-20261112",
-    "working_pr_lifecycle": "PR951_MERGED_WEB3310_RELEASE_RECEIPT__PR952_DRAFT_DOCS_ONLY_E220_FIELD_FAIL_DESIGN_REVIEW"
+    "working_pr_lifecycle": "PR952_OPEN_DRAFT_D173_E221_WEB3311_CODE_CANDIDATE__CI_PENDING__PRODUCTION_WEB3310_UNCHANGED"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13908,5 +13908,27 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md"
+  },
+  "d173_e221_web_daily_unpaginated": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E221",
+    "owner_instruction": "BO_PHAN_TRANG_CHAP_NHAN_RUI_RO_USAGE_TANG_YEU_CAU_SUA_SAU_NEU_CAN",
+    "approval": "CODE_ONLY",
+    "pr": 952,
+    "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+    "base_main_sha": "da5f6948852777528ced565cf894b35364841ee0",
+    "target_web_version": "3.3.11",
+    "current_production_version": "3.3.10",
+    "scope": "WEB_D173_UNPAGINATED_SINGLE_DAY_RESULTS_LOCAL_SKU_PLUS_CORE_FORWARD_ARGS",
+    "load_page_limit": 200,
+    "code": "SOURCE_CANDIDATE",
+    "ci": "PENDING",
+    "release": "HOLD_NO_NEW_AUTHORIZATION",
+    "field_pass": false,
+    "owner_pass": false,
+    "shared_worker_d172_regression": "REQUIRED",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md"
   }
 }

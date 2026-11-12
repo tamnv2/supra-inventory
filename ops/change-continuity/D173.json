@@ -7,11 +7,11 @@
   "pr": 952,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E220",
+    "id": "D173-E221",
     "date_vn": "2026-11-12",
-    "summary": "Owner reports Web3.3.10 FIELD FAIL SKU search and requests one-day/all-row/local-browser search. Verified core.ts authorized reporter/recent strips sku_suffix/picker_rows/include_totals; overdue strips suffix. D173 Web+shared Worker impact review only, no code/release.",
-    "status": "E220_WEB3310_FIELD_NOT_PASS__VERIFIED_CORE_PARAM_DROP__DESIGN_REVIEW_ONLY",
-    "source": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md",
+    "summary": "Owner explicitly approves removing visible pagination despite possible increased Cloudflare usage, to revise later only by new request. Implement Web-only daily results/local SKU/full 200-row page aggregation and minimal authenticated Core parameter bridge on PR952; code CI pending, no release authorization.",
+    "status": "E221_WEB3311_SOURCE_CANDIDATE_CI_PENDING__PROD3310_FIELD_SKU_FAIL__D172_HOLD",
+    "source": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md",
     "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
     "pr": 952
   },
@@ -4197,6 +4197,33 @@
         "Impact review: Core param forwarding repair is shared Worker code and requires D172 independent regression and Owner scope acceptance; exact use of include_totals affects SQL aggregate cost.",
         "Impact review: No confirmed production usage/latency delta yet; physical authenticated/browser test remains needed."
       ]
+    },
+    {
+      "id": "D173-E221",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly directs remove reporter tab pagination and accepts potential usage increase pending later observation",
+      "status": "CODE_ONLY_APPROVED__SOURCE_CANDIDATE_CI_PENDING__RELEASE_HOLD",
+      "owner_approval": true,
+      "owner_release_approved": false,
+      "pr": 952,
+      "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+      "facts": [
+        "Owner says: Cứ bỏ phân trang đi, nếu usage tăng đột biến anh sẽ yêu cầu sửa sau.",
+        "This supersedes E220 design REVIEW hold on usage only; no evidence of Web3.3.11 Production deployment or measured quota effect.",
+        "Web3.3.10 Production FIELD SKU search remains FAIL; verified root cause is authorized Core reporter/recent drops sku_suffix/picker_rows/include_totals.",
+        "Scope: remove visible pagination of five reporter operation tabs; one VN-day picker in three result tabs, pending/overdue remain all-day open backlog; client-side suffix search with zero per-keystroke requests.",
+        "Implementation retains internal limit=200 API paging; shared Worker Core auth forwarding requires D172 isolation test, no D172 code/data/schema changes."
+      ],
+      "evidence": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/952; accepted main da5f6948852777528ced565cf894b35364841ee0",
+      "next_action": "Run failing regression/repaired Web build/Worker typecheck/D172 isolation on exact PR952 head; repair any scoped failures; release remains Owner-gated.",
+      "code": "SOURCE_CANDIDATE",
+      "ci": "PENDING",
+      "release": "HOLD",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -5547,5 +5574,18 @@
     "release": "HOLD_NO_NEW_AUTHORIZATION",
     "doc": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md",
     "verified_core_param_loss": true
+  },
+  "d173_e221_web_daily_unpaginated": {
+    "pr": 952,
+    "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+    "source_main_sha": "da5f6948852777528ced565cf894b35364841ee0",
+    "owner_code_approved": true,
+    "owner_release_approved": false,
+    "source_version": "3.3.11",
+    "ci": "PENDING",
+    "release": "HOLD",
+    "field_pass": false,
+    "owner_pass": false,
+    "doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md"
   }
 }

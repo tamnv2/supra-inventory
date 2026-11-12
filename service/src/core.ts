@@ -1486,7 +1486,7 @@ export class InventoryCore {
         const user = this.authorizeInteractiveIdentity(request, reporterRoles);
         if (user instanceof Response) return user;
         const params = new URLSearchParams();
-        for (const name of ["limit", "offset"]) {
+        for (const name of ["limit", "offset", "sku_suffix"]) {
           if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
         }
         return this.authorizedOperationalResponse(request, user, "/operational/reporter/overdue", params);
@@ -1496,7 +1496,7 @@ export class InventoryCore {
         const user = this.authorizeInteractiveIdentity(request, reporterRoles);
         if (user instanceof Response) return user;
         const params = new URLSearchParams();
-        for (const name of ["limit", "offset", "status", "scope", "from", "to"]) {
+        for (const name of ["limit", "offset", "status", "scope", "from", "to", "sku_suffix", "picker_rows", "include_totals"]) {
           if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
         }
         return this.authorizedOperationalResponse(request, user, "/operational/reporter/recent", params);

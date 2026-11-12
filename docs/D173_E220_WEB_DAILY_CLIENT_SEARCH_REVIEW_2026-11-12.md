@@ -31,3 +31,8 @@
 
 ## Trạng thái
 **FIELD Web3.3.10: NOT PASS** (lỗi SKU). **Phương án: REVIEW ONLY**, Owner yêu cầu thiết kế lại, ranh giới/nguy cơ cần xác nhận trước code. E219 Technical Release PASS vẫn là sự thật; không suy diễn Owner PASS. D172 **PENDING/HOLD**; Stable **OWNER-GATED**.
+
+## Owner decision supersedes REVIEW-ONLY usage hold (12/11/2026)
+Owner explicitly directs: “Cứ bỏ phân trang đi, nếu usage tăng đột biến anh sẽ yêu cầu sửa sau.” This **approves code implementation** of complete in-browser lists despite potential Cloudflare request/Rows Read growth; it does **not** claim observed quota improvement or approve a new Production release.
+
+D173-E221 implements previous single-day/local-search request plus Owner's pagination decision: one VN-day picker on three terminal result tabs only; pending/overdue remain all-day outstanding; no visible pagination across five reporter tabs; Web still fetches bounded 200-row API pages to fill the local list; SKU suffix filtering works in browser RAM with **zero per-keypress search requests**. Additive Core route-param forwarding repairs the verified E220 `sku_suffix/picker_rows/include_totals` loss without schema/business changes. Shared Worker touching mandates independent D172 regression; FIELD/Owner pending. See `docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md`.
