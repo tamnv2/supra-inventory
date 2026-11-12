@@ -7,11 +7,11 @@
   "pr": 935,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R02",
+    "id": "D173-E204-R03",
     "date_vn": "2026-11-12",
-    "summary": "Owner permits only 1 optional 2 real puzzle attempts due anti-spam lockout risk; PR935 V2.1 field capture should stop after one reviewed ROI-only ZIP. No retries/production changes, no FIELD/OWNER PASS.",
-    "status": "FIELD_NOT_RUN__OWNER_TESTS_RESTRICTED_TO_1_OPTIONAL_2__NO_RUNTIME_CHANGE",
-    "source": "PR935 + E204-R01 verified technical artifact"
+    "summary": "Owner V2.1 diagnostic ZIP analyzed: 8 Tests, 1 drag FAIL with 122px annotated goal /120px sent /114px observed, 7 no-drags IMAGE_AMBIGUOUS. Offline only; no more live attempts recommended. FIELD/OWNER not PASS.",
+    "status": "FIELD_FAIL_ANALYZED_OFFLINE__NO_FURTHER_LIVE_ATTEMPTS_RECOMMENDED__NO_RUNTIME_CHANGE",
+    "source": "Owner-provided ZIP inspected offline; no raw images or user data committed"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3954,6 +3954,38 @@
       "code": "NO_CHANGE",
       "ci": "NO_NEW_CI_CLAIM",
       "release": "NO_CHANGE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R03",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_UPLOADED_SANITIZED_FIELD_DIAGNOSTIC_REVIEW",
+      "topic": "V2.1 bounded ZIP: one witnessed drag FAIL, seven no-drag IMAGE_AMBIGUOUS",
+      "status": "FIELD_FAIL_ANALYZED_OFFLINE__NO_FURTHER_LIVE_ATTEMPTS_RECOMMENDED__NO_RUNTIME_CHANGE",
+      "evidence_scope": "Owner-provided puzzle-diagnostic-v21.zip, inspected offline with valid ZIP CRC; contains a numeric JSON with 8 Test records and one Owner-approved before/after puzzle-only PNG pair. Raw file and PNGs are NOT committed to public repo.",
+      "verified_facts": [
+        "test_count=8, attempted=true 1, attempted=false 7, all 7 no-drag records reason IMAGE_AMBIGUOUS; no input mouse trace in no-drag records.",
+        "Only first attempt has Owner-approved before/after image and annotated points: manual source (405,275), slot (527,274), observed piece (519,275) full screenshot coordinates.",
+        "Attempt1 manual reference horizontal travel 122px, V2 estimated delta=120px, acknowledged release at x=526 vs press x=406 (120px), manual observed travel=114px, Owner FAIL.",
+        "On attempt1 delta estimate error=-2px; observed travel shortfall versus desired=8px; observed travel is 6px less than acknowledged requested pointer travel.",
+        "Attempt1 CDP trace contains 1 press, 26 moves (including initial position), 1 release, acknowledged in about 1573ms from press to release. These acknowledgements do not prove server acceptance or precise physical piece movement.",
+        "Seven no-drag matches have scores 23.4-32.4, candidate_count values ranging 84-2316; candidate_count in source counts correlation pixels above threshold, not distinct puzzle slots.",
+        "Source PR935 algorithm still calls PuzzleVision.Analyze(full viewport screenshot), although V2.1 ROI limits evidence capture only; no matcher change was included in diagnostic build.",
+        "Multiple records sharing a score/count cannot establish distinct challenge images because only one image pair was approved and exported."
+      ],
+      "interpretations_not_proven": [
+        "Attempt1 visible failure is consistent with a shortfall around 8px, but two manually annotated image points and one attempt cannot prove fixed scaling, DPI cause, site input mapping or a generic pixel offset.",
+        "Seven IMAGE_AMBIGUOUS no-drags are due to source threshold for nearly equal competing correlation hypotheses; image-specific cause cannot be determined without allowed visual evidence.",
+        "One reference sample cannot distinguish screenshot capture delay, piece dynamics, site rejection threshold, or pointer-to-piece mapping precisely."
+      ],
+      "decision": "No additional Owner live tests requested due account anti-spam/lockout risk. Analyze sample and source offline only. Do not blind-adjust drag constants or claim FIELD PASS. Prefer owner-approved official WMS integration or sanctioned test environment for any further validation.",
+      "next_action": "Prepare source-only analysis and isolated synthetic tests if separately authorized; one live sample is adequate to prioritize image ambiguity and input-vs-observed discrepancy but not prove full root cause. Protect D172, Production Agent, Worker, Stable.",
+      "code": "UNCHANGED",
+      "ci": "UNCHANGED",
+      "release": "UNCHANGED",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
