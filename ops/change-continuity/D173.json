@@ -10,7 +10,7 @@
     "id": "D173-E216",
     "date_vn": "2026-11-12",
     "summary": "Owner reports Web3.3.9 SKU search returns all after loading; date pickers should be right beside SKU; active tab background not persistent. Surgical Web-only PR950, CI pending, no release authorization; D172 HOLD.",
-    "status": "WEB339_OWNER_FIELD_NOT_PASS__CODE_ONLY_PR950__CI_PENDING__RELEASE_HOLD",
+    "status": "WEB339_E216_CODE_SOURCE_CI_PASS__PR950_DRAFT_RELEASE_HOLD__FIELD_OWNER_PENDING",
     "source": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md",
     "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
     "pr": 950
@@ -4056,7 +4056,7 @@
       "date_vn": "2026-11-12",
       "kind": "OWNER_COMMAND",
       "topic": "Web3.3.9 FIELD NOT PASS: searching all rows, right dates beside SKU, and persistent selected tabs",
-      "status": "CODE_ONLY_PR950_SOURCE_CANDIDATE_CI_PENDING__RELEASE_HOLD",
+      "status": "PR950_SOURCE_CI_PASS_EXACT_PIN__RELEASE_HOLD_FIELD_PENDING",
       "owner_approval": true,
       "owner_release_approved": false,
       "pr": 950,
@@ -4066,17 +4066,26 @@
         "Owner requests date input controls right aligned adjacent to SKU input.",
         "Owner requests all five Xử lý báo hàng tabs show a distinct persistent selected background.",
         "Source confirms current Web input handler calls full patchActiveSection synchronously while typing >=3 digits; production network root cause not verified without authenticated trace.",
-        "Existing DO SQL uses sku_suffix where and read API forwards it; response postcondition and in-place pending UI added, no new API request or business schema changes."
+        "Existing DO SQL uses sku_suffix where and read API forwards it; response postcondition and in-place pending UI added, no new API request or business schema changes.",
+        "PR950 source SHA 605242017a40288d45d87e6688205c6fd4751aed verified CI: Web source/build/suffix run 43178722207 SUCCESS; D172 independent 43178721869 SUCCESS; Authority 43178722392 SUCCESS; Project State 43178722565 SUCCESS.",
+        "Earlier E216 CI failed only because service TypeScript test prerequisite had not been installed in the test job; workflow corrected and exact-source CI successfully re-run; no D172 business source changed."
       ],
       "evidence": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/950; current Web3.3.9 source main 75cc1b812c9491bf904c37175d8cc498105e2b5b",
       "next_action": "Run exact source test Web build, suffix regression and D172 isolation on PR950; retain Web 3.3.9 production; Owner release instruction required separately; FIELD search and selected tabs must be verified after any release.",
-      "code": "SOURCE_CANDIDATE",
-      "ci": "PENDING",
+      "code": "PASS_EXACT_SOURCE",
+      "ci": "PASS_EXACT_SOURCE_4_OF_4",
       "release": "HOLD_NO_RELEASE_AUTHORIZATION",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "605242017a40288d45d87e6688205c6fd4751aed",
+      "ci_evidence": {
+        "web_ci": 43178722207,
+        "d172_independent": 43178721869,
+        "authority": 43178722392,
+        "state": 43178722565
+      }
     }
   ],
   "resume": {
@@ -5369,12 +5378,19 @@
     "pr": 950,
     "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
     "base_main_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
+    "code": "PASS_EXACT_SOURCE",
+    "ci": "PASS_4_OF_4_EXACT_SHA",
     "release": "HOLD_OWNER_NOT_AUTHORIZED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "doc": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md"
+    "doc": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md",
+    "source_ci_sha": "605242017a40288d45d87e6688205c6fd4751aed",
+    "ci_evidence": {
+      "web_ci": 43178722207,
+      "d172_independent": 43178721869,
+      "authority": 43178722392,
+      "state": 43178722565
+    }
   }
 }

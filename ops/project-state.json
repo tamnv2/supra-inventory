@@ -2492,7 +2492,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E216_WEB339_FIELD_NOT_PASS__PR950_CODE_ONLY_CI_PENDING__NO_NEW_WEB_RELEASE__D172_HOLD",
+    "current_change_status": "D173_E216_WEB339_FIELD_NOT_PASS__PR950_SOURCE_CI_PASS_RELEASE_HOLD__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -13824,14 +13824,21 @@
       "DATE_PICKERS_RIGHT_ALIGNED_NEAR_SKU",
       "ACTIVE_TAB_DISTINCT_BACKGROUND_PERSISTENT"
     ],
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
+    "code": "PASS_EXACT_SOURCE",
+    "ci": "PASS_4_OF_4_EXACT_SHA",
     "production_version": "3.3.9",
-    "release": "NO_NEW_RELEASE_AUTHORIZED",
-    "field": "NOT_PASS_SEARCH_AND_TAB_SELECTION",
+    "release": "CODE_ONLY_NO_NEW_RELEASE_AUTHORIZED",
+    "field": "NOT_VERIFIED_AFTER_NEW_SOURCE",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "doc": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md"
+    "doc": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md",
+    "source_ci_sha": "605242017a40288d45d87e6688205c6fd4751aed",
+    "ci_evidence": {
+      "web_ci": 43178722207,
+      "d172_independent": 43178721869,
+      "authority": 43178722392,
+      "state": 43178722565
+    }
   }
 }

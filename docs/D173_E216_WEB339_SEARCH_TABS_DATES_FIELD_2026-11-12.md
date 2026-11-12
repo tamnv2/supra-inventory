@@ -22,3 +22,11 @@
 - D173 Web-only. Không đổi service Worker, DB, Firebase, Android/Agent, D172, Stable, release configuration.
 - SOURCE CI PASS cần tất cả regression + TypeScript/Web build + independent D172 pass theo exact PR head.
 - **Không phát hành Production trong PR này**; mã version 3.3.9 giữ nguyên cho đến lúc có lệnh phát hành mới. FIELD/OWNER PASS cần kiểm chứng trình duyệt thật sau phát hành đúng gate.
+
+## Source CI checkpoint (12/11/2026)
+- Exact PR950 source SHA `605242017a40288d45d87e6688205c6fd4751aed`:
+  - [Web UI + TypeScript build + SKU SQL regression](https://github.com/tamnv2/supra-inventory/actions/runs/43178722207) — **SUCCESS**.
+  - [D172 independent guard](https://github.com/tamnv2/supra-inventory/actions/runs/43178721869) — **SUCCESS**.
+  - [Repository authority](https://github.com/tamnv2/supra-inventory/actions/runs/43178722392) và [project-state](https://github.com/tamnv2/supra-inventory/actions/runs/43178722565) — **SUCCESS**.
+- Các lần chạy đầu thất bại do bước test tổng thiếu module TypeScript tại `service`; đã thêm cài dependency test, chạy lại PASS mà không sửa D172 source.
+- **CODE/CI PASS, RELEASE CHƯA ĐƯỢC DUYỆT, FIELD/OWNER PENDING.** Web Production tiếp tục 3.3.9.
