@@ -18,7 +18,7 @@ on:
       - "ops/resource-registry.json"
       - "tools/authority_guard.py"
   push:
-    branches: [main]
+    branches: [main, fix/d173-e204-agent191-ota-gate-20261112]
     paths:
       - ".github/workflows/d173-e202-agent191-release.yml"
       - "relay-agent/VERSION"
@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   source:
-    if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e202-agent190-field-root-cause-20261112'
+    if: (github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e204-agent191-ota-gate-20261112') || (github.event_name == 'push' && github.ref == 'refs/heads/fix/d173-e204-agent191-ota-gate-20261112')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,7 +54,7 @@ jobs:
         run: node --test tests/d172-*.test.mjs
 
   native:
-    if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e202-agent190-field-root-cause-20261112'
+    if: (github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e204-agent191-ota-gate-20261112') || (github.event_name == 'push' && github.ref == 'refs/heads/fix/d173-e204-agent191-ota-gate-20261112')
     needs: source
     runs-on: windows-latest
     permissions:
@@ -84,7 +84,7 @@ jobs:
           Write-Host 'E202_AGENT190_NATIVE_SOURCE_PASS'
 
   agent191-ota:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E202_AGENT190_ONLY_RELEASE:')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E202_AGENT191_ONLY_RELEASE:')
     runs-on: windows-latest
     environment: beta
     env:

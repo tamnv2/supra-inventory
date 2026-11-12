@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9"
+BASE = "637d9d384e2472945d87e2a43d9203e7ace10622"
 SOURCE = "673a1277ddc1592a4764b2bc57a1da7d3d482a9a"
 MARKER = "D173-E202_AGENT191_ONLY_RELEASE:"
 AUTH = "ops/d173-e202-agent191-release-authorization.json"
@@ -98,7 +98,7 @@ def main():
     if registry.get("environments", {}).get("beta", {}).get("relay_agent_release") != "relay-agent-v190__D173_E199_SIGNED_RELEASE_PASS__FIELD_OWNER_PENDING":
         deny("AGENT190_BASELINE_DRIFT")
     journal = json.loads((ROOT / "ops/change-continuity/D173.json").read_text(encoding="utf-8"))
-    if journal.get("pr") != 933 or journal.get("last_checkpoint", {}).get("id") != "D173-E203":
+    if journal.get("pr") != 934 or journal.get("last_checkpoint", {}).get("id") != "D173-E205":
         deny("CHANGE_CONTINUITY_MISMATCH")
     if args.preflight:
         if git("merge-base", "origin/main", "HEAD") != BASE:
