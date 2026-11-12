@@ -41,7 +41,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Owner source scope, native tab and deterministic roster tests
+      - name: Owner exact-source WinForms 60/40 layout and D172 regression
         run: |
           python3 tools/d173_e207_agent192_release_gate.py --preflight
           python3 tools/authority_guard.py
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
-      - name: Build existing Host14 interface and Agent192 x64 native smoke
+      - name: Build unchanged Host14 interface and Agent192 x64 native smoke
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -84,7 +84,7 @@ jobs:
           Write-Host 'E207_AGENT190_NATIVE_SOURCE_PASS'
 
   agent192-ota:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E207_AGENT191_ONLY_RELEASE:')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E207_AGENT192_ONLY_RELEASE:')
     runs-on: windows-latest
     environment: beta
     env:
@@ -135,7 +135,7 @@ jobs:
           if ($existingTags -contains 'relay-agent-v192') {
             throw 'E207 v191 already exists, refusing overwrite'
           }
-          Write-Host 'E207_AGENT191_OWNER_PIN_AND_OTA_BASELINE_PASS'
+          Write-Host 'E207_AGENT192_OWNER_PIN_AND_OTA_BASELINE_PASS'
 
       - name: Inject and validate existing Firebase and Google Apps Script configuration
         shell: pwsh
@@ -266,4 +266,4 @@ jobs:
               [int64]$remoteManifest.size_bytes -ne (Get-Item $remoteExe).Length) {
             throw 'E207 Agent192 OTA readback mismatch'
           }
-          Write-Host "E207_AGENT191_TECHNICAL_OTA_SHA_PASS tag=$tag sha256=$tagHash FIELD_PENDING"
+          Write-Host "E207_AGENT192_TECHNICAL_OTA_SHA_PASS tag=$tag sha256=$tagHash FIELD_PENDING"
