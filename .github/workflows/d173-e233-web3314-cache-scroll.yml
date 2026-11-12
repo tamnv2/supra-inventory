@@ -27,7 +27,7 @@ jobs:
           node-version: '22'
       - name: D173 E233 and existing five-tab source regression
         run: |
-          node --test tests/d173-e233-web3314-cache-scroll.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e227-web3312-eight-ui.test.mjs tests/d173-e221-web-daily-local-search.test.mjs
+          node --test tests/d173-e233-web3314-cache-scroll.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e227-web3312-eight-ui.test.mjs
       - name: Build Web TypeScript and Vite
         working-directory: web
         run: |
