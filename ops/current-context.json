@@ -7,16 +7,16 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E229",
-    "pr": 956,
-    "branch": "docs/d173-e229-web3312-production-receipt-20261112",
-    "status": "WEB3312_PRODUCTION_TECH_PASS__PR956_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
-    "owner_merge_approved": true,
-    "owner_release_approved": true,
-    "source_doc": "docs/D173_E229_WEB3312_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "checkpoint_id": "D173-E230",
+    "pr": 957,
+    "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
+    "status": "WEB3313_OWNER_FIELD_UI_CODE_ONLY__PR957_DRAFT_SOURCE_CI_PENDING__NO_PRODUCTION_RELEASE",
+    "owner_merge_approved": false,
+    "owner_release_approved": false,
+    "source_doc": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md",
     "production_web_version": "3.3.12",
-    "source_main_sha": "8dc91e50a31c3f547b4e1b16819f492c5da1fa65",
-    "target_web_version": "3.3.12"
+    "source_main_sha": "b995b1f7ac6f822cd609cd499892f7dbd4fdaaed",
+    "target_web_version": "3.3.13"
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
