@@ -4703,5 +4703,48 @@
     "owner_pass": false,
     "owner_code_authorization": false,
     "d172": "INDEPENDENT_HOLD"
+  },
+  "d173_web_results_ux_review_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "NEW_OWNER_WEB_UX_REQUEST_AND_VERIFIED_ANALYSIS_ONLY",
+    "owner_request": "Web operations: remove extra report navigation; show withdrawn picker employee code/name; inline per-batch picker report details on HAS_STOCK/SKIP_ALLOWED double-click; numeric >=3 SKU search across entire date-scoped server result before pagination and active tab; consolidate date controls right of tabs and auto-apply; add first_report_at next to resolved time in two resolved tabs",
+    "verified_source_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "verified_live_pr_939": "MERGED_CLOSED",
+    "verified_web_version": "3.3.6",
+    "source_evidence": [
+      "web/src/operational-app.ts:renderResults/renderOperationalTabs/loadReporterRecentSnapshot/bindSection",
+      "web/src/api.ts:getReporterRecent/getReporterBatchTickets",
+      "service/src/operational-v2-core.ts:reporterRecent/reporterBatchTickets",
+      "service/src/core.ts:report_batches/report_tickets"
+    ],
+    "analysis_doc": "docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md",
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "commit_doc": "4b9d5f339b4df86318a3a63158a7746a61f92a3b",
+    "confirmed": [
+      "recent search endpoint currently lacks SKU query and pages at 50 rows",
+      "batch-tickets endpoint already exposes employee code/name/reported_at within batch_id",
+      "first_report_at exists in result rows",
+      "current UI uses literal Picker for CLOSED and date form Apply button"
+    ],
+    "proposed_not_approved": [
+      "server-filter prior to pagination; search total separate from KPI totals",
+      "one page-bounded actor aggregation for CLOSED; double-click lazy batched ticket lookup",
+      "responsive toolbar/date immediate change and request race safeguards",
+      "DO Rows Read/request, p50/p95 measurement and D172 isolation regression before any shared release"
+    ],
+    "uncertain": [
+      "SKU match is prefix vs contains; choose only after usage/UX benchmark",
+      "five-tab vs completed-tab search scope; scope must be confirmed before code if behavior differs"
+    ],
+    "code": "NOT_STARTED_ANALYSIS_ONLY",
+    "ci": "NOT_RUN",
+    "release": "NO_CHANGE",
+    "field": "NOT_TESTED",
+    "owner_pass": false,
+    "owner_code_approval": false,
+    "owner_release_approval": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "privacy": "NO_PERSONNEL_OR_OPERATIONAL_ROWS_COMMITTED"
   }
 }
