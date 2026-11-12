@@ -6,10 +6,15 @@ const web = readFileSync(new URL("../web/src/operational-app.ts", import.meta.ur
 const css = readFileSync(new URL("../web/src/d173-tabler.css", import.meta.url), "utf8");
 const version = readFileSync(new URL("../web/src/web-version.ts", import.meta.url), "utf8");
 const pkg = JSON.parse(readFileSync(new URL("../web/package.json", import.meta.url), "utf8"));
-const between = (start, end) => web.slice(web.indexOf(start), web.indexOf(end));
+const between = (start, end) => {
+  const from = web.indexOf(start);
+  const to = web.indexOf(end);
+  assert.ok(from >= 0 && to > from, `Expected source boundaries: ${start} → ${end}`);
+  return web.slice(from, to);
+};
 
 test("D173-E230: only system-auto Skip rows receive a special background", () => {
-  const render = between("function renderResults()", "function renderPicker()");
+  const render = between("function renderResults()", "function renderPicker(");
   assert.match(render, /row\.resolution_source === "SYSTEM_TIMEOUT" \|\| row\.resolution_source === "SYSTEM_DAY_END"/);
   assert.match(render, /\? "d173-skip-auto" : ""/);
   assert.doesNotMatch(render, /d173-skip-human/);
@@ -19,8 +24,8 @@ test("D173-E230: only system-auto Skip rows receive a special background", () =>
 });
 
 test("D173-E230: remove redundant visible totals from the five-tab lists", () => {
-  const results = between("function renderResults()", "function renderPicker()");
-  const overdue = between("function renderOverdue()", "function resultPickerMarkup()");
+  const results = between("function renderResults()", "function renderPicker(");
+  const overdue = between("function renderOverdue()", "function resultPickerMarkup(");
   assert.doesNotMatch(results, /class="user-pagination"/);
   assert.doesNotMatch(overdue, /class="user-pagination"/);
   assert.match(results, /const visible = loaded \? recentRows : \[\]/);
