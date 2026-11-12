@@ -1,4 +1,4 @@
-name: D173 E204 Puzzle Diagnostic V2.1 (code only)
+name: D173 E204 Puzzle Diagnostic V2.2 (code only)
 on:
   pull_request:
     paths:
@@ -6,11 +6,12 @@ on:
       - "tests/d173-e199-puzzle-recorder.test.mjs"
       - "tests/d173-e200-puzzle-test-v2.test.mjs"
       - "tests/d173-e204-puzzle-v21-diagnostics.test.mjs"
+      - "tests/d173-e204-puzzle-v22-viewport.test.mjs"
       - ".github/workflows/d173-e199-puzzle-recorder.yml"
       - "ops/change-continuity/D173.json"
   push:
     branches:
-      - "feat/d173-e204-puzzle-v21-diagnostics-20261112"
+      - "feat/d173-e204-puzzle-v22-fixed-viewport-20261112"
     paths:
       - "diagnostics/puzzle-recorder-v1/**"
       - "tests/d173-e200-puzzle-test-v2.test.mjs"
@@ -30,7 +31,7 @@ jobs:
         with:
           node-version: "22"
       - name: Recorder privacy + geometry source tests
-        run: node --test tests/d173-e199-puzzle-recorder.test.mjs tests/d173-e200-puzzle-test-v2.test.mjs tests/d173-e204-puzzle-v21-diagnostics.test.mjs
+        run: node --test tests/d173-e199-puzzle-recorder.test.mjs tests/d173-e200-puzzle-test-v2.test.mjs tests/d173-e204-puzzle-v21-diagnostics.test.mjs tests/d173-e204-puzzle-v22-viewport.test.mjs
       - name: No Agent, Web, Android, Worker, D172 or Stable modifications
         shell: bash
         run: |
@@ -56,7 +57,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "SMOKE_FAIL" }
       - uses: actions/upload-artifact@v4
         with:
-          name: SUPRA-Puzzle-Diagnostic-V21-win-x64
+          name: SUPRA-Puzzle-Diagnostic-V22-win-x64
           path: diagnostics/puzzle-recorder-v1/bin/Release/net48/
           if-no-files-found: error
           retention-days: 7
