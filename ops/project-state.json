@@ -1,5 +1,22 @@
 {
   "schema_version": 1,
+  "d173_e227_web3312_ui": {
+    "change_id": "D173",
+    "pr": 955,
+    "branch": "fix/d173-e227-web3312-eight-ui-fixes-20261112",
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "base_main_sha": "a351e2a4fee997d9c6c1d57a0260c324d4cda17e",
+    "source_code_sha": "d1e9fe91a025d01d02cfc90df676ee6241b4a52e",
+    "web_target_version": "3.3.12",
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "PENDING_PROTECTED_GATE",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED"
+  },
   "d173_e223_web3311_release": {
     "change_id": "D173",
     "owner_release_approved": true,
@@ -7574,18 +7591,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e224-web3311-prod-receipt-20261112",
-    "pr": 953,
-    "latest_checkpoint_id": "D173-E224",
+    "working_branch": "fix/d173-e227-web3312-eight-ui-fixes-20261112",
+    "pr": 955,
+    "latest_checkpoint_id": "D173-E227",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E224_WEB3311_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E227_WEB3312_OWNER_APPROVED__EXACT_UI_SOURCE_CI_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 953,
-    "active_working_branch": "docs/d173-e224-web3311-prod-receipt-20261112",
-    "working_pr_lifecycle": "PR953_OPEN_DOCS_ONLY_WEB3311_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING"
+    "working_pr": 955,
+    "active_working_branch": "fix/d173-e227-web3312-eight-ui-fixes-20261112",
+    "working_pr_lifecycle": "PR955_OPEN_DRAFT_WEB3312_EIGHT_UI_SCOPED_CODE__CI_PENDING__PROD_WEB3311_UNCHANGED"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",

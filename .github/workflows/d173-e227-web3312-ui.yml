@@ -33,6 +33,9 @@ jobs:
         run: |
           npm install --ignore-scripts --no-audit --no-fund
           npm run build
+      - name: Install existing Worker test dependencies (read-only)
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: D172 independent regression (no Provider writes)
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
