@@ -1,3 +1,15 @@
+## 12/11/2026 — D173-E213: Owner duyệt merge/phát hành Agent193
+
+Owner yêu cầu **phát hành Agent đã sửa lỗi**, phạm vi chính xác Agent193 đã sửa 5 vấn đề UI trong E212 và khắc phục `AgentConfig.AgentBuild` chưa đồng nhất. Cho phép protected merge PR #945 và signed OTA kênh `inventory-channel` **chỉ sau exact-source CI, Windows-native và D172 guard PASS**; có readback tag/EXE/manifest SHA. Không cấp quyền phát hành Worker, Web, Android, Firebase, Host14, D172 hay Stable. FIELD/OWNER PASS bản Agent193 chưa được suy diễn từ release. D172 vẫn độc lập HOLD. Chi tiết `docs/D173_E213_AGENT193_RELEASE_AUTHORIZATION_2026-11-12.md`.
+
+---
+
+## 12/11/2026 — D173-E212: Agent192 FIELD chỉnh 5 điểm, Agent193 CODE ONLY
+
+Owner xác nhận Agent192 cơ bản đạt nhưng yêu cầu thay đổi năm điểm riêng của WinForms Agent: (1) vùng trên Agent+PickList 70%, Desktop 30%, không đổi 40/60 trên/dưới và 65/35 bên trái; (2) gộp Đăng xuất và Tắt Agent thành nút **Thoát Agent** với hai lựa chọn và giữ OTP/password guard cũ; (3) nút làm mới phân loại mạng cùng hàng action; (4) bốn nút Làm mới/Dừng gọi/Liên hệ/Kích tất cả neo phải, cùng hàng bộ lọc, chỉ cuộn ngang khi không đủ chỗ; (5) độ rộng cột phiên được ổn định theo chiều rộng/DPI/cấu trúc, không đo lại theo nội dung realtime. **Cho phép chỉnh code**, không có lệnh merge hoặc phát hành Agent193; Agent192 Production giữ nguyên. Không chạm Worker/Web/APK/Firebase/D172/Stable, không thêm provider requests. Cột nội dung quá dài dùng tooltip. Chi tiết: `docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md`, nhánh `fix/d173-e212-agent193-ui-stable-columns-20261112`, PR #945 (Draft CODE ONLY). FIELD/OWNER PASS cho v193 chưa có.
+
+---
+
 ## 12/11/2026 — D173-E210: Owner yêu cầu sửa field Web 3.3.7
 
 Owner phản hồi Web 3.3.7 **chưa đạt FIELD**: tìm SKU đúng hậu tố không hoạt động, thiếu tên/mã Picker thu hồi và thanh tab/ngày bị lệch. Chốt 8 điều chỉnh Web-only: bỏ tiêu đề và cards kết quả; tab/ngày/tìm SKU đồng hàng, input cuối cùng bên phải; bỏ cột "Picker đã nhận"; chi tiết Picker theo mã–họ tên–giờ; tab Skip ghi tổng/tự động/nhân sự; giữ chính xác nghiệp vụ, realtime, usage ưu tiên. Sửa theo D173-E210 Web3.3.8 + Worker read API hiện hữu, không đổi D172/Agent/APK/Firebase/DB/Stable; chưa cấp FIELD/OWNER PASS. Chi tiết: `docs/D173_E210_WEB337_FIELD_REPAIR_2026-11-12.md`.

@@ -21,6 +21,8 @@ namespace SupraInventoryRelayAgent
         private bool _d173E181RosterFitting;
         private bool _d173E181FleetFitting;
         private bool _d173E182AdaptiveTopReady;
+        private readonly Button _d173E212ExitMenuButton = new Button();
+        private string _d173E212RosterWidthSignature = "";
         private string _d173E195AgentActionsGeometry = "";
 
 
@@ -30,7 +32,7 @@ namespace SupraInventoryRelayAgent
             Control picklist, Control desktop)
         {
             // E207: preserve the 40/60 overview/roster boundary. Only its upper
-            // area changes to 60% Agent+PickList and 40% Desktop resources.
+            // area changes to 70% Agent+PickList and 30% Desktop resources.
             overview.RowStyles[0].SizeType = SizeType.Percent;
             overview.RowStyles[0].Height = 40F;
             overview.RowStyles[1].SizeType = SizeType.Percent;
@@ -73,6 +75,22 @@ namespace SupraInventoryRelayAgent
                 button.BackColor = Color.FromArgb(226, 237, 248);
                 button.ForeColor = Color.FromArgb(40, 74, 108);
             }
+
+            // One exit selector; its two commands retain the existing OTP/exit guards.
+            _d173E212ExitMenuButton.Name = "D173E212AgentExitMenu";
+            _d173E212ExitMenuButton.Text = "Thoát Agent";
+            _d173E212ExitMenuButton.FlatStyle = FlatStyle.Flat;
+            _d173E212ExitMenuButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            var exitChoices = new ContextMenuStrip();
+            exitChoices.Items.Add("Đăng xuất User Agent", null,
+                (sender, args) => RequestProtectedAgentLogout());
+            exitChoices.Items.Add("Tắt chương trình Agent", null,
+                (sender, args) => RequestProtectedExit());
+            _d173E212ExitMenuButton.Click += (sender, args) =>
+                exitChoices.Show(_d173E212ExitMenuButton,
+                    new Point(0, _d173E212ExitMenuButton.Height));
+            agent.Controls.Add(_d173E212ExitMenuButton);
+            _d173E212ExitMenuButton.Visible = HasAgentSession();
 
             middle.ColumnStyles.Clear();
             middle.ColumnCount = 1;
@@ -134,9 +152,9 @@ namespace SupraInventoryRelayAgent
                                 twoColumns.ColumnCount = 2;
                                 twoColumns.RowCount = 1;
                                 twoColumns.ColumnStyles.Add(
-                                    new ColumnStyle(SizeType.Percent, 60F));
+                                    new ColumnStyle(SizeType.Percent, 70F));
                                 twoColumns.ColumnStyles.Add(
-                                    new ColumnStyle(SizeType.Percent, 40F));
+                                    new ColumnStyle(SizeType.Percent, 30F));
                                 twoColumns.RowStyles.Add(
                                     new RowStyle(SizeType.Percent, 100F));
                                 if (agent.Parent != middle)
@@ -187,8 +205,6 @@ namespace SupraInventoryRelayAgent
                 label.TextChanged += (s, e) =>
                 {
                     var availableWidth = Math.Max(80, agent.ClientSize.Width - 24);
-                    if (label == _d173E175NetworkStatus && _d173E175NetworkRefresh.Visible)
-                        availableWidth = Math.Max(80, availableWidth - 158);
                     var height = TextRenderer.MeasureText(
                         label.Text ?? "", label.Font,
                         new Size(availableWidth, int.MaxValue),
@@ -260,6 +276,9 @@ namespace SupraInventoryRelayAgent
         private int D173E182FitAgentHeader(Control host)
         {
             if (!HasAgentSession() || host.ClientSize.Width < 220) return 158;
+            _logout.Visible = false;
+            _agentExit.Visible = false;
+            _d173E212ExitMenuButton.Visible = true;
             const int left = 12;
             const int gap = 6;
             var width = Math.Max(120, host.ClientSize.Width - 24);
@@ -296,19 +315,20 @@ namespace SupraInventoryRelayAgent
             _d150PrimaryTakeoverButton.Text = "Chuyển Agent chính";
             _manualUpdate.Text = "Cập nhật";
             _background.Text = "Xuống nền";
-            _logout.Text = "Đăng xuất";
+            _d173E212ExitMenuButton.Text = "Thoát Agent";
             var actionTop = resourceTop + resourceHeight + 5;
             var actionX = left;
             var actions = new Control[] {
-                _d150PrimaryTakeoverButton, _manualUpdate, _background, _logout, _agentExit,
-                _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder
+                _d150PrimaryTakeoverButton, _manualUpdate, _background, _d173E212ExitMenuButton,
+                _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder,
+                _d173E175NetworkRefresh
             }.Where(control => control.Visible && control.Parent == host).ToArray();
             foreach (var control in actions)
             {
                 var measuredWidth = TextRenderer.MeasureText(control.Text ?? "",
                     control.Font, new Size(1000, 30),
                     TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 24;
-                var actionWidth = Math.Max(72, Math.Min(172, measuredWidth));
+                var actionWidth = Math.Min(width, Math.Max(72, measuredWidth));
                 if (actionX > left && actionX + actionWidth > host.ClientSize.Width - left)
                 {
                     actionTop += 31;
@@ -338,20 +358,15 @@ namespace SupraInventoryRelayAgent
                     " dpi=" + DeviceDpi + " geometry=MEASURED privacy=NO_USER_DATA");
             }
             var networkTop = actionTop + (actions.Length > 0 ? 31 : 3);
-            var refreshWidth = _d173E175NetworkRefresh.Visible ? 152 : 0;
-            var networkWidth = Math.Max(90, width - refreshWidth -
-                (refreshWidth > 0 ? gap : 0));
+            var networkWidth = width;
             _d173E175NetworkStatus.AutoEllipsis = false;
             var networkHeight = Math.Max(27, TextRenderer.MeasureText(
                 _d173E175NetworkStatus.Text ?? "", _d173E175NetworkStatus.Font,
                 new Size(networkWidth, int.MaxValue), textFlags).Height + 3);
             SetD173BoundsIfChanged(_d173E175NetworkStatus, left, networkTop,
                 networkWidth, networkHeight);
-            if (refreshWidth > 0)
-                SetD173BoundsIfChanged(_d173E175NetworkRefresh,
-                    left + networkWidth + gap, networkTop, refreshWidth, 28);
             _d173E175NetworkStatus.TextAlign = ContentAlignment.TopLeft;
-            return networkTop + Math.Max(networkHeight, refreshWidth > 0 ? 28 : 0);
+            return networkTop + networkHeight;
         }
 
         private void InstallD173E179WebTools(Control host)
@@ -505,41 +520,23 @@ namespace SupraInventoryRelayAgent
 
                 var available = Math.Max(1, grid.ClientSize.Width -
                     SystemInformation.VerticalScrollBarWidth - 5);
+                var signature = available + "|" + grid.DeviceDpi + "|" +
+                    grid.Font.Size + "|" + string.Join(",",
+                        active.Select(c => c.Name));
+                if (_d173E212RosterWidthSignature == signature) return;
                 var dpi = Math.Max(1d, grid.DeviceDpi / 96d);
                 var min = new int[active.Count];
                 var desired = new int[active.Count];
                 var widths = new int[active.Count];
-                var flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix |
-                    TextFormatFlags.SingleLine;
-                var rowCount = grid.Rows.Count;
-                var step = Math.Max(1, rowCount / 64);
                 for (var i = 0; i < active.Count; i++)
                 {
                     var col = active[i];
                     var spec = indexes[i];
-                    var font = col.DefaultCellStyle.Font ?? grid.DefaultCellStyle.Font ?? grid.Font;
-                    var isAction = col is DataGridViewButtonColumn;
                     min[i] = Math.Max(20, (int)Math.Round(minimums[spec] * dpi));
                     var max = Math.Max(min[i], (int)Math.Round(maximums[spec] * dpi));
-                    var measured = TextRenderer.MeasureText(
-                        col.HeaderText ?? "", font, new Size(4096, 32), flags).Width + 18;
-                    for (var r = 0; r < rowCount; r += step)
-                    {
-                        var row = grid.Rows[r];
-                        if (row.IsNewRow) continue;
-                        // Button captions may be supplied by UseColumnTextForButtonValue.
-                        var cell = row.Cells[col.Index];
-                        var label = isAction && cell is DataGridViewButtonCell &&
-                            ((DataGridViewButtonCell)cell).UseColumnTextForButtonValue
-                                ? Convert.ToString(((DataGridViewButtonColumn)col).Text)
-                                : Convert.ToString(cell.Value);
-                        if (string.IsNullOrEmpty(label)) continue;
-                        var needed = TextRenderer.MeasureText(
-                            label, font, new Size(4096, 32), flags).Width + 18;
-                        if (needed > measured) measured = needed;
-                        if (measured >= max) break;
-                    }
-                    desired[i] = Math.Max(min[i], Math.Min(max, measured));
+                    // Fixed business-column budgets: live activity/counter text must
+                    // never resize the table during every realtime refresh.
+                    desired[i] = max;
                     widths[i] = min[i];
                 }
 
@@ -625,6 +622,7 @@ namespace SupraInventoryRelayAgent
                     }
                 }
                 finally { grid.ResumeLayout(false); }
+                _d173E212RosterWidthSignature = signature;
             }
             finally { _d173E181RosterFitting = false; }
         }

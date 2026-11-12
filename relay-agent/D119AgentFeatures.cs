@@ -587,7 +587,11 @@ namespace SupraInventoryRelayAgent
             _password.Visible = !authenticated;
             _pair.Visible = !authenticated;
 
-            _logout.Visible = authenticated;
+            // E212: only the merged exit selector is displayed after login;
+            // preserve both original OTP-protected action handlers.
+            _logout.Visible = authenticated && !_d173E182AdaptiveTopReady;
+            _agentExit.Visible = !authenticated || !_d173E182AdaptiveTopReady;
+            _d173E212ExitMenuButton.Visible = authenticated && _d173E182AdaptiveTopReady;
             // E207: original Web-data controls now live inside the Agent card;
             // hide them with the rest of the authenticated actions on logout.
             _browserBundleDownload.Visible = authenticated;
@@ -2666,6 +2670,9 @@ namespace SupraInventoryRelayAgent
                     i == 0 ? Math.Min(110, Math.Max(74, width / 11)) : measure(control)).ToArray();
                 var required = desired.Sum() + gap * (desired.Length - 1);
                 var fit = required <= width;
+                var actionOffset = 1 + tabs.Length;
+                var actionsWidth = desired.Skip(actionOffset).Sum() +
+                    gap * Math.Max(0, actions.Length - 1);
                 // Scrolling is an ultra-narrow fallback: never overlap, truncate
                 // labels, or silently remove RBAC actions.
                 _d173RosterToolbar.AutoScroll = !fit;
@@ -2676,6 +2683,9 @@ namespace SupraInventoryRelayAgent
                 {
                     var control = controls[i];
                     if (control == _d173RosterTech) continue;
+                    // Filters remain left; the four privileged operations use the
+                    // right edge, with the same one-row scroll fallback if narrow.
+                    if (fit && i == actionOffset) x = width - actionsWidth;
                     SetD173BoundsIfChanged(control, x, 3, desired[i], 28);
                     x += desired[i] + gap;
                 }

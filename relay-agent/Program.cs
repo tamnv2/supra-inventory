@@ -944,16 +944,8 @@ namespace SupraInventoryRelayAgent
             Controls.Add(new Label { Left = 305, Top = 140, Width = 70, Text = "Mật khẩu" });
             _password.SetBounds(375, 136, 160, 26); _password.UseSystemPasswordChar = true; Controls.Add(_password);
             _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Đăng nhập"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
-            _logout.Text = "Đăng xuất Agent"; _logout.Enabled = false; _logout.Click += (s, e) =>
-            {
-                if (!VerifyCurrentAgentPasswordForAction(
-                    "Đăng xuất Agent",
-                    "Nhập mật khẩu xác nhận. admin/tamnv2 dùng mã một lần hoặc mật khẩu khẩn cấp; VPS chỉ dùng mã một lần.",
-                    "Đăng xuất",
-                    "Mật khẩu xác nhận không đúng. Phiên Agent vẫn được giữ nguyên."))
-                    return;
-                Task.Run(() => LogoutAgent());
-            };
+            _logout.Text = "Đăng xuất Agent"; _logout.Enabled = false;
+            _logout.Click += (s, e) => RequestProtectedAgentLogout();
 
             _testOffice.SetBounds(18, 176, 135, 32); _testOffice.Text = "Test Firestore"; _testOffice.Enabled = false;
             _testOffice.Click += (s, e) => Task.Run(() => TestOffice()); Controls.Add(_testOffice);
@@ -4965,6 +4957,17 @@ namespace SupraInventoryRelayAgent
                 UpdateD129PicklistReadinessUi();
                 UpdateD173VpsUsageVisibility(authenticated, loginName, appUser);
             });
+        }
+
+        private void RequestProtectedAgentLogout()
+        {
+            if (!VerifyCurrentAgentPasswordForAction(
+                "Đăng xuất Agent",
+                "Nhập mật khẩu xác nhận. admin/tamnv2 dùng mã một lần hoặc mật khẩu khẩn cấp; VPS chỉ dùng mã một lần.",
+                "Đăng xuất",
+                "Mật khẩu xác nhận không đúng. Phiên Agent vẫn được giữ nguyên."))
+                return;
+            Task.Run(() => LogoutAgent());
         }
 
         private void LogoutAgent()
