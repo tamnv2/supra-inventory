@@ -13646,9 +13646,9 @@
     "target_web_version": "3.3.8",
     "scope": "WEB_UI_SEARCH_WITHDRAWN_IDENTITY_READ_API_ONLY",
     "code": "SOURCE_TEST_PASS",
-    "ci": "SIX_SCOPED_CHECKS_PASS__NONSCOPED_LEGACY_FAILURES_UNCHANGED",
-    "release": "OWNER_GATED_PROTECTED_MERGE_PENDING",
-    "field": "FIELD_NOT_PASS_WEB337__WEB338_FIELD_UNVERIFIED",
+    "ci": "SIX_SCOPED_GATE_PASS",
+    "release": "PRODUCTION_WORKER_WEB_338_TECHNICAL_PASS",
+    "field": "WEB338_FIELD_NOT_VERIFIED",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
@@ -13669,6 +13669,27 @@
       "continuity": 43159132613,
       "sql_log": 43159132500,
       "origin": 43159132223
-    }
+    },
+    "release_merge_sha": "b913f86bff209905f2d2dab3bf7a1ffa88c4a279",
+    "release_run": 43159857445,
+    "cloudflare_worker_version_id": "550bab2f-36d1-4915-a638-cb3d9059226d",
+    "receipt": "docs/D173_E211_WEB338_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
+  },
+  "d173_e211_web338_release_receipt": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E211",
+    "kind": "DOCS_ONLY_TECHNICAL_RELEASE_RECEIPT",
+    "source_pr": 943,
+    "main_sha": "b913f86bff209905f2d2dab3bf7a1ffa88c4a279",
+    "source_ci_sha": "08e7b214c8a1ec27bd17190e0e4f2c33ce31a702",
+    "release_run_id": 43159857445,
+    "release": "WORKER_WEB_338_PRODUCTION_TECH_PASS",
+    "field": "PENDING_OWNER_CHECK",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "receipt": "docs/D173_E211_WEB338_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "no_new_runtime_mutation": true
   }
 }
