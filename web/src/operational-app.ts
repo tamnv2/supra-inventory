@@ -1889,7 +1889,8 @@ function resultPickerMarkup(batchId: string): string {
 
 function renderResults(): string {
   const waitingForResults = recentLoadedViewKey !== recentPageKey();
-  const visible = waitingForResults ? [] : recentRows;
+  const visible = waitingForResults ? [] : opsSkuSuffix.length >= 3
+    ? recentRows.filter((row) => String(row.sku).endsWith(opsSkuSuffix)) : recentRows;
   const pageFrom = !waitingForResults && recentTotal ? recentOffset + 1 : 0;
   const pageTo = waitingForResults ? 0 : Math.min(recentTotal, recentOffset + recentRows.length);
   const showFirstReport = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED";
@@ -3765,6 +3766,9 @@ async function loadReporterOverdueSnapshot(): Promise<void> {
     userId !== (profile?.user_id || "") ||
     searchKey !== [activeSection, opsSkuSuffix, overdueSearchOffset].join("|")
   ) return;
+  if (suffix && overdue.items.some((row) => !String(row.sku).endsWith(suffix))) {
+    throw new Error("Kết quả tìm SKU không khớp bộ lọc.");
+  }
   overdueRows = overdue.items;
   if (suffix) overdueSearchTotal = Math.max(0, Number(overdue.total || 0));
   else {
