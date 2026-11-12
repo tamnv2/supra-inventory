@@ -98,7 +98,7 @@ def main():
     if registry.get("environments", {}).get("beta", {}).get("relay_agent_release") != "relay-agent-v190__D173_E199_SIGNED_RELEASE_PASS__FIELD_OWNER_PENDING":
         deny("AGENT190_BASELINE_DRIFT")
     journal = json.loads((ROOT / "ops/change-continuity/D173.json").read_text(encoding="utf-8"))
-    if journal.get("pr") != 934 or journal.get("last_checkpoint", {}).get("id") != "D173-E204":
+    if journal.get("pr") != 934 or journal.get("last_checkpoint", {}).get("id") != "D173-E205":
         deny("CHANGE_CONTINUITY_MISMATCH")
     if args.preflight:
         if git("merge-base", "origin/main", "HEAD") != BASE:

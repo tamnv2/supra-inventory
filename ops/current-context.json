@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E204",
+    "checkpoint_id": "D173-E205",
     "pr": 934,
     "branch": "fix/d173-e204-agent191-ota-gate-20261112",
-    "status": "AGENT191_SOURCE_MERGED_PR934_OTA_GATE_FIX_PENDING_CI__PICKER_SHARED_FIELD_FAIL",
+    "status": "PR934_SCOPED_PUSH_SOURCE_NATIVE_D172_CI_PENDING__AGENT191_NOT_RELEASED",
     "owner_merge_approved": true,
     "owner_release_approved": true
   },
@@ -74,11 +74,11 @@
   ],
   "main_source_at_reconciliation": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
   "active_implementation": {
-    "id": "D173-E204",
+    "id": "D173-E205",
     "source_main_sha": "637d9d384e2472945d87e2a43d9203e7ace10622",
     "source_pin": "673a1277ddc1592a4764b2bc57a1da7d3d482a9a",
     "source_tag": "relay-agent-v190",
-    "task": "AGENT191_OTA_GATE_REPAIR_PR934",
+    "task": "AGENT191_PR934_SCOPED_PUSH_CI_RETRY__RELEASE_PENDING",
     "source_status": "PR933_MERGED_MAIN_637D9D_SOURCE_NATIVE_CI_PASS",
     "signed_release": "AGENT190_PASS__AGENT191_OTA_TRIGGER_REPAIR_PENDING",
     "field": "FAIL_STALE_PICKER_UNRESOLVED",

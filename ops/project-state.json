@@ -2492,7 +2492,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E204_AGENT191_SOURCE_MERGED_NATIVE_PASS__OTA_GATE_REPAIR_PR934_CI_PENDING__PICKER_SHARED_FIELD_FAIL__D172_HOLD",
+    "current_change_status": "D173_E205_AGENT191_CODE_MERGED__OTA_GATE_PR934_BRANCH_PUSH_CI_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7550,7 +7550,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e204-agent191-ota-gate-20261112",
     "pr": 934,
-    "latest_checkpoint_id": "D173-E204",
+    "latest_checkpoint_id": "D173-E205",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7559,7 +7559,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 934,
     "active_working_branch": "fix/d173-e204-agent191-ota-gate-20261112",
-    "working_pr_lifecycle": "PR934_OPEN_AGENT191_OTA_GATE_REPAIR__PR933_MERGED_637D9D__AGENT190_SIGNED_CURRENT"
+    "working_pr_lifecycle": "PR934_OPEN_GITHUB_PR_CI_QUEUED__SCOPED_PUSH_SOURCE_NATIVE_GUARD_CANDIDATE__AGENT190_CURRENT"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13483,8 +13483,8 @@
     "source_main_sha": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
     "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md",
     "code": "AGENT191_SOURCE_MERGED_MAIN_637D9D",
-    "ci": "PR933_SOURCE_NATIVE_D172_PASS__PR934_RELEASE_GATE_CI_PENDING",
-    "release": "AGENT191_OTA_WORKFLOW_MARKER_BUG__AGENT190_SIGNED_CURRENT",
+    "ci": "PR933_SOURCE_NATIVE_D172_PASS__PR934_PR_RUN_QUEUED__SCOPED_PUSH_CI_PENDING",
+    "release": "AGENT190_SIGNED_CURRENT__AGENT191_NOT_PUBLISHED__PR934_CI_PENDING",
     "field": "REMOTE_KICK_AND_STALE_PICKER_FAIL__UI_FIELD_PENDING",
     "owner_pass": false,
     "remote_agent_issue": "TARGET_USER_REGEX_DENIED_PRE_WORKER",

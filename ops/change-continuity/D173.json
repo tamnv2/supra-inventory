@@ -7,11 +7,11 @@
   "pr": 934,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204",
+    "id": "D173-E205",
     "date_vn": "2026-11-12",
-    "summary": "Agent191 source/native & D172 CI passed and PR933 merged; OTA job skipped due AGENT190-vs-AGENT191 marker mismatch. PR934 repairs release-only workflow; no Agent source or shared Worker change.",
-    "status": "AGENT191_SOURCE_MERGED__PR934_RELEASE_GATE_REPAIR_CI_PENDING__SIGNED190_CURRENT__D172_HOLD",
-    "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md"
+    "summary": "PR934 pull_request Actions stuck queued without jobs. Added strictly scoped branch push source/native/D172 CI path; release job still main+Owner-marker only. Await checks before merge/OTA; Agent190 remains signed.",
+    "status": "PR934_SCOPED_PUSH_CI_PENDING__AGENT191_UNRELEASED__D172_HOLD",
+    "source": "ops/change-continuity/D173.json"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3808,6 +3808,31 @@
       "field_pass": false,
       "owner_pass": false,
       "d172": "PENDING_HOLD_UNCHANGED",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E205",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Agent191 release-repair CI queue recovery via scoped push-triggered source/native gate",
+      "status": "PR934_CI_PR_EVENT_QUEUED_NO_JOBS__SCOPED_PUSH_CI_ADDED__RUN_PENDING__NO_RELEASE",
+      "owner_approval": true,
+      "pr": 934,
+      "source_base": "637d9d384e2472945d87e2a43d9203e7ace10622",
+      "source_pin": "673a1277ddc1592a4764b2bc57a1da7d3d482a9a",
+      "facts": [
+        "At verification GitHub Actions pull_request run 43095269769 and companion checks remained queued with zero jobs; PR934 open and mergeable, Agent191 tag absent.",
+        "Recent unrelated push workflow runs in the same repository completed successfully, indicating the GitHub Actions service can execute push workflows; exact cause of PR queue not established.",
+        "Add strictly scoped push event and source/native conditions only for branch fix/d173-e204-agent191-ota-gate-20261112; all branch preflight, authority, change continuity and independent D172 tests remain mandatory. Push cannot publish OTA because its job checks ref main plus protected merge marker.",
+        "No Agent source, Shared Worker, Firebase, Web, APK, Host14, D172, Stable or provider mutation."
+      ],
+      "evidence": "GitHub Actions PR934 run 43095269769, PR #934, workflow .github/workflows/d173-e202-agent191-release.yml, GitHub Actions recent push run 43122661017",
+      "next_action": "Check exact branch push source/native CI with D172 guards; do not merge or release until PASS and branch protection honored; verify signed OTA tag and channel SHA after merge.",
+      "ci": "PENDING_SCOPED_PUSH_SOURCE_NATIVE_D172",
+      "release": "AGENT190_SIGNED_CURRENT__AGENT191_NOT_PUBLISHED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
     }
   ],
