@@ -1973,7 +1973,6 @@ function renderSku(): string {
         </tr>`).join("")}</tbody></table></div>`
       : '<p class="ops-note">Chưa ghi nhận cập nhật thành công.</p>';
   return `<section class="ops-route sku-workspace">
-    <div class="business-page-head"><div><h2>Danh mục SKU</h2></div></div>
     <section class="business-summary-grid sku-kpi-grid">
       <article class="business-summary-card primary"><span>SKU đang hiệu lực</span><strong>${catalogCount.toLocaleString("vi-VN")}</strong></article>
       <article class="business-summary-card ${todayReady ? "good" : "warning"}"><span>Danh mục hôm nay</span><strong class="sku-summary-time">${esc(skuCatalogInfo?.sku_day_vn || "—")}</strong><small>${todayReady ? "Đã có FULL xác nhận cho ngày này" : "Chưa có FULL hợp lệ cho hôm nay"}</small></article>
@@ -2084,7 +2083,6 @@ function renderUsers(): string {
   const visibleRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
     profile?.role === "ADMIN" ? ["PICKER", "REPORTER", "OBPP_COORDINATOR"] : ["PICKER", "REPORTER", "OBPP_COORDINATOR", "PICKPACK_ADMIN", "ADMIN"];
   return `<section class="ops-route users-workspace">
-    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2></div></div>
     <div class="workspace-tabs users-mode-tabs" role="tablist" aria-label="Quản lý nhân sự">
       <button type="button" role="tab" class="workspace-tab ${usersView === "list" ? "active" : ""}" data-users-mode="list" aria-selected="${usersView === "list"}">Danh sách tài khoản</button>
       ${canCreateManaged ? `<button type="button" role="tab" class="workspace-tab ${usersView === "create" ? "active" : ""}" data-users-mode="create" aria-selected="${usersView === "create"}">Thêm tài khoản</button>` : ""}
@@ -2167,7 +2165,7 @@ function renderUsers(): string {
 function renderSla(): string {
   if (!slaResponse) {
     return `<section class="ops-route sla-workspace">
-      <div class="business-page-head"><div><h2>Thời gian xử lý</h2></div><span class="global-setting-badge">Đang tải cấu hình máy chủ…</span></div>
+      <div class="business-page-head"><span class="global-setting-badge">Đang tải cấu hình máy chủ…</span></div>
       <article class="ops-panel sla-loading-panel"><strong>Đang tải cấu hình…</strong></article>
     </section>`;
   }
@@ -2188,7 +2186,7 @@ function renderSla(): string {
   const updatedAt = sla?.updated_at ? fmt(sla.updated_at) : "Chưa có";
   return `<section class="ops-route sla-workspace sla-professional">
     <div class="business-page-head sla-page-head">
-      <div><h2>Thời gian xử lý</h2></div>
+      
       <div class="sla-authority-badges"><span class="sla-revision-badge">${configured ? `Phiên bản ${revision}` : "Chưa cấu hình"}</span></div>
     </div>
 
@@ -2308,7 +2306,6 @@ function renderDashboard(): string {
   const affectedInPeriod = Number(k?.affected_picker_count || 0);
   const recurrenceSkuCount = recurrence.length;
   return `<section class="v5-root report-workspace">
-    <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2></div></div>
     ${renderReportTabs("dashboard")}
     <article class="ops-panel report-filter-panel">
       <form id="dashboard-filter" class="report-filter-row report-filter-compact">
@@ -2480,7 +2477,7 @@ function renderReports(): string {
   const pageFrom = reportTotal ? reportOffset + 1 : 0;
   const pageTo = Math.min(reportTotal, reportOffset + reportRows.length);
   return `<section class="ops-route report-workspace">
-    <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2></div><button class="secondary" id="export-reports">Xuất Excel</button></div>
+    <div class="business-page-head page-top-actions"><button class="secondary" id="export-reports">Xuất Excel</button></div>
     ${renderReportTabs("reports")}
     <article class="ops-panel report-filter-panel">
       <form id="report-filter" class="report-filter-grid report-filter-compact report-filter-detail">
@@ -2928,7 +2925,7 @@ function renderLogs(): string {
   const auditPageTo = Math.min(auditTotal, auditOffset + auditRows.length);
   const auditActive = logView === "AUDIT";
   return `<section class="ops-route logs-workspace">
-    <div class="business-page-head"><div><h2>Nhật ký</h2></div>${!auditActive ? `<div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div>` : ""}</div>
+    <div class="business-page-head">${!auditActive ? `<div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div>` : ""}</div>
     <div class="workspace-tabs" role="tablist" aria-label="Nguồn nhật ký">
       <button type="button" class="workspace-tab ${logView === "WEB" ? "active" : ""}" data-log-view="WEB">Log Web</button>
       <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
@@ -3024,7 +3021,7 @@ function renderSystemReset(): string {
   ];
   const allSelected = items.every((item) => systemResetSelected.has(item.scope));
   return `<section class="ops-route reset-workspace">
-    <div class="business-page-head"><div><h2>Đặt lại hệ thống</h2><p>Chỉ xóa dữ liệu runtime đã chọn; giữ nguyên hệ thống và dữ liệu Google Sheets/Drive.</p></div></div>
+    <div class="business-page-head"><div><p>Chỉ xóa dữ liệu runtime đã chọn; giữ nguyên hệ thống và dữ liệu Google Sheets/Drive.</p></div></div>
     <div class="notice warning"><strong>ROOT được bảo toàn tuyệt đối:</strong> tài khoản ROOT, cơ chế mật khẩu một lần/khẩn cấp, Firebase identity và email khôi phục không nằm trong phạm vi reset.</div>
     <div class="reset-toolbar">
       <label class="reset-all"><input id="reset-select-all" type="checkbox" ${allSelected ? "checked" : ""}/> <strong>Chọn toàn bộ dữ liệu runtime</strong></label>
@@ -3056,9 +3053,6 @@ function renderTools(): string {
   const pdaStableUrl = `${window.location.origin}/downloads/pda/public`;
   const agentStableUrl = `${window.location.origin}${agentAppRelease?.stable_download_path || "/downloads/agent/latest"}`;
   return `<section class="ops-route tools-workspace">
-    <div class="heading">
-      <div><h2>Công cụ</h2></div>
-    </div>
     <div class="tools-grid tools-grid-d112">
       <article class="ops-panel tool-card tool-card-primary pda-tool-card">
         <div class="tool-card-head">
@@ -3231,7 +3225,6 @@ function renderShiftOperations(): string {
             ? "Đã huỷ tăng ca"
             : "Theo lịch mặc định";
   return `<section class="ops-route tools-workspace">
-    <div class="business-page-head"><div><h2>Ca vận hành</h2></div></div>
     <section class="business-summary-grid">
       <article class="business-summary-card primary"><span>Ca bình thường</span><strong>06:00–22:00</strong><small>Cửa sổ kỹ thuật Replay · 05:45–22:15</small></article>
       <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Cùng trạng thái với App/PDA</small></article>
@@ -3251,7 +3244,6 @@ function renderAccount(): string {
   const recoveryEmailAllowed = profile?.base_role === "ROOT" || profile?.base_role === "ADMIN";
   const oneTime = privilegedOneTimeProfile(profile);
   return `<section class="ops-route account-workspace">
-    <div class="heading"><div><h2>Tài khoản</h2></div></div>
     <div class="account-grid">
       ${!oneTime ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Đổi mật khẩu</h3></div></div><form id="password-form" class="ops-form-grid"><label class="span">Mật khẩu hiện tại<input name="current" type="password" required /></label><label class="span">Mật khẩu mới<input name="next" type="password" required /></label><div class="ops-form-actions"><button class="primary">Đổi mật khẩu</button></div></form></article>` : ""}
       ${recoveryEmailAllowed ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Email khôi phục</h3><p>Dùng để nhận thông tin xác minh và khôi phục tài khoản khi được hỗ trợ.</p></div></div><form id="auth-email-form" class="ops-form-grid"><label class="span">Email đăng ký<input name="email" type="email" autocomplete="email" required value="${esc(profile?.auth_email || "")}" /></label><div class="ops-form-actions"><button class="primary">Lưu email</button></div></form></article>` : ""}

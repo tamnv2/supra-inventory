@@ -203,3 +203,59 @@ body[data-theme="dark"] .d173-tabler-shell .result-audit-table tbody tr.d173-ski
     overflow-y:auto;
   }
 }
+
+/* D173-E237: carry the compact Operations visual rhythm to other Web pages only. */
+.d173-tabler-shell > .d173-page-content:not(:has(.ops-business-workspace)) {
+  padding:10px 12px 24px !important;
+}
+.d173-tabler-shell .d173-page-content > :is(.ops-route,.v5-root) > .business-page-head:empty,
+.d173-tabler-shell .d173-page-content > :is(.ops-route,.v5-root) > .heading:empty {
+  display:none;
+}
+.d173-tabler-shell .d173-page-content .page-top-actions,
+.d173-tabler-shell .d173-page-content .logs-workspace > .business-page-head {
+  justify-content:flex-end;
+  margin-bottom:6px;
+}
+.d173-tabler-shell .d173-page-content:not(:has(.ops-business-workspace)) :is(.business-summary-grid,.queue-summary-grid) {
+  gap:6px !important;
+  margin-bottom:6px !important;
+}
+.d173-tabler-shell .d173-page-content:not(:has(.ops-business-workspace)) .business-summary-card {
+  min-height:72px !important;
+  padding:8px 10px !important;
+  border-radius:5px !important;
+  box-shadow:none !important;
+}
+.d173-tabler-shell .d173-page-content:not(:has(.ops-business-workspace)) :is(.ops-panel,.table-wrap) {
+  border-radius:4px !important;
+  box-shadow:none !important;
+  border-color:var(--pro-border,#dce4eb) !important;
+}
+.d173-tabler-shell .d173-page-content:not(:has(.ops-business-workspace)) .table-wrap :is(th,td) {
+  padding:6px 7px !important;
+}
+.d173-tabler-shell .d173-page-content:not(:has(.ops-business-workspace)) :is(.workspace-tab,.btn,input,select,textarea) {
+  border-radius:4px !important;
+}
+/* Sticky tab bars share the existing main scroll container; do not pin data tables or forms. */
+.d173-tabler-shell .d173-page-content :is(.report-workspace,.users-workspace,.logs-workspace) > .workspace-tabs {
+  position:sticky;
+  top:0;
+  z-index:10;
+  margin-bottom:7px !important;
+  padding:4px !important;
+  border:0 !important;
+  border-radius:4px !important;
+  background:var(--pro-bg,#f4f7fa) !important;
+}
+.d173-tabler-shell .d173-page-content :is(.report-workspace,.users-workspace,.logs-workspace) > .workspace-tabs .workspace-tab.active {
+  background:var(--pro-surface,#fff) !important;
+  color:var(--pro-primary,#245b91) !important;
+  border-color:transparent !important;
+  box-shadow:0 1px 4px rgba(20,32,51,.10) !important;
+}
+body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-workspace,.users-workspace,.logs-workspace) > .workspace-tabs .workspace-tab.active {
+  background:#17243a !important;
+  color:#9ed4ff !important;
+}

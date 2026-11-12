@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e236-web3314-production-receipt-20261112",
-  "pr": 960,
+  "working_branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
+  "pr": 961,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E236",
+    "id": "D173-E240",
     "date_vn": "2026-11-12",
-    "summary": "PR959 protected merged SHA8671da3; Production Web3.3.14 Cloudflare/Worker/Web run43238438595 attempt2 SUCCESS. Health exact source, D166 post-secret/auth fail-closed, SQLite and Web shell PASS. Attempt1 D166 post-secret source mismatch failed then same SHA rerun passed. FIELD/OWNER pending; D172 independent HOLD, Stable owner gated.",
-    "status": "WEB3314_PRODUCTION_TECHNICAL_RELEASE_PASS_RUN43238438595_ATTEMPT2__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E236_WEB3314_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
-    "branch": "docs/d173-e236-web3314-production-receipt-20261112",
-    "pr": 960
+    "summary": "Source SHAfded9f2 Web3315 CI run43258444616 Web/D172/build/preflight PASS, authority43258444669 + state43258444850 PASS; UI legacy guard43258444692 historical fail. Owner release approved; protected merge and live deploy pending.",
+    "status": "WEB3315_SOURCE_CI_PINNED_PASS__PRODUCTION_PENDING",
+    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43258444616",
+    "branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
+    "pr": 961
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4677,6 +4677,116 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E237",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Web3.3.14 owner feedback: unify all page layout, remove duplicate headings, pin nested tabs",
+      "status": "WEB3315_CODE_CANDIDATE_PR961__CI_PENDING__RELEASE_NOT_AUTHORIZED",
+      "owner_approval": true,
+      "owner_release_approved": false,
+      "accepted_base_sha": "7d5b1856857483c7696b53a0eda1db4fbc9fad14",
+      "branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
+      "pr": 961,
+      "facts": [
+        "PR960 is MERGED and Web3.3.14 Production technical receipt E236 is recorded; Owner says Web3.3.14 okay, not blanket D173 OWNER PASS.",
+        "Owner requires consistent colors/radius/spacing based on Xử lý báo hàng; remove repeated page titles; sticky tabs across pages.",
+        "PR961 candidate changes Web markup/CSS, Web3.3.15 candidate version and scoped regressions only; no API/runtime/Worker/DB/Agent/APK/D172 edits.",
+        "Static source checks PASS for title removal, retained meal subsection/export/log/reset actions, style scope and sticky selector; CI and browser FIELD remain unverified."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/961; docs/D173_E237_WEB3315_GLOBAL_LAYOUT_CODE_ONLY_2026-11-12.md; docs/D173_E236_WEB3314_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+      "next_action": "Wait exact PR961 CI/Web build/D172 isolation; repair scoped failures; no merge or Production release without new Owner authorization; check actual browser HD/HD+ light/dark before FIELD PASS.",
+      "code": "CANDIDATE_COMMITTED",
+      "ci": "PENDING_EXACT_HEAD",
+      "release": "WEB3314_TECH_PASS__WEB3315_NOT_RELEASED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E238",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Web3.3.15 E237 scoped source Web/D172 and authority CI exact SHA, legacy UI guard baseline",
+      "status": "WEB3315_SOURCE_CI_3_SCOPED_PASS__LEGACY_UI_GUARD_BASELINE_FAIL__RELEASE_NOT_APPROVED",
+      "owner_approval": true,
+      "owner_release_approved": false,
+      "pr": 961,
+      "branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
+      "source_ci_sha": "923612dbffc48ad6771ae973e992a80d068451f5",
+      "facts": [
+        "At PR961 SHA923612db, D173-E237 Web3315 source CI run43256615606 SUCCESS, executing E237 and prior E233/E230/E227 regression, TypeScript/Vite build, D172 independent isolation/tests.",
+        "Repo Authority Guard run43256615644 SUCCESS and Project State Guard run43256615721 SUCCESS at the same SHA.",
+        "UI Design Guard run43256615819 FAILURE for pre-existing agent_d137_weighted_left_regions, agent_d130_live_resource_clock, web_d063_merged_workspaces, same failures noted on main under E230 and on PR961 earlier; no unrelated Agent or historic Web change authorized.",
+        "Web3.3.15 remains Draft CODE ONLY; Web3.3.14 is Production; browser physical FIELD and separate Owner Production authorization are pending."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/43256615606; https://github.com/tamnv2/supra-inventory/actions/runs/43256615644; https://github.com/tamnv2/supra-inventory/actions/runs/43256615721; https://github.com/tamnv2/supra-inventory/actions/runs/43256615819; https://github.com/tamnv2/supra-inventory/pull/961",
+      "next_action": "Keep PR961 Draft; no Production release. Await Owner deployment authorization and actual Web browser FIELD review. Historical UI Design Guard known baseline failures stay separate.",
+      "code": "PASS_SOURCE_SCOPED",
+      "ci": "PASS_SCOPED_3__LEGACY_UI_GUARD_FAIL_BASELINE",
+      "release": "WEB3315_NOT_DEPLOYED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E239",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly orders Web3.3.15 protected merge and Production deployment after scoped CI",
+      "status": "WEB3315_RELEASE_OWNER_AUTHORIZED__SOURCE_CI_AFTER_GATE_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 961,
+      "branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
+      "accepted_base_sha": "7d5b1856857483c7696b53a0eda1db4fbc9fad14",
+      "source_code_sha": "c3573285809281a2a77dc5acbc72e71ce43e5ee4",
+      "facts": [
+        "Owner explicitly orders implement and deploy Web3.3.15 to completion; previous code-only restriction superseded strictly for E237 Web UI.",
+        "Scope: three Web presentation requirements only. Existing Worker/Web Production hostname, D172 independent business and Stable owner gate unchanged.",
+        "New release gate and source pin require two-parent protected main merge with exact marker, post-CI immutable Web/tests/workflow/guard, D172 isolation and verified health; no direct main push.",
+        "Three historical UI Design Guard assertions outside requested scope remained failing before new release gate; separate from exact scoped Web/D172 gate."
+      ],
+      "evidence": "docs/D173_E239_WEB3315_RELEASE_AUTHORIZATION_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/961; https://github.com/tamnv2/supra-inventory/actions/runs/43257062539",
+      "next_action": "Verify new E237 scoped CI, authority/state and D172; fill exact source CI receipt, protected PR merge with D173-E237_WEB3315_PRODUCTION_RELEASE marker, monitor full Production Worker release and exact health, record verified SHA; no invented FIELD/OWNER PASS.",
+      "code": "CANDIDATE",
+      "ci": "PENDING_GATE_PRECHECK",
+      "release": "OWNER_APPROVED__NOT_YET_DEPLOYED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E240",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Web3.3.15 Owner release preflight and exact PR961 source checks",
+      "status": "WEB3315_3_REQUIRED_CI_PASS__UI_DESIGN_HISTORICAL_FAIL__MERGE_DEPLOY_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 961,
+      "branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
+      "source_ci_sha": "fded9f288911f83de03e64b32b4ea50e87dd2f00",
+      "source_code_sha": "c3573285809281a2a77dc5acbc72e71ce43e5ee4",
+      "facts": [
+        "D173 E237 Web3315 source CI run43258444616 SUCCESS at exact SHA fded9f28: E237/E233/E230/E227 node regression, TS/Vite Web build, D172 independent guard/tests, owner Production release preflight worker and web.",
+        "Repo Authority Guard run43258444669 SUCCESS and Project State Guard run43258444850 SUCCESS at same SHA.",
+        "UI Design Guard run43258444692 FAIL on three historical Agent D137/D130 and Web D063 checks already failing before E237; full legacy UI guard is NOT PASS. No out-of-scope source edits or bypass.",
+        "Owner authorized protected merge and Production release, but neither has occurred yet; source release gate pins code and verified CI SHA, release remains fail closed until exact two-parent main commit marker."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/43258444616; https://github.com/tamnv2/supra-inventory/actions/runs/43258444669; https://github.com/tamnv2/supra-inventory/actions/runs/43258444850; https://github.com/tamnv2/supra-inventory/actions/runs/43258444692",
+      "next_action": "Verify final docs-only PR HEAD scoped CI/authority/state; mark PR ready and protected merge with E237 release marker; inspect Production deploy run and /health; keep field/Owner separate.",
+      "code": "PASS_SOURCE",
+      "ci": "PASS_3_REQUIRED_SCOPED__LEGACY_UI_GUARD_NOT_PASS",
+      "release": "PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -4705,7 +4815,8 @@
       "E161 Owner authorized Agent173 P0/P1 tray/CDP and SFT3/Confirm repairs plus conditional signed OTA after CI/native/D172 gates, no provider or D172 mutations.",
       "D173-E169 Owner 08/11 authorizes additional diagnostic CODE + TEST on current Cloudflare/Firebase Service/Agent paths, zero new provider polling/writes; no Production release approval.",
       "D173-E170 Owner 08/11 authorizes Production updates for existing Worker HMAC daily diagnostics and signed Agent175 error-only log changes after exact-head CI; Web UI/Android/Rules unchanged.",
-      "D173-E174 Owner 09/11 approves Agent176-only focus repair and conditional signed OTA; Launcher explicitly deferred backlog."
+      "D173-E174 Owner 09/11 approves Agent176-only focus repair and conditional signed OTA; Launcher explicitly deferred backlog.",
+      "D173-E239: Owner explicitly authorizes code/merge/Production release of the three Web3.3.15 UI requirements on PR961 after exact-source scoped CI and D172 isolation; no Stable/D172 mutation."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -4813,7 +4924,8 @@
       "D173-E174 PR878 Agent176 focus-only source and exact CI verification in progress; no Worker/APK/Web production change.",
       "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes.",
       "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending.",
-      "D173-E216 Owner Web339 search returns all, date-right, selected tab visibility; PR950 Web-only source candidate CI pending, Production unchanged."
+      "D173-E216 Owner Web339 search returns all, date-right, selected tab visibility; PR950 Web-only source candidate CI pending, Production unchanged.",
+      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -4862,7 +4974,8 @@
       "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded.",
       "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven.",
       "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending.",
-      "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated."
+      "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated.",
+      "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately."
     ],
     "release_boundary": "D173-E174 Agent-only signed release allowed after protected source-pinned gates; D172 untouched, stable gated; no logging or Launcher deployment.",
     "pending": []

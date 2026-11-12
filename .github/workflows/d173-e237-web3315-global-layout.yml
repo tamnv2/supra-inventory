@@ -1,0 +1,52 @@
+name: D173 E237 Web3315 Global Layout Source CI
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'tests/d173-e237-web3315-global-layout.test.mjs'
+      - 'tests/d173-e227-web3312-eight-ui.test.mjs'
+      - 'tests/d173-e230-web3313-field-density.test.mjs'
+      - 'tests/d173-e233-web3314-cache-scroll.test.mjs'
+      - '.github/workflows/d173-e237-web3315-global-layout.yml'
+      - 'ops/change-continuity/D173.json'
+      - 'ops/project-state.json'
+      - 'ops/d173-e237-web3315-release-authorization.json'
+      - 'tools/d173_e237_web3315_release_gate.py'
+permissions:
+  contents: read
+jobs:
+  e237-web3315:
+    if: contains(github.head_ref, 'd173-e237-web3315-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Web layout and prior accepted UX regression
+        run: |
+          node --test tests/d173-e237-web3315-global-layout.test.mjs tests/d173-e233-web3314-cache-scroll.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e227-web3312-eight-ui.test.mjs
+      - name: Web TypeScript and Vite build
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Service test dependencies (no source changes)
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: D172 isolation and independent regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: Web3.3.15 Owner production gate preflight (no deploy)
+        run: |
+          python3 tools/d173_e237_web3315_release_gate.py --component worker --preflight
+          python3 tools/d173_e237_web3315_release_gate.py --component web --preflight
+      - name: Code-only boundary
+        run: echo "D173_E237_WEB3315_SOURCE_CI_ONLY__NO_PROVIDER_MUTATION__D172_HOLD"
