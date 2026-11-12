@@ -28,6 +28,17 @@ namespace SupraPuzzleRecorder
             }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            // Windows native UI smoke: load the embedded test page and verify its canvas.
+            if (args.Length == 1 && args[0] == "--lab-smoke")
+            {
+                using (var lab = new V23BrowserDragLab(true))
+                {
+                    Application.Run(lab);
+                    if (!lab.SmokePassed)
+                        throw new InvalidOperationException("LAB_CANVAS_SMOKE_FAIL");
+                }
+                return;
+            }
             Application.Run(new RecorderForm());
         }
     }
