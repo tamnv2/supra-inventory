@@ -72,6 +72,7 @@ namespace SupraPuzzleRecorder
                 {
                     await _browser.CoreWebView2.CapturePreviewAsync(
                         CoreWebView2CapturePreviewImageFormat.Png, frame);
+                    frame.Position = 0;
                     using (var screenshot = new Bitmap(frame))
                     {
                         if (_v21Region.IsEmpty && !V22RestoreRegion(screenshot.Width, screenshot.Height))
