@@ -7,12 +7,20 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E208",
-    "pr": 939,
-    "branch": "docs/d173-e208-agent192-signed-ota-receipt-20261112",
-    "status": "AGENT192_CODE_CI_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "owner_merge_approved": true,
-    "owner_release_approved": true
+    "checkpoint_id": "D173-E213",
+    "pr": 946,
+    "branch": "fix/d173-web338-field-six-issues-20261112",
+    "status": "WEB338_OWNER_FIELD_NOT_PASS__PR946_SOURCE_CI_PENDING__NO_NEW_PRODUCTION_RELEASE__D172_HOLD",
+    "owner_merge_approved": false,
+    "owner_release_approved": false,
+    "latest_evidence": "docs/D173_E213_WEB338_FIELD_SIX_ISSUES_2026-11-12.md",
+    "prior_production_technical_release": {
+      "version": "3.3.8",
+      "source_main_sha": "b913f86bff209905f2d2dab3bf7a1ffa88c4a279",
+      "run_id": 43159857445,
+      "field_pass": false
+    },
+    "detail": "Current governance pointer only. Historical derived production web/agent snapshot has independent chronology and must be checked against live GitHub when needed."
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
