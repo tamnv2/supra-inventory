@@ -12,6 +12,7 @@ MARKER = "D173-E210_WEB338_FIELD_REPAIR_PRODUCTION_RELEASE:"
 RUNTIME = {
     "web/src/operational-app.ts", "web/src/api.ts", "web/src/d173-tabler.css",
     "web/src/web-version.ts", "web/package.json", "service/src/operational-v2-core.ts",
+    "service/src/d173-snapshot-core.ts",
 }
 EXACT = RUNTIME | {
     ".github/workflows/deploy-beta.yml",
