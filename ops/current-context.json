@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E221",
+    "checkpoint_id": "D173-E222",
     "pr": 952,
     "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
-    "status": "WEB3311_E221_OWNER_CODE_APPROVED__SOURCE_CI_PENDING__PRODUCTION_WEB3310_FIELD_SKU_FAIL__D172_HOLD",
+    "status": "WEB3311_E221_SOURCE_CI_5_PASS__PR952_DRAFT__PRODUCTION_WEB3310_FIELD_SKU_FAIL__D172_HOLD",
     "owner_merge_approved": false,
     "owner_release_approved": false,
     "source_doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md",

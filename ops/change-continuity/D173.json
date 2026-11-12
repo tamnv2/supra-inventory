@@ -7,10 +7,10 @@
   "pr": 952,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E221",
+    "id": "D173-E222",
     "date_vn": "2026-11-12",
-    "summary": "Owner explicitly approves removing visible pagination despite possible increased Cloudflare usage, to revise later only by new request. Implement Web-only daily results/local SKU/full 200-row page aggregation and minimal authenticated Core parameter bridge on PR952; code CI pending, no release authorization.",
-    "status": "E221_WEB3311_SOURCE_CANDIDATE_CI_PENDING__PROD3310_FIELD_SKU_FAIL__D172_HOLD",
+    "summary": "E221 Web3.3.11 no visible pagination, one-day results, full list per 200-row chunks, local SKU search and Core forwarding fix: 5 relevant source Web/Worker/D172/authority/state CI PASS exact 1cb83f32; PR952 Draft no merge/release; Production still 3.3.10 with SKU FIELD FAIL.",
+    "status": "WEB3311_E221_SOURCE_CI_5_PASS__NO_RELEASE_AUTHORIZATION__D172_HOLD",
     "source": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md",
     "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
     "pr": 952
@@ -4224,6 +4224,33 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E222",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "D173-E221 unpaginated Web3.3.11 implementation and independent D172 guard exact-source verification",
+      "status": "CODE_PASS_CI_5_PASS__RELEASE_HOLD",
+      "owner_approval": true,
+      "owner_release_approved": false,
+      "pr": 952,
+      "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
+      "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0",
+      "facts": [
+        "E221 targeted Web source contracts, browser data pagination, date reset, local suffix search, Web/Worker typecheck and D172 regression SUCCESS on source SHA 1cb83f32.",
+        "Related Worker/Web/SQL/D172, D172 independent isolation, Repo Authority and Project State workflows all SUCCESS on same source SHA.",
+        "Some unrelated legacy repository jobs still fail Agent/SLA/historical static-version assumptions; they are not evidence E221 source gate failed, but repo overall CI is not all green.",
+        "No merge, Provider mutation, Worker/Web deploy, live authenticated FIELD acceptance, usage measurement or OWNER PASS performed."
+      ],
+      "evidence": "{\"web_source_build_d172\":43202503500,\"worker_sql_d172\":43202503880,\"d172_isolation\":43202503474,\"repo_authority\":43202503719,\"project_state\":43202503313}; https://github.com/tamnv2/supra-inventory/pull/952; source SHA 1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0",
+      "next_action": "Keep PR #952 Draft until explicit Owner release order; record independent production health/field/usage if later authorized.",
+      "code": "PASS",
+      "ci": "PASS_5_SCOPED",
+      "release": "HOLD",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -5582,10 +5609,11 @@
     "owner_code_approved": true,
     "owner_release_approved": false,
     "source_version": "3.3.11",
-    "ci": "PENDING",
-    "release": "HOLD",
+    "ci": "PASS_5_SCOPED_EXACT_SOURCE",
+    "release": "HOLD_NO_OWNER_RELEASE_ORDER",
     "field_pass": false,
     "owner_pass": false,
-    "doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md"
+    "doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md",
+    "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0"
   }
 }

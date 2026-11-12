@@ -22,3 +22,12 @@ Sau báo lỗi Web 3.3.10 FIELD SKU và phương án D173-E220, Owner phê duy�
 
 ## Trạng thái ban đầu
 CODE candidate đang cập nhật; CI/RELEASE/FIELD/OWNER PASS chưa có chứng cứ. D172 PENDING/HOLD riêng, Stable OWNER-GATED.
+
+## E222 — kiểm chứng exact source CODE/CI (12/11/2026)
+- PR #952 implementation and direct field repair source SHA: `1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0`.
+- Web/Worker typecheck, new E221 source tests, Web production build, D172 independent regression: [run 43202503500](https://github.com/tamnv2/supra-inventory/actions/runs/43202503500) **SUCCESS**.
+- Existing Worker/Web SQL, auth and D172 regression: [run 43202503880](https://github.com/tamnv2/supra-inventory/actions/runs/43202503880) **SUCCESS**.
+- D172 isolation: [run 43202503474](https://github.com/tamnv2/supra-inventory/actions/runs/43202503474) **SUCCESS**.
+- Repo authority [43202503719](https://github.com/tamnv2/supra-inventory/actions/runs/43202503719) **SUCCESS**; state/continuity [43202503313](https://github.com/tamnv2/supra-inventory/actions/runs/43202503313) **SUCCESS**.
+- Other legacy check jobs can fail due unrelated frozen Agent/SLA/old hardcoded Web-version contracts; **do not claim all repository workflows pass**. They are not repaired outside this Owner-approved scope.
+- **CODE PASS, 5 scoped CI PASS**. `Web 3.3.11` remains **unreleased**; current official Production still `Web 3.3.10`, SKU search FIELD NOT PASS. FIELD/OWNER PASS remain **FALSE**. No secret or private operational rows logged.
