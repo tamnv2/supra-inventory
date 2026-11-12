@@ -7,11 +7,11 @@
   "pr": 954,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E225",
+    "id": "D173-E226",
     "date_vn": "2026-11-12",
-    "summary": "Owner screenshots Web3.3.11 sidebar badge 7 overview vs 6 operations; tabs queue 6/overdue 1. Code/SQL proves overdue subset pending, never sum. Multiple HTTP/realtime writers; exact cause lacks same-time log. Docs-only review, release unchanged.",
-    "status": "WEB3311_FIELD_BADGE_DISCREPANCY_REVIEW__NO_CODE_RELEASE__OWNER_PASS_PENDING",
-    "source": "docs/D173_E225_WEB3311_BADGE_COUNTER_FIELD_REVIEW_2026-11-12.md",
+    "summary": "Owner explicitly clarifies screenshots concern UI layout inconsistency, NOT badge counts. Dashboard has page title + 2 tabs, Operations opens directly with 5 tabs; header multi-line. E225 badge analysis superseded as wrong focus; UI review only, no code/release.",
+    "status": "WEB3311_OWNER_UI_LAYOUT_FIELD_REVIEW__NO_CODE_RELEASE__D172_HOLD",
+    "source": "docs/D173_E226_WEB3311_UI_LAYOUT_OWNER_CORRECTION_2026-11-12.md",
     "branch": "docs/d173-e225-web3311-badge-field-review-20261112",
     "pr": 954
   },
@@ -4333,6 +4333,35 @@
       "next_action": "Review-only; only diagnose/implement after new scoped Owner authorization and evidence. Preserve Web3.3.11 technical release and D172 isolation.",
       "code": "UNCHANGED",
       "ci": "NOT_RUN_REVIEW_ONLY",
+      "release": "WEB3311_TECH_PASS_UNCHANGED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E226",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner correction: Web3.3.11 screenshot feedback is UI layout, not badge calculations",
+      "status": "UI_LAYOUT_REVIEW_ONLY__E225_BADGE_INTERPRETATION_SUPERSEDED",
+      "owner_approval": false,
+      "owner_release_approved": false,
+      "pr": 954,
+      "branch": "docs/d173-e225-web3311-badge-field-review-20261112",
+      "supersedes": [
+        "D173-E225"
+      ],
+      "facts": [
+        "Owner explicitly clarifies 'Không phải em, cái anh nói là giao diện nhé'; E225 badge issue is not Owner request.",
+        "Owner screenshots show Dashboard has page title and two subtabs while Operations displays five state tabs directly without matching page heading.",
+        "Shared three-line company/version/service header consumes space; screenshots have differing crop, so no evidence to assert scroll/header jumping.",
+        "No code, CI, deploy or field Owner PASS authorized by this correction; Web 3.3.11 technical release stays PASS."
+      ],
+      "evidence": "docs/D173_E226_WEB3311_UI_LAYOUT_OWNER_CORRECTION_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/954",
+      "next_action": "Owner UI design intent review; no automatic code changes or new release from this clarification.",
+      "code": "UNCHANGED",
+      "ci": "NOT_REQUESTED",
       "release": "WEB3311_TECH_PASS_UNCHANGED",
       "field_pass": false,
       "owner_pass": false,

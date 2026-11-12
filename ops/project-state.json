@@ -7576,7 +7576,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e225-web3311-badge-field-review-20261112",
     "pr": 954,
-    "latest_checkpoint_id": "D173-E225",
+    "latest_checkpoint_id": "D173-E226",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7585,7 +7585,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 954,
     "active_working_branch": "docs/d173-e225-web3311-badge-field-review-20261112",
-    "working_pr_lifecycle": "PR954_OPEN_DOCS_ONLY_FIELD_BADGE_7_VS_6_REVIEW__WEB3311_TECH_PASS_UNCHANGED"
+    "working_pr_lifecycle": "PR954_OPEN_DOCS_ONLY_OWNER_UI_LAYOUT_CORRECTION__WEB3311_TECH_PASS_UNCHANGED"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
