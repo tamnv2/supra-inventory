@@ -10,7 +10,7 @@
     "id": "D173-E214",
     "date_vn": "2026-11-12",
     "summary": "Owner authorizes Web3.3.9 Worker/Web release of six field repairs on new PR947 after exact CI. Main Agent193 untouched; D172 HOLD, Stable gated; FIELD and Owner PASS pending.",
-    "status": "WEB339_OWNER_RELEASE_APPROVED_PR947_SOURCE_CI_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "status": "WEB339_4_REQUIRED_CI_PASS__OWNER_RELEASE_AUTHORIZED_PENDING_GUARDED_MERGE__D172_HOLD",
     "source": "docs/D173_E214_WEB339_FIELD_RELEASE_2026-11-12.md",
     "branch": "fix/d173-e214-web339-field-release-20261112",
     "pr": 947
@@ -3991,7 +3991,7 @@
       "date_vn": "2026-11-12",
       "kind": "OWNER_COMMAND",
       "topic": "Owner Web3.3.8 FIELD FAIL requests new Web3.3.9 gated production release",
-      "status": "PR947_WEB339_SOURCE_CANDIDATE_CI_PENDING__RELEASE_AUTHORIZED_NOT_EXECUTED",
+      "status": "PR947_EXACT_CI_4_REQUIRED_PASS__OWNER_GATED_RELEASE_PENDING",
       "owner_approval": true,
       "owner_release_approved": true,
       "owner_merge_approved": true,
@@ -4003,17 +4003,25 @@
         "PR946 source checks 43165669195, 43165668906, 43165668856, 43165668679 completed SUCCESS on exact head 930762b989d3ca5deff8904d0e914243ce62e11f.",
         "Fresh PR947 branched from main 4775ace79a072241ae8832d32b4781f6efefb93a after Agent193 merge; source ports E213 Web field fixes without copying stale governance E213 Agent artifacts.",
         "Web version and package set 3.3.9; Worker is read-only latest withdrawn Picker identity projection, no schema or provider resource mutation.",
-        "D172 independent PENDING/HOLD, Stable Owner-gated; FIELD and OWNER PASS remain unverified."
+        "D172 independent PENDING/HOLD, Stable Owner-gated; FIELD and OWNER PASS remain unverified.",
+        "PR947 exact source SHA e742d4b5b748458a50d46cdf7ab0d3c7926d63ac: E214 Web/Worker/source/SQL/D172 run 43168107470, D172 isolation 43168108212, authority 43168108075, state 43168107890 completed SUCCESS."
       ],
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/946; https://github.com/tamnv2/supra-inventory/pull/947; docs/D173_E214_WEB339_FIELD_RELEASE_2026-11-12.md",
       "next_action": "Run exact PR947 Web339+Worker+SQL+independent D172 CI; pin immutable source SHA and Owner release authority; protected merge and verify official Production /health and web version, record receipt.",
       "code": "SOURCE_CANDIDATE",
-      "ci": "PENDING",
+      "ci": "PASS_EXACT_SOURCE_e742d4b5b748458a50d46cdf7ab0d3c7926d63ac",
       "release": "OWNER_GATED_CI_PENDING",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "e742d4b5b748458a50d46cdf7ab0d3c7926d63ac",
+      "required_ci_evidence": {
+        "e214_web_worker_sql_d172": 43168107470,
+        "d172_independent": 43168108212,
+        "repo_authority": 43168108075,
+        "project_state": 43168107890
+      }
     }
   ],
   "resume": {
@@ -5273,13 +5281,19 @@
     "owner_production_release_approved": true,
     "target_web_version": "3.3.9",
     "source_candidate_sha": "bf59d647e28b82bc1daecc6804f8da17a092bcac",
-    "source_ci_sha": null,
-    "source_ci": "PENDING",
-    "release": "NOT_YET",
+    "source_ci_sha": "e742d4b5b748458a50d46cdf7ab0d3c7926d63ac",
+    "source_ci": "PASS_E214_4_REQUIRED_CHECKS",
+    "release": "APPROVED_GATED_MERGE_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "authorization": "ops/d173-e214-web-release-authorization.json",
     "doc": "docs/D173_E214_WEB339_FIELD_RELEASE_2026-11-12.md",
-    "no_D172_mutation": true
+    "no_D172_mutation": true,
+    "required_ci_evidence": {
+      "e214_web_worker_sql_d172": 43168107470,
+      "d172_independent": 43168108212,
+      "repo_authority": 43168108075,
+      "project_state": 43168107890
+    }
   }
 }
