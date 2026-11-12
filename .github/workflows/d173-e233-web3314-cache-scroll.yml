@@ -1,0 +1,46 @@
+name: D173 E233 Web3314 Cache Scroll Source CI
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'tests/d173-e233-web3314-cache-scroll.test.mjs'
+      - 'tests/d173-e230-web3313-field-density.test.mjs'
+      - 'tests/d173-e227-web3312-eight-ui.test.mjs'
+      - '.github/workflows/d173-e233-web3314-cache-scroll.yml'
+      - 'ops/change-continuity/D173.json'
+      - 'ops/project-state.json'
+      - 'ops/d173-e233-web3314-release-authorization.json'
+permissions:
+  contents: read
+jobs:
+  e233-web3314:
+    if: contains(github.head_ref, 'd173-e233-web3313-field-scroll-cache-review')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: D173 E233 and existing five-tab source regression
+        run: |
+          node --test tests/d173-e233-web3314-cache-scroll.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e227-web3312-eight-ui.test.mjs tests/d173-e221-web-daily-local-search.test.mjs
+      - name: Build Web TypeScript and Vite
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Install Worker test dependencies without changes
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: D172 independent isolation and regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: Web-only code boundary
+        run: echo "D173_E233_WEB3314_SOURCE_CI_ONLY__NO_PROVIDER_MUTATION__D172_HOLD"
