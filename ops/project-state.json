@@ -2492,7 +2492,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E212_AGENT193_CODE_ONLY_CANDIDATE__CI_PENDING__NO_MERGE_RELEASE__AGENT192_SIGNED_PRODUCTION_UNCHANGED__D172_HOLD",
+    "current_change_status": "D173_E212_AGENT193_SOURCE_CI_NATIVE_PASS__DRAFT_NO_MERGE_RELEASE__AGENT192_SIGNED_PRODUCTION_UNCHANGED__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -13705,17 +13705,31 @@
     "candidate_agent": 193,
     "working_branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
     "pr": 945,
-    "requested_ui": ["TOP_70_AGENT_PICKLIST_30_DESKTOP_KEEP_40_60_AND_65_35", "EXIT_TWO_CHOICES_KEEP_EXISTING_VERIFICATION", "NETWORK_REFRESH_SAME_AGENT_TOOLBAR", "ROSTER_FOUR_TOOLS_RIGHT_SAME_ROW_SCROLL_FALLBACK", "FIXED_ROSTER_WIDTHS_RECALC_VIEWPORT_DPI_SCHEMA_FONT_ONLY"],
-    "source_files_only": ["relay-agent/D173E179OverviewNoScroll.cs", "relay-agent/D119AgentFeatures.cs", "relay-agent/Program.cs", "relay-agent/VERSION", "relay-agent/SupraInventoryRelayAgent.csproj"],
+    "requested_ui": [
+      "TOP_70_AGENT_PICKLIST_30_DESKTOP_KEEP_40_60_AND_65_35",
+      "EXIT_TWO_CHOICES_KEEP_EXISTING_VERIFICATION",
+      "NETWORK_REFRESH_SAME_AGENT_TOOLBAR",
+      "ROSTER_FOUR_TOOLS_RIGHT_SAME_ROW_SCROLL_FALLBACK",
+      "FIXED_ROSTER_WIDTHS_RECALC_VIEWPORT_DPI_SCHEMA_FONT_ONLY"
+    ],
+    "source_files_only": [
+      "relay-agent/D173E179OverviewNoScroll.cs",
+      "relay-agent/D119AgentFeatures.cs",
+      "relay-agent/Program.cs",
+      "relay-agent/VERSION",
+      "relay-agent/SupraInventoryRelayAgent.csproj"
+    ],
     "test": "tests/d173-e207-agent192-overview-layout.test.mjs",
     "ci_workflow": ".github/workflows/d173-e212-agent193-code-only.yml",
     "doc": "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md",
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
+    "code": "SOURCE_TEST_PASS",
+    "ci": "PASS_9_AGENT_UI_74_D172_WINDOWS_X64_BUILD_NATIVE_SMOKE",
     "release": "NO_CHANGE_SIGNED_AGENT192",
     "field": "NOT_VERIFIED_AGENT193",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "source_ci_sha": "e34664a907b9a3431886566e1a2c3639b507b31b",
+    "ci_run_id": 43163281722
   }
 }
