@@ -587,7 +587,11 @@ namespace SupraInventoryRelayAgent
             _password.Visible = !authenticated;
             _pair.Visible = !authenticated;
 
-            _logout.Visible = authenticated;
+            // E212: only the merged exit selector is displayed after login;
+            // preserve both original OTP-protected action handlers.
+            _logout.Visible = authenticated && !_d173E182AdaptiveTopReady;
+            _agentExit.Visible = !authenticated || !_d173E182AdaptiveTopReady;
+            _d173E212ExitMenuButton.Visible = authenticated && _d173E182AdaptiveTopReady;
             // E207: original Web-data controls now live inside the Agent card;
             // hide them with the rest of the authenticated actions on logout.
             _browserBundleDownload.Visible = authenticated;
