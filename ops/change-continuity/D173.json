@@ -7,11 +7,11 @@
   "pr": 940,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R08",
+    "id": "D173-E204-R09",
     "date_vn": "2026-11-12",
-    "summary": "Owner requests V2.3 real puzzle recognition/drag with tolerant ROI; stacked PR940 implements only synthetic offline ROI ±15px and local animated drag, no WMS/CAPTCHA input. Source/CI artifact pending.",
-    "status": "V23_CODE_CANDIDATE_PR940_DRAFT_CI_PENDING__FIELD_OWNER_NOT_PASS__NO_CAPTCHA_BYPASS",
-    "source": "https://github.com/tamnv2/supra-inventory/pull/940"
+    "summary": "PR940 V2.3 synthetic-only ±15px ROI/local drag simulator: 18/18 source+Windows native PASS run43139865314; artifact 13908667912 SHA d724e050... CRC all 21 PASS. No real CAPTCHA automation, FIELD/OWNER pending.",
+    "status": "V23_CODE_SOURCE_NATIVE_ARTIFACT_TECH_PASS__PR940_DRAFT__FIELD_OWNER_PENDING__NO_AUTOMATED_CAPTCHA",
+    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43139865314"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4157,6 +4157,42 @@
       "field_pass": false,
       "owner_pass": false,
       "next_action": "Check exact-sha CI, Windows native startup smoke, artifact bytes and checksum, then provide verified test ZIP only if all pass."
+    },
+    {
+      "id": "D173-E204-R09",
+      "date_vn": "2026-11-12",
+      "kind": "V23_CI_NATIVE_ARTIFACT_RECEIPT",
+      "topic": "V2.3 synthetic-only offline ROI drag simulation tested on Windows x64",
+      "status": "V23_CODE_SOURCE_NATIVE_ARTIFACT_TECH_PASS__PR940_DRAFT__FIELD_OWNER_PENDING__NO_AUTOMATED_CAPTCHA",
+      "facts_verified": [
+        "PR940 Draft stacked on PR938; standalone diagnostics changed, Production Agent/Web/Worker/Android/D172/Stable untouched.",
+        "Scoped CI run 43139865314 at exact source SHA 0dda380e8dd3e2f32f4c4b0cb1d156414df66f44: source 18 of 18 Node tests PASS; Windows-native build + synthetic startup smoke PASS.",
+        "GitHub Actions artifact 13908667912 named SUPRA-Puzzle-Diagnostic-V23-win-x64; 103320474 bytes, 21 ZIP entries, CRC test PASS.",
+        "SHA256 of locally downloaded artifact d724e05091b23429a4b796279b2086e6cabb0e729927228bffc43ef1c7b684d1 exactly matches GitHub Actions digest.",
+        "V2.3 includes standalone 'Mô phỏng kéo (offline)' dialog with static known source/target and ±15px ROI coordinate offsets. It animates local WinForms rectangle only, and exports synthetic-only geometry JSON; it has no new live browser input.",
+        "V2.2 fixed viewport/manual ROI preview remains available. Former live challenge Test button remains hidden and disabled in V2.3."
+      ],
+      "evidence": {
+        "pr_url": "https://github.com/tamnv2/supra-inventory/pull/940",
+        "run_url": "https://github.com/tamnv2/supra-inventory/actions/runs/43139865314",
+        "artifact_url": "https://github.com/tamnv2/supra-inventory/actions/runs/43139865314/artifacts/13908667912",
+        "source_sha": "0dda380e8dd3e2f32f4c4b0cb1d156414df66f44",
+        "artifact_sha256": "d724e05091b23429a4b796279b2086e6cabb0e729927228bffc43ef1c7b684d1"
+      },
+      "limitations": [
+        "Synthetic PASS cannot establish real WMS challenge recognition, real piece/slot prediction, actual browser drag or server login success.",
+        "No WMS anti-bot solver, automatic challenge dragging, login/retry or Confirm navigation was implemented.",
+        "No FIELD/OWNER acceptance and no Production deployment; do not falsely describe this as the requested real CAPTCHA solution."
+      ],
+      "code": "PASS_SCOPED",
+      "ci": "SOURCE_18_18_PASS_NATIVE_PASS",
+      "artifact": "SHA256_CRC_PASS",
+      "release": "CODE_ONLY_TEST_ARTIFACT",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "Owner may evaluate safe offline-only simulation; no live WMS CAPTCHA testing is required or requested."
     }
   ],
   "resume": {
