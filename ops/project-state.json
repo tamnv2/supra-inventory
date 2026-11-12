@@ -7604,16 +7604,16 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
     "pr": 961,
-    "latest_checkpoint_id": "D173-E238",
+    "latest_checkpoint_id": "D173-E239",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "WEB3315_CODE_ONLY__NO_PRODUCTION_RELEASE_APPROVAL__D172_HOLD",
+    "owner_release_gate": "D173_E239_WEB3315_OWNER_RELEASE_APPROVED__EXACT_SOURCE_CI_AND_D172_REQUIRED_BEFORE_PROTECTED_MERGE__NO_STABLE",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 961,
     "active_working_branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
-    "working_pr_lifecycle": "PR961_OPEN_DRAFT_WEB3315_SCOPED_CI_PASS__LEGACY_UI_GUARD_BASELINE_FAIL__NO_RELEASE_AUTHORITY"
+    "working_pr_lifecycle": "PR961_OPEN_DRAFT_OWNER_RELEASE_APPROVED__CI_AND_GUARDED_MERGE_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14216,12 +14216,12 @@
     "production_web_version": "3.3.14",
     "candidate_web_version": "3.3.15",
     "owner_code_requested": true,
-    "owner_production_release_approved": false,
+    "owner_production_release_approved": true,
     "scope": "WEB_D173_PRESENTATION_ONLY_GLOBAL_SPACING_RADIUS_COLORS_DUPLICATE_HEADINGS_STICKY_TABS",
-    "code": "PASS_SOURCE_SCOPED",
+    "code": "PASS_SOURCE_SCOPED__RELEASE_GATE_ADDED",
     "static_source_checks": "PASS_NOT_BROWSER",
-    "ci": "PASS_WEB_BUILD_D172_AUTHORITY_STATE_SHA923612DB__LEGACY_UI_GUARD_BASELINE_FAIL",
-    "release": "WEB3315_NOT_DEPLOYED",
+    "ci": "PENDING_EXACT_HEAD_AFTER_GATE",
+    "release": "OWNER_AUTHORIZED__NOT_DEPLOYED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -14233,6 +14233,11 @@
       "authority": 43256615644,
       "state": 43256615721,
       "legacy_ui_fail": 43256615819
-    }
+    },
+    "release_marker": "D173-E237_WEB3315_PRODUCTION_RELEASE:",
+    "release_gate": "tools/d173_e237_web3315_release_gate.py",
+    "release_auth": "ops/d173-e237-web3315-release-authorization.json",
+    "owner_command": "D173-E239_RELEASE_TO_DONE_WITH_GATES",
+    "release_doc": "docs/D173_E239_WEB3315_RELEASE_AUTHORIZATION_2026-11-12.md"
   }
 }
