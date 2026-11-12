@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
-  "pr": null,
+  "pr": 959,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E233",
@@ -13,7 +13,7 @@
     "status": "WEB3313_PRODUCTION_TECH_PASS__E233_FIELD_NOT_PASS__REVIEW_ONLY_NO_CODE_RELEASE",
     "source": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md",
     "branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
-    "pr": null
+    "pr": 959
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4570,7 +4570,7 @@
       "owner_release_approved": false,
       "production_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
       "branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
-      "pr": null,
+      "pr": 959,
       "facts": [
         "Production release E232 remains TECHNICAL PASS on existing inventory.supra.cc.cd. Owner field screenshots report two independent scrollbars and final SKU visually cut off; code maps every loaded result row (no source slice).",
         "Source: loadReporterRecentSnapshot fetches max 200/page sequentially and stores only one recentLoadedViewKey; loadOperationsSnapshot refetches on reentry, and realtime sometimes rebuilds full active DOM.",
