@@ -368,17 +368,24 @@ namespace SupraInventoryRelayAgent
         private void ApplyD173E038AgentToolbar(Control host, bool authenticated, bool takeoverVisible)
         {
             if (host == null || host.IsDisposed || !authenticated) return;
+            // E207 owns the signed-in toolbar. Do not let the old geometry
+            // silently restore Logout-first ordering after a role refresh.
+            if (_d173E182AdaptiveTopReady)
+            {
+                D173E179FitAgentFleet(host);
+                return;
+            }
             var width = Math.Max(310, host.ClientSize.Width);
             var compact = width < 700;
             const int gap = 4;
             const int left = 12;
             const int row = 91;
-            var actions = new List<Button> { _logout, _manualUpdate, _background };
+            var actions = new List<Button>();
             if (takeoverVisible) actions.Add(_d150PrimaryTakeoverButton);
-            actions.Add(_agentExit);
-            _manualUpdate.Text = compact ? "Cập nhật" : "Kiểm tra cập nhật";
-            _background.Text = compact ? "Xuống nền" : "Chuyển xuống nền";
-            _d150PrimaryTakeoverButton.Text = "Chọn Agent chính";
+            actions.AddRange(new[] { _manualUpdate, _background, _logout, _agentExit });
+            _manualUpdate.Text = "Cập nhật";
+            _background.Text = "Xuống nền";
+            _d150PrimaryTakeoverButton.Text = "Chuyển Agent chính";
             _agentExit.Text = "Tắt Agent";
             _agentExit.Visible = true;
             _autoSizeAgentColumnsButton.Visible = false;
