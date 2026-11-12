@@ -1,3 +1,9 @@
+## 12/11/2026 — D173-E216: Web3.3.9 FIELD NOT PASS, ba lỗi tìm SKU/bố cục
+
+Owner xác nhận Web 3.3.9 về cơ bản OK nhưng tìm SKU nhập xong vẫn thấy tất cả, ngày cần căn phải sát tìm SKU, và tab đang chọn phải có nền phân biệt liên tục. D173 xử lý cùng change, chỉ code Web giao diện và xác nhận truy vấn/response SKU trong phạm vi hiện hữu; không đổi nghiệp vụ, Worker API, Agent, APK, D172, schema, hạ tầng hoặc Stable. PR #950 là **code-only**; Owner **chưa yêu cầu release mới trong lượt này**. Giữ Web3.3.9 Production; CI/FIELD/Owner PASS phải có bằng chứng riêng. Chi tiết `docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md`.
+
+---
+
 ## 12/11/2026 — D173-E214: Owner yêu cầu phát hành Web 3.3.9 sửa lỗi 3.3.8
 
 Owner yêu cầu tiếp tục và **phát hành Web phiên bản mới**, khắc phục đúng sáu lỗi thực tế: tiêu đề công ty tăng 150%, tìm kiếm SKU hoạt động đúng (không giữ giá trị DOM cũ khi thay tab), hiển thị đúng người Picker thu hồi, nhãn `Cho phép skip xx`, ô SKU giảm 50%, ô ngày gọn và thanh tab/ngày/tìm SKU trên một hàng desktop. Phạm vi được phép: Web chính thức + phép chiếu người thu hồi read-only trên Worker hiện hữu; không sửa schema, Agent, APK, Firebase, D172, Stable hoặc nhà cung cấp khác. Dùng PR #947 từ main mới nhất, tăng Web 3.3.9 và bắt buộc kiểm thử source exact-SHA, D172 độc lập, protected merge trước Production deploy. Đã **duyệt code + release có điều kiện**, không suy diễn FIELD/OWNER PASS nếu chưa kiểm tra Production và máy thực tế. Chi tiết `docs/D173_E214_WEB339_FIELD_RELEASE_2026-11-12.md`.

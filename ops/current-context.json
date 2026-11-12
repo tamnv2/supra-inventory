@@ -7,15 +7,15 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E215",
-    "pr": 949,
-    "branch": "docs/d173-e215-web339-production-receipt-20261112",
-    "status": "WEB339_WORKER_WEB_PRODUCTION_TECH_PASS__RECEIPT_ONLY_PR949__FIELD_OWNER_PENDING__D172_HOLD",
+    "checkpoint_id": "D173-E216",
+    "pr": 950,
+    "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "status": "WEB339_SEARCH_TABS_DATES_OWNER_FIELD_FAIL__PR950_SOURCE_REPAIR_CODE_ONLY__RELEASE_HOLD__D172_HOLD",
     "owner_merge_approved": false,
     "owner_release_approved": false,
-    "source_doc": "docs/D173_E215_WEB339_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
-    "source_pr": 947,
-    "source_main_sha": "331c2c1e99c5113f258acba8ab12ac3e8d5ca946"
+    "source_doc": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md",
+    "production_web_version": "3.3.9",
+    "source_main_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b"
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
