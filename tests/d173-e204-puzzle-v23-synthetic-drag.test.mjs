@@ -27,7 +27,7 @@ test("V2.3 never reads real challenge pixels or dispatches browser input", () =>
   assert.ok(!sim.includes("Navigate("));
   assert.ok(!sim.includes("password"));
   assert.ok(!sim.includes("cookie"));
-  assert.ok(ui.includes("new V23OfflineDragForm()"));
+  assert.ok(ui.includes("new V23BrowserDragLab()"));
   assert.ok(main.includes("_test.Visible = false"));
 });
 
