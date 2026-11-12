@@ -20,7 +20,7 @@
 
 ## Thiết kế đề xuất (CHƯA PHÊ DUYỆT TRIỂN KHAI)
 - Chỉ bỏ nút trong workspace, không xóa báo cáo độc lập.
-- `CLOSED`: suy danh tính **từ ticket đã WITHDRAWN của cùng batch_id**, không từ SKU hoặc bản ghi HR hiện hành khác đợt. Trường hợp batch có nhiều người cùng thu hồi phải hiển thị đủ/tách dòng; không ép một actor giả. Đề xuất thêm dữ liệu hiển thị trong chính `reporterRecent` (set-based join vào page IDs), tránh N+1 request từ mỗi dòng đóng.
+- `CLOSED`: suy danh tính **từ ticket đã WITHDRAWN của cùng batch_id**, không từ SKU hoặc bản ghi HR hiện hành khác đợt. **Owner đã chốt mỗi picker thu hồi một dòng**; cùng batch/SKU có thể nhiều dòng. Phải phân trang trên đơn vị picker hoặc ghép trang chính xác với số dòng picker, không bị mất người khi giới hạn trang 50. Chưa chốt liệu badge CLOSED đếm batch hay picker và việc một picker có nhiều lượt thu hồi. Ưu tiên truy vấn tập hợp phía server, không gọi N+1 GET.
 - `HAS_STOCK/SKIP_ALLOWED`: double-click chi tiết bằng endpoint batch tickets hiện hữu, theo `batch_id`; phân biệt từng lần SKU phát sinh lại, sắp xếp `reported_at ASC`, hiển thị mã/tên/giờ báo. Chỉ fetch lần đầu mở, cache theo batch; hủy cache khi data/version thay đổi, khi chuyển session và khi realtime làm thay đổi thành viên; chặn lỗi trả về cũ sau đổi tab/session.
 - Tìm kiếm: kiểm soát đầu vào chuỗi số, min 3 ký tự, empty restores; debounce khoảng 300ms, bỏ phản hồi cũ, đặt `offset=0` mỗi lần đổi query/tab/date; server thêm `query`/SKU vào endpoint danh sách **trước** phân trang, trả đúng `total` của kết quả tìm; giữ nguyên badge/aggregate tổng phạm vi ngày, không bị biến thành số match tìm. Giữ giới hạn 50/trang và quy tắc ngày <=60 như hiện tại. Không fetch 300 rows về client để lọc. **Owner đã CHỐT khớp hậu tố SKU (`sku.endsWith(query)`), không dùng prefix/contains**; yêu cầu benchmark thực tế với SQLite do kiểu `LIKE '%suffix'` có thể không tận dụng index SKU thông thường, gây tăng DO Rows Read. Không đổi sang tìm đầu chuỗi chỉ để giảm usage; chỉ chọn giải pháp backend tương đương chính xác, có phép đo và đúng gate. Với Đang xử lý/Quá hạn phải xét query server/luồng realtime riêng nếu áp dụng ô chung cho cả năm tab.
 - Layout responsive: tabs căn trái, khu vực tìm kiếm + date căn phải cùng hàng khi đủ độ rộng; màn hình hẹp bọc xuống hàng thay vì đè/chèn/cắt control. Chỉ tự áp dụng on `change` của ngày sau khi validate khoảng hợp lệ, từ<=đến, không ngày tương lai, tối đa 60 ngày. Không gọi API khi input date chưa hoàn chỉnh; tránh hai load cạnh tranh hoặc thêm polling.
@@ -44,3 +44,9 @@ ANALYSIS_RECOVERABLE — chưa code, chưa CI, chưa release. Owner đã chốt 
 
 ## Kịch bản tối ưu trước triển khai
 - Theo lệnh Owner: **Usage → Ổn định → Tốc độ**. Bản phân tích và ba lựa chọn chờ Owner review: `docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md` (docs-only, không cấp quyền code/release).
+
+## Owner đã chốt phạm vi/hiển thị/ngày (12/11/2026)
+- Chỉ tìm SKU trong tab hiện chọn; Đang xử lý và Quá hạn tìm toàn bộ đơn chưa hoàn tất, ba tab kết quả chỉ tìm trong khoảng ngày đang áp dụng; không tìm thêm ngoài phạm vi của tab.
+- Picker đã thu hồi: mỗi picker một dòng riêng; cùng SKU/batch có thể có nhiều picker.
+- Khoảng ngày ba tab kết quả tiếp tục dựa trên `first_report_at` của batch, không dựa ngày thu hồi/xử lý.
+- Hai câu hỏi còn cần Owner chốt: badge/KPI batch hay picker khi tách dòng; một picker thu hồi nhiều lần trong cùng batch thì một dòng hay mỗi lượt một dòng. Xem kế hoạch usage-first.
