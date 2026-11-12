@@ -286,6 +286,7 @@ function businessRoleLabel(role: string): string {
 }
 
 function clearRoleScopedViewState(): void {
+  invalidateRecentViewCache();
   queueRows = [];
   queueBadgeCount = 0;
   queueBadgeInitialized = false;
@@ -431,6 +432,9 @@ const RECENT_PAGE_SIZE = 200;
 let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
 let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
 let resultTabAutoSkipCount = 0;
+// In-memory only: complete result views are scoped to the current signed-in session.
+const recentViewCache = new Map<string, { rows: ReporterRecentBatch[]; total: number; totals: typeof recentTotals }>();
+let recentViewCacheEpoch = 0;
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "HAS_STOCK";
 let opsSkuSuffix = "";
@@ -1453,6 +1457,7 @@ function renderLogin(): void {
       dashboardPreferenceLoadedUserId = "";
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
+      invalidateRecentViewCache();
       activeSection = resolveInitialSection(profile);
       syncSectionHistory(activeSection, "replace");
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
@@ -1613,6 +1618,11 @@ function render(): void {
     dom_nodes: app.querySelectorAll("*").length,
     queue_rows: queueRows.length,
   }, performance.now() - started);
+}
+
+function invalidateRecentViewCache(): void {
+  recentViewCache.clear();
+  recentViewCacheEpoch += 1;
 }
 
 function recentPageKey(): string {
@@ -3779,13 +3789,27 @@ async function loadReporterRecentSnapshot(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const viewKey = recentPageKey();
+  const cacheKey = [sessionViewGeneration, profile?.user_id || "", profile?.role || "",
+    profile?.base_role || "", viewKey].join("|");
+  const cacheEpoch = recentViewCacheEpoch;
   const status = recentFilter === "ALL" ? "" : recentFilter;
   const pickerRows = recentFilter === "CLOSED";
   const range = apiRange(recentFrom, recentTo);
   const valid = () => requestGeneration === reporterRecentLoadGeneration &&
     generation === sessionViewGeneration && userId === (profile?.user_id || "") &&
-    viewKey === recentPageKey();
+    viewKey === recentPageKey() && cacheEpoch === recentViewCacheEpoch;
   recentLoadError = "";
+  const cached = realtimeState === "connected" ? recentViewCache.get(cacheKey) : undefined;
+  if (cached) {
+    recentRows = cached.rows;
+    recentTotal = cached.total;
+    recentTotals = { ...cached.totals };
+    recentLoadedViewKey = viewKey;
+    resultTabAutoSkipCount = Math.min(Math.max(0, Number(recentTotals.skip_allowed || 0)),
+      Math.max(0, Number(recentTotals.automatic_skipped || 0)));
+    syncOperationalTabBadges();
+    return;
+  }
   try {
     for (let attempt = 0; attempt < 2; attempt++) {
       const all: ReporterRecentBatch[] = [];
@@ -3820,6 +3844,15 @@ async function loadReporterRecentSnapshot(): Promise<void> {
         recentBadgeCount = Math.max(0, Number(totals.has_stock || 0) +
           Number(totals.skip_allowed || 0) + Number(totals.withdrawn || 0));
         recentBadgeInitialized = true;
+      }
+      if (realtimeState === "connected") {
+        // Small bounded LRU; never store business records in localStorage/IndexedDB.
+        recentViewCache.delete(cacheKey);
+        if (recentViewCache.size >= 6) {
+          const oldest = recentViewCache.keys().next().value;
+          if (oldest) recentViewCache.delete(oldest);
+        }
+        recentViewCache.set(cacheKey, { rows: all, total, totals: { ...recentTotals } });
       }
       syncOperationalTabBadges();
       markWebUpdateReceived();
@@ -3932,6 +3965,7 @@ function applyReporterReadModel(value: unknown): boolean {
       !Number.isFinite(queue.total) || !Number.isFinite(recent.total) || !Number.isFinite(counters.recent_total) ||
       !Number.isFinite(counters.overdue_total) || !Number.isFinite(counters.queue_total) || (activeSection === "operations" && queue.total > queue.items.length) ||
       (recent.total > 0 && recentOffset >= recent.total)) return false;
+  invalidateRecentViewCache();
   queueRows = queue.items;
   queueBadgeCount = counters.queue_total;
   recentRows = recent.items;
@@ -4589,6 +4623,7 @@ function bindShell(): void {
     void run(async () => {
       profile = await setRootEffectiveRole(role);
       sessionViewGeneration += 1;
+      invalidateRecentViewCache();
       pickerSearchGeneration += 1;
       dashboardLoadGeneration += 1;
       reportLoadGeneration += 1;
@@ -4606,6 +4641,7 @@ function bindShell(): void {
       dashboardLoadGeneration += 1;
       reportLoadGeneration += 1;
       sessionViewGeneration += 1;
+      invalidateRecentViewCache();
       runtimeLogEvent("Đăng xuất");
       clearSession();
       profile = null;
@@ -5835,6 +5871,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
     }
   }
   if (context.source === "reconcile") {
+    invalidateRecentViewCache();
     if (roleCanResolve()) await loadD167MealState().catch(() => undefined);
     return reconcileActive();
   }
@@ -5868,6 +5905,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   // Patch the exact in-memory row and badges; list APIs are fallback only when
   // snapshot/transition metadata is insufficient or pagination makes a patch unsafe.
   if (reporterScopeChanged) {
+    invalidateRecentViewCache();
     try {
       const queueBadgeExact = !reporterQueueChanged || applyReporterQueueBadgeEvents(events);
       const overdueBadgeExact = !reporterOverdueChanged || applyReporterOverdueBadgeEvents(events);
@@ -5885,7 +5923,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
       if (reporterOverdueChanged && activeSection === "overdue" && !patched.overdueExact) {
         tasks.push(loadReporterOverdueSnapshot());
       }
-      if (reporterRecentChanged && activeSection === "results" && !patched.recentExact) {
+      if (reporterRecentChanged && activeSection === "results" && (!patched.recentExact || recentLoadedViewKey !== recentPageKey())) {
         tasks.push(loadReporterRecentSnapshot());
       }
 
@@ -5927,9 +5965,12 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
 
 window.addEventListener("supra:realtime-status", (event) => {
   const detail = (event as CustomEvent<{ state?: string; lastSeq?: number; dirty?: boolean; streamEpoch?: string }>).detail || {};
+  const previousEpoch = realtimeStreamEpoch;
   realtimeState = detail.state || realtimeState;
   realtimeLastSeq = Number(detail.lastSeq ?? realtimeLastSeq);
   realtimeStreamEpoch = detail.streamEpoch ?? realtimeStreamEpoch;
+  if (detail.dirty || (previousEpoch && realtimeStreamEpoch !== previousEpoch) ||
+      (detail.state && detail.state !== "connected")) invalidateRecentViewCache();
   // D089: service reachability and realtime transport are independent.
   // A websocket outage must not label the HTTP/API service as down.
   patchHeaderRuntime();
@@ -5980,6 +6021,7 @@ async function bootstrap(): Promise<void> {
     restoreDashboardRangeForUser(profile.user_id);
     dashboardPreferenceLoadedUserId = "";
     sessionViewGeneration += 1;
+      invalidateRecentViewCache();
     activeSection = resolveInitialSection(profile);
     syncSectionHistory(activeSection, "replace");
     await loadSection(activeSection);
