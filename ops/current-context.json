@@ -7,12 +7,12 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E212",
+    "checkpoint_id": "D173-E213",
     "pr": 945,
     "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
-    "status": "AGENT193_CODE_SOURCE_CI_NATIVE_PASS__DRAFT_NO_MERGE_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
-    "owner_merge_approved": false,
-    "owner_release_approved": false
+    "status": "AGENT193_OWNER_RELEASE_APPROVED__EXACT_CI_AND_PROTECTED_MERGE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_merge_approved": true,
+    "owner_release_approved": true
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
@@ -72,7 +72,8 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR",
     "AGENT193_PUBLISHED",
-    "AGENT193_OWNER_APPROVED_MERGE"
+    "AGENT193_OWNER_APPROVED_MERGE",
+    "AGENT193_RELEASE_PASS_BEFORE_TAG_CHANNEL_READBACK"
   ],
   "main_source_at_reconciliation": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
   "active_implementation": {
@@ -88,16 +89,15 @@
     "host14_ota_unchanged": true
   },
   "active_candidate": {
-    "change_id": "D173-E212",
+    "change_id": "D173-E213",
     "pr": 945,
     "version": 193,
     "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
-    "source_pin": "e34664a907b9a3431886566e1a2c3639b507b31b",
-    "release": "CODE_ONLY_NO_RELEASE__SIGNED_AGENT192_PRODUCTION",
+    "source_pin": "5125b4750daf2a2b53f160ed979a2a279b296d18",
+    "source_ci_run": "PENDING_VERSION193",
+    "release": "OWNER_APPROVED_GATE_REQUIRED",
     "host_build": 14,
-    "scope": "AGENT_WINFORMS_UI_ONLY_5_OWNER_CORRECTIONS",
-    "source_ci_run": 43163281722,
-    "code_ci": "PASS_SOURCE_NATIVE"
+    "scope": "AGENT_WINFORMS_ONLY_FIVE_UI_FIXES_PLUS_AGENTBUILD"
   },
   "active_field_analysis": {
     "id": "D173-E202",
