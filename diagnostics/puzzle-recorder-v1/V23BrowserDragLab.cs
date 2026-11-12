@@ -13,7 +13,14 @@ using System.Web.Script.Serialization;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
-using OpenCvSharp;
+using Cv2 = OpenCvSharp.Cv2;
+using Mat = OpenCvSharp.Mat;
+using Scalar = OpenCvSharp.Scalar;
+using MatType = OpenCvSharp.MatType;
+using ImreadModes = OpenCvSharp.ImreadModes;
+using HierarchyIndex = OpenCvSharp.HierarchyIndex;
+using RetrievalModes = OpenCvSharp.RetrievalModes;
+using ContourApproximationModes = OpenCvSharp.ContourApproximationModes;
 
 namespace SupraPuzzleRecorder
 {
