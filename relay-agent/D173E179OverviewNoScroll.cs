@@ -25,44 +25,72 @@ namespace SupraInventoryRelayAgent
 
 
         private void InstallD173E179NoScrollTop(
-            TableLayoutPanel overview, Panel viewport, TableLayoutPanel threeColumns,
+            TableLayoutPanel overview, Panel viewport, TableLayoutPanel twoColumns,
             Control agent, TableLayoutPanel middle, Control supra,
             Control picklist, Control desktop)
         {
-            // E181: 40% operations, 60% roster at all sizes.
+            // E207: preserve the 40/60 overview/roster boundary. Only its upper
+            // area changes to 60% Agent+PickList and 40% Desktop resources.
             overview.RowStyles[0].SizeType = SizeType.Percent;
             overview.RowStyles[0].Height = 40F;
             overview.RowStyles[1].SizeType = SizeType.Percent;
             overview.RowStyles[1].Height = 60F;
             viewport.AutoScroll = false;
-            threeColumns.AutoScroll = false;
-            threeColumns.Dock = DockStyle.Fill;
-            threeColumns.Margin = Padding.Empty;
-            threeColumns.Padding = Padding.Empty;
-            // One 4px inset per top card; the nested 50/50 cards share a 6px seam.
-            agent.Margin = new Padding(4);
+            twoColumns.Dock = DockStyle.Fill;
+            twoColumns.AutoScroll = false;
+            twoColumns.Margin = Padding.Empty;
+            twoColumns.Padding = Padding.Empty;
             middle.Margin = new Padding(4);
-            desktop.Margin = new Padding(4);
-            supra.Margin = new Padding(0, 0, 0, 3);
+            agent.Margin = new Padding(0, 0, 0, 3);
             picklist.Margin = new Padding(0, 3, 0, 0);
+            desktop.Margin = new Padding(4);
             (agent as ScrollableControl).AutoScroll = false;
-            (supra as ScrollableControl).AutoScroll = false;
             (picklist as ScrollableControl).AutoScroll = false;
             _agentFleetGrid.ScrollBars = ScrollBars.None;
             _manualPicklistGrid.ScrollBars = ScrollBars.None;
 
-            // Below 1240px of CONTENT width, four native tabs replace the
-            // impossible 725px-high two-column scroll layout. No controls are
-            // duplicated, and the lower roster remains always visible.
+            // The old Supra summary is no longer displayed. Reuse the actual
+            // Web-data buttons and their existing click handlers in Agent.
+            middle.Controls.Remove(supra);
+            supra.Visible = false;
+            _wmsDesktop.Visible = false;
+            foreach (var button in new Control[] {
+                _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder
+            })
+            {
+                button.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+                agent.Controls.Add(button);
+            }
+            _openAgentDataFolder.Text = "Mở thư mục dữ liệu";
+            _moveAgentDataFolder.Text = "Đổi nơi lưu trữ";
+            foreach (var button in new Button[] {
+                _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder
+            })
+            {
+                button.UseVisualStyleBackColor = false;
+                button.FlatStyle = FlatStyle.Flat;
+                button.BackColor = Color.FromArgb(226, 237, 248);
+                button.ForeColor = Color.FromArgb(40, 74, 108);
+            }
+
+            middle.ColumnStyles.Clear();
+            middle.ColumnCount = 1;
+            middle.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            middle.RowStyles.Clear();
+            middle.RowCount = 2;
+            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 65F));
+            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 35F));
+
+            // On small physical viewports, keep full access using native tabs.
+            // No WMS session, business handler or desktop resource is duplicated.
             var compactTabs = new TabControl {
                 Dock = DockStyle.Fill, Visible = false,
                 Font = new Font("Segoe UI", 9F)
             };
             var agentTab = new TabPage("Agent") { AutoScroll = false };
-            var webTab = new TabPage("Web") { AutoScroll = false };
             var pickTab = new TabPage("PickList") { AutoScroll = false };
             var desktopTab = new TabPage("Tài nguyên") { AutoScroll = false };
-            compactTabs.TabPages.AddRange(new[] { agentTab, webTab, pickTab, desktopTab });
+            compactTabs.TabPages.AddRange(new[] { agentTab, pickTab, desktopTab });
             viewport.Controls.Add(compactTabs);
 
             _d173E179FleetHint.Text = "Xem đủ Agent ở Danh sách phiên → Agent";
@@ -71,110 +99,87 @@ namespace SupraInventoryRelayAgent
             _d173E179FleetHint.AutoEllipsis = true;
             agent.Controls.Add(_d173E179FleetHint);
             _d173E179FleetHint.BringToFront();
-
-            // E181: preserve the original Agent177 Web and PickList handlers.
             InstallD173E179PickListPager(picklist);
             _d173E182AdaptiveTopReady = true;
 
             var mode = -1;
             var arranging = false;
             Action arrange = () => {
-                if (arranging || viewport.IsDisposed || threeColumns.IsDisposed || compactTabs.IsDisposed) return;
+                if (arranging || viewport.IsDisposed || twoColumns.IsDisposed ||
+                    compactTabs.IsDisposed) return;
                 arranging = true;
-                try {
-                // Too-short viewports cannot fit both Web detail and PickList
-                // controls, even when wide. Use the existing native switcher.
-                // Keep the requested 3-column layout for ordinary desktop/RDP sizes.
-                // At physically insufficient viewports, native tabs preserve
-                // access to all original controls without a forbidden scrollbar.
-                var useThree = viewport.ClientSize.Width >= 900 &&
-                    viewport.ClientSize.Height >= 240;
-                var wanted = useThree ? 3 : 1;
-                if (mode != wanted)
+                try
                 {
-                    viewport.SuspendLayout();
-                    threeColumns.SuspendLayout();
-                    try
+                    var useTwo = viewport.ClientSize.Width >= 900 &&
+                        viewport.ClientSize.Height >= 240;
+                    var wanted = useTwo ? 2 : 1;
+                    if (mode != wanted)
                     {
-                        if (useThree)
+                        viewport.SuspendLayout();
+                        twoColumns.SuspendLayout();
+                        middle.SuspendLayout();
+                        try
                         {
-                            agentTab.Controls.Remove(agent);
-                            webTab.Controls.Remove(supra);
-                            pickTab.Controls.Remove(picklist);
-                            desktopTab.Controls.Remove(desktop);
-                            threeColumns.Controls.Clear();
-                            threeColumns.ColumnStyles.Clear();
-                            threeColumns.RowStyles.Clear();
-                            threeColumns.ColumnCount = 3;
-                            threeColumns.RowCount = 1;
-                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
-                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
-                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
-                            threeColumns.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-                            if (supra.Parent != middle) middle.Controls.Add(supra, 0, 0);
-                            if (picklist.Parent != middle) middle.Controls.Add(picklist, 0, 1);
-                            middle.ColumnStyles.Clear();
-                            middle.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-                            middle.RowStyles.Clear();
-                            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-                            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-                            threeColumns.Controls.Add(agent, 0, 0);
-                            threeColumns.Controls.Add(middle, 1, 0);
-                            threeColumns.Controls.Add(desktop, 2, 0);
-                            threeColumns.Visible = true;
-                            compactTabs.Visible = false;
+                            if (useTwo)
+                            {
+                                agentTab.Controls.Remove(agent);
+                                pickTab.Controls.Remove(picklist);
+                                desktopTab.Controls.Remove(desktop);
+                                twoColumns.Controls.Clear();
+                                twoColumns.ColumnStyles.Clear();
+                                twoColumns.RowStyles.Clear();
+                                twoColumns.ColumnCount = 2;
+                                twoColumns.RowCount = 1;
+                                twoColumns.ColumnStyles.Add(
+                                    new ColumnStyle(SizeType.Percent, 60F));
+                                twoColumns.ColumnStyles.Add(
+                                    new ColumnStyle(SizeType.Percent, 40F));
+                                twoColumns.RowStyles.Add(
+                                    new RowStyle(SizeType.Percent, 100F));
+                                if (agent.Parent != middle)
+                                    middle.Controls.Add(agent, 0, 0);
+                                if (picklist.Parent != middle)
+                                    middle.Controls.Add(picklist, 0, 1);
+                                twoColumns.Controls.Add(middle, 0, 0);
+                                twoColumns.Controls.Add(desktop, 1, 0);
+                                twoColumns.Visible = true;
+                                compactTabs.Visible = false;
+                            }
+                            else
+                            {
+                                twoColumns.Controls.Remove(middle);
+                                twoColumns.Controls.Remove(desktop);
+                                middle.Controls.Remove(agent);
+                                middle.Controls.Remove(picklist);
+                                agentTab.Controls.Add(agent);
+                                pickTab.Controls.Add(picklist);
+                                desktopTab.Controls.Add(desktop);
+                                twoColumns.Visible = false;
+                                compactTabs.Visible = true;
+                            }
+                            agent.Dock = DockStyle.Fill;
+                            picklist.Dock = DockStyle.Fill;
+                            desktop.Dock = DockStyle.Fill;
+                            mode = wanted;
                         }
-                        else
+                        finally
                         {
-                            threeColumns.Controls.Remove(agent);
-                            threeColumns.Controls.Remove(middle);
-                            threeColumns.Controls.Remove(desktop);
-                            middle.Controls.Remove(supra);
-                            middle.Controls.Remove(picklist);
-                            agentTab.Controls.Add(agent);
-                            webTab.Controls.Add(supra);
-                            pickTab.Controls.Add(picklist);
-                            desktopTab.Controls.Add(desktop);
-                            threeColumns.Visible = false;
-                            compactTabs.Visible = true;
+                            middle.ResumeLayout(true);
+                            twoColumns.ResumeLayout(true);
+                            viewport.ResumeLayout(true);
                         }
-                        agent.Dock = DockStyle.Fill;
-                        supra.Dock = DockStyle.Fill;
-                        picklist.Dock = DockStyle.Fill;
-                        desktop.Dock = DockStyle.Fill;
-                        mode = wanted;
                     }
-                    finally
-                    {
-                        threeColumns.ResumeLayout(true);
-                        viewport.ResumeLayout(true);
-                    }
-                }
-                // No fixed minimum heights, out-of-window widths, or scrollable
-                // container regardless of DPI, resize, theme or tray restore.
-                viewport.AutoScroll = false;
-                threeColumns.AutoScroll = false;
-                threeColumns.Dock = DockStyle.Fill;
-                compactTabs.Dock = DockStyle.Fill;
-                D173E179FitAgentFleet(agent);
-                D173E179FitRosterColumns();
-                D173E179CompactWebLayout(supra);
-                // Middle stack always stays at 50/50, independently of status text.
+                    D173E179FitAgentFleet(agent);
+                    D173E179FitRosterColumns();
                 }
                 finally { arranging = false; }
             };
             viewport.Resize += (s, e) => arrange();
             agent.Resize += (s, e) => D173E179FitAgentFleet(agent);
-            supra.Resize += (s, e) => {
-                D173E179CompactWebLayout(supra);
-                // Do not resize the 50/50 middle rows from live text changes.
-            };
             foreach (var label in new Control[] {
                 _agentCardTitle, _relay, _d173E175NetworkStatus
             })
             {
-                // Live role/network text can change every second. Re-fit only if
-                // wrapping changes the occupied height, not on every sample.
                 var previousHeight = -1;
                 label.TextChanged += (s, e) =>
                 {
@@ -190,10 +195,6 @@ namespace SupraInventoryRelayAgent
                     D173E179FitAgentFleet(agent);
                 };
             }
-            foreach (var label in new Control[] {
-                _supraCardTitle, _browserBundleStatus, _agentDataStorageStatus
-            })
-                label.TextChanged += (s, e) => D173E179CompactWebLayout(supra);
             arrange();
         }
 
@@ -367,7 +368,8 @@ namespace SupraInventoryRelayAgent
         private void D173E179CompactWebLayout(Control host)
         {
             if (host == null || host.IsDisposed || _supraCard == null ||
-                _supraCard.IsDisposed || host.ClientSize.Width < 180) return;
+                _supraCard.IsDisposed || host.Parent == null ||
+                host.ClientSize.Width < 180) return;
             var width = host.ClientSize.Width;
             var inner = Math.Max(120, width - 24);
             _supraCard.AutoScroll = false;
