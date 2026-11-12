@@ -1,0 +1,15 @@
+# D173-E211 — Web 3.3.8 + Worker D173 field repair: release receipt (12/11/2026)
+
+## Trạng thái xác minh
+- Change: D173-E210 targeted Web field repair; E211 là checkpoint release/CI, **không phải một triển khai mới**.
+- Owner phản hồi 7 ảnh Web 3.3.7 **FIELD NOT PASS**; Web 3.3.8 được xử lý và phát hành. Đây chỉ là **technical release**, chưa có xác nhận thực địa Web 3.3.8 hoặc OWNER PASS.
+- Code branch `fix/d173-e209-field-ux-search-20261112`, PR [#943](https://github.com/tamnv2/supra-inventory/pull/943) **MERGED** vào protected main commit `b913f86bff209905f2d2dab3bf7a1ffa88c4a279`, merge marker `D173-E210_WEB338_FIELD_REPAIR_PRODUCTION_RELEASE:`.
+- Exact tested runtime source: `08e7b214c8a1ec27bd17190e0e4f2c33ce31a702`; protected release gate kiểm tra không thay đổi runtime sau CI pin.
+- Source CI [E210 run #43159132749](https://github.com/tamnv2/supra-inventory/actions/runs/43159132749) **SUCCESS**: Web build 3.3.8, Worker TS, suffix & latest-withdrawal SQLite, test UI/logic regression, scoped release preflight, D172 independent tests. Additional PASS: [D172 isolation #43159131977](https://github.com/tamnv2/supra-inventory/actions/runs/43159131977), [Repo Authority #43159132755](https://github.com/tamnv2/supra-inventory/actions/runs/43159132755), [Project State #43159132613](https://github.com/tamnv2/supra-inventory/actions/runs/43159132613), [D166 SQL/log #43159132500](https://github.com/tamnv2/supra-inventory/actions/runs/43159132500), [D170 official origin #43159132223](https://github.com/tamnv2/supra-inventory/actions/runs/43159132223).
+- Production [Deploy Beta Worker run #43159857445](https://github.com/tamnv2/supra-inventory/actions/runs/43159857445) **SUCCESS** on exact merged SHA `b913f86bff209905f2d2dab3bf7a1ffa88c4a279`. Source-protected Owner gate `D173_E210_WORKER_WEB338_PINNED_RELEASE_ALLOWED`, no Gateway/D172 change marker `D173_E210_REGISTERED_GATEWAY_UNCHANGED_WORKER_WEB_ONLY`.
+- Cloudflare Wrangler output: deployed existing `supra-inventory-beta` Worker + Web static assets to official domain `inventory.supra.cc.cd`; version ID `550bab2f-36d1-4915-a638-cb3d9059226d`. CI checked `/health` HTTP 200, exact `source_commit`, storage/SQLite, missing-bindings=0, official origin, Web shell, auth and OAuth smoke.
+- Public release version declared on main: `web/src/web-version.ts` = **3.3.8**. No new Android/Agent/Firebase provider/DB schema; D172 independent `PENDING/HOLD`, Stable `OWNER-GATED`.
+- Other unrelated old Agent-specific/version-specific workflows may fail on the same merge; never misclassify them as passing or infer any unrelated Agent release.
+- **Remaining**: Owner must test Web 3.3.8 in live session: suffix search 3+ trailing digits in each tab, actual withdrawn Picker MNV/name, Skip total/auto/manual counts, toolbar alignment at observed display size, and verify no duplicate list rows. Only then can field and Owner PASS be considered. Real billing/DO rows-read cost delta needs production usage evidence; not verified by CI.
+
+Code: **SOURCE TEST PASS**; scoped CI: **PASS**; Web/Worker RELEASE: **TECHNICAL PASS**; FIELD: **NOT VERIFIED**; OWNER PASS: **FALSE**.
