@@ -993,6 +993,9 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
   const suffix = String(url.searchParams.get("sku_suffix") || "").trim();
   if (suffix && !/^[0-9]{3,32}$/.test(suffix)) return capturedView({ error: "INVALID_SKU_SUFFIX" }, capture, 400);
   const pickerRows = status === "CLOSED" && url.searchParams.get("picker_rows") === "1";
+  // A realtime reconcile must refresh KPI/ACK exactly, but each keystroke
+  // must not rescan aggregate ACK tables.
+  const includeTotals = !suffix || url.searchParams.get("include_totals") === "1";
   const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
   const todayStart = appTodayOpen ? appTodayStartIso(nowMs) : "";
   const from = String(url.searchParams.get("from") || "").trim();
@@ -1153,7 +1156,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     summaryArgs.push(to);
   }
   const summaryClause = summaryWhere.join(" AND ");
-  const totalsRow = suffix ? {} : first(
+  const totalsRow = !includeTotals ? {} : first(
     d166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS",
       `SELECT
          COALESCE(SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
@@ -1169,7 +1172,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
   // Avoid materializing and grouping the entire ACK table three times per query.
   // DISPLAYED remains an exact per-batch DISTINCT lookup because summary rows
   // do not carry displayed_count. Missing summaries retain SQL fallback parity.
-  const ackTotals = suffix ? {} : first(
+  const ackTotals = !includeTotals ? {} : first(
     d166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS",
       `SELECT
          COUNT(*) AS candidate_batches,
@@ -1198,7 +1201,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     ),
   ) || {};
   // Existing SQL aggregate doubles as low-cardinality diagnosis; no second SQL read.
-  if (!suffix) recordD173AckShape(state, Number(ackTotals.candidate_batches || 0),
+  if (includeTotals) recordD173AckShape(state, Number(ackTotals.candidate_batches || 0),
     Number(ackTotals.missing_summaries || 0));
 
   return capturedView({
@@ -1216,7 +1219,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
     limit,
     offset,
     filter_status: status,
-    totals_included: !suffix,
+    totals_included: includeTotals,
     totals: {
       has_stock: Number(totalsRow.has_stock || 0),
       skip_allowed: Number(totalsRow.skip_allowed || 0),
