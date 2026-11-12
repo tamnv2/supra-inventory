@@ -69,3 +69,14 @@ Phần **Mô phỏng kéo (offline)** bên dưới là ghi chú lịch sử củ
 5. Nhấn **Lưu ZIP chẩn đoán**, lưu `puzzle-browser-drag-v23.zip` (JSON + ảnh trước/sau của trang mẫu) và gửi file để phân tích.
 
 Các kết quả `LOCAL_DRAG_PASS` chỉ xác nhận WebView2 đã kéo đúng trong trang thử offline. Không được coi là WMS CAPTCHA/đăng nhập FIELD PASS hoặc sự cho phép phát hành Agent Production.
+
+## V2.3 sửa lỗi tạo trang offline — log khởi tạo
+
+Nếu chọn **Phòng thử kéo thật (offline)** mà không thấy trang mẫu (ô xanh/khung cam):
+
+1. Đọc dòng trạng thái bên dưới cửa sổ phòng thử. Ứng dụng giờ ghi từng bước khởi tạo WebView2, điều hướng `about:blank` và kiểm tra phần tử canvas.
+2. Nếu màn hình trắng hoặc báo lỗi, nhấn **Lưu ZIP chẩn đoán** ngay trong phòng thử, ngay cả khi chưa thực hiện lượt kéo nào. ZIP chứa `startup_events` với bước/mã lỗi/thời gian, tuyệt đối không chứa URL hoặc dữ liệu WMS.
+3. Gửi `puzzle-browser-drag-v23.zip`. Nếu không mở được cửa sổ phòng thử, báo nguyên dòng lỗi dạng `ExceptionType (0xXXXXXXXX)` trên thanh trạng thái cửa sổ chính.
+4. Không cần đăng nhập WMS hoặc thực hiện thêm thao tác xác minh để lấy log lỗi khởi tạo.
+
+Build gate: `--startup-smoke` kiểm tra thuật toán bằng ảnh giả lập và `--lab-smoke` phải thực sự khởi tạo WebView2 trên Windows, tải trang HTML offline và phát hiện canvas trước khi xuất artifact.
