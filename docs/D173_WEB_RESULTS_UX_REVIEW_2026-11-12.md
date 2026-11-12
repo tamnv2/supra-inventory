@@ -35,9 +35,12 @@
 5. Đo trước/sau số Worker/DO request, SQL rows read, latency p50/p95 cho tìm kiếm/đổi tab/mở chi tiết, giữ cadence realtime và counters trước khi báo PASS.
 
 ## Trạng thái
-ANALYSIS_RECOVERABLE — chưa code, chưa CI, chưa release; Owner chưa duyệt phương án cụ thể/semantics tìm SKU. Không có FIELD/OWNER PASS.
+ANALYSIS_RECOVERABLE — chưa code, chưa CI, chưa release. Owner đã chốt semantics tìm SKU hậu tố trong mục dưới; các quyết định hiển thị khác chưa được chốt. Không có FIELD/OWNER PASS.
 ## Owner chốt ngày 12/11/2026 — quy tắc tìm SKU (ĐÃ DUYỆT NGHIỆP VỤ, CHƯA DUYỆT CODE/RELEASE)
 - Ô input phải hiển thị placeholder chính xác: **`Tìm SKU theo các chữ số cuối`**.
 - Gõ chỉ chữ số; tối thiểu 3 chữ số mới tìm; khớp **đuôi SKU** chính xác (`endsWith`) và chỉ trong tab + phạm vi ngày đang chọn. Ví dụ SKU `10011233`: `233` **KHỚP**, `1233` **KHỚP**, `123` **KHÔNG KHỚP**.
 - Không đổi sang tìm đầu SKU, không tìm ở giữa. Phải lọc server-side trước phân trang. Debounce/loại request cũ như đề xuất; không được bỏ quy tắc hậu tố vì lý do index; đo DO Rows Read và latency để chọn cách triển khai an toàn.
 - Chỉ cập nhật quyết định và checkpoint D173; **không có lệnh viết code, merge hay phát hành** trong lượt này.
+
+## Kịch bản tối ưu trước triển khai
+- Theo lệnh Owner: **Usage → Ổn định → Tốc độ**. Bản phân tích và ba lựa chọn chờ Owner review: `docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md` (docs-only, không cấp quyền code/release).
