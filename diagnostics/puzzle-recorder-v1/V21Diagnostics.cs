@@ -32,6 +32,8 @@ namespace SupraPuzzleRecorder
             { Text = "Chọn vùng trò chơi", Width = 155, Enabled = false };
         private readonly Button _v21Bundle = new Button
             { Text = "Lưu bộ chẩn đoán", Width = 154, Enabled = false };
+        private readonly Button _v23Sim = new Button
+            { Text = "Phòng thử kéo thật (offline)", Width = 206 };
         private readonly List<V21Evidence> _v21Evidence = new List<V21Evidence>();
         private Rectangle _v21Region = Rectangle.Empty;
         private V21Evidence _v21Active;
@@ -46,7 +48,9 @@ namespace SupraPuzzleRecorder
             bar.Controls.Add(_v21ChooseRegion);
             bar.Controls.Add(_v22Inspect);
             bar.Controls.Add(_v22Export);
+            bar.Controls.Add(_v23Sim);
             bar.Controls.Add(_v21Bundle);
+            _v21Bundle.Visible = false; // V2.3 has no live Test; retain V2.1 evidence code but hide its inactive action.
             var label = new Label
             {
                 Text = "Ảnh chỉ lưu khi duyệt vùng đã cắt; không ghi URL, tài khoản hoặc token.",
@@ -56,6 +60,15 @@ namespace SupraPuzzleRecorder
             _v21ChooseRegion.Click += async (sender, args) => await V21SelectRegionAsync();
             _v22Inspect.Click += async (sender, args) => await V22InspectRegionAsync();
             _v22Export.Click += (sender, args) => V22ExportApprovedRegion();
+            _v23Sim.Click += (sender, args) =>
+            {
+                try { using (var sim = new V23BrowserDragLab()) sim.ShowDialog(this); }
+                catch (Exception ex)
+                {
+                    _status.Text = "Phòng thử offline không mở được: " + ex.GetType().Name +
+                        " (0x" + ex.HResult.ToString("X8") + "). Không ảnh hưởng phiên Web thật.";
+                }
+            };
             _v21Bundle.Click += (sender, args) => V21SaveBundle();
             return bar;
         }

@@ -22,12 +22,23 @@ namespace SupraPuzzleRecorder
             if (args.Length == 1 && args[0] == "--startup-smoke")
             {
                 // Assert that native OpenCV can actually load from the x64 build artifact.
-                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()) || !PuzzleVision.SelfTest() || !RecorderForm.V21ImageSmoke() || !RecorderForm.V22RegionSmoke())
+                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()) || !PuzzleVision.SelfTest() || !RecorderForm.V21ImageSmoke() || !RecorderForm.V22RegionSmoke() || !V23OfflineDragForm.NativeSmoke() || !V23BrowserDragLab.NativeSmoke())
                     throw new InvalidOperationException("OpenCV vision self-test unavailable");
                 return;
             }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            // Windows native UI smoke: load the embedded test page and verify its canvas.
+            if (args.Length == 1 && args[0] == "--lab-smoke")
+            {
+                using (var lab = new V23BrowserDragLab(true))
+                {
+                    Application.Run(lab);
+                    if (!lab.SmokePassed)
+                        throw new InvalidOperationException("LAB_CANVAS_SMOKE_FAIL");
+                }
+                return;
+            }
             Application.Run(new RecorderForm());
         }
     }
@@ -56,7 +67,7 @@ namespace SupraPuzzleRecorder
 
         internal RecorderForm()
         {
-            Text = "SUPRA | Puzzle Diagnostic V2.2 — Khung cố định";
+            Text = "SUPRA | Puzzle Diagnostic V2.3 — Khung cố định và phòng thử kéo thật";
             AutoScaleMode = AutoScaleMode.None;
             Width = 1200;
             Height = 800;
@@ -141,7 +152,7 @@ namespace SupraPuzzleRecorder
                 _test.Enabled = false;
                 _v21ChooseRegion.Enabled = true;
                 _v22Inspect.Enabled = true;
-                _status.Text = "V2.2: chọn vùng trò chơi một lần, Kiểm tra vùng chỉ xem ảnh; thao tác xác minh thực hiện thủ công.";
+                _status.Text = "V2.3: chọn vùng WMS để xem ảnh, hoặc mở phòng thử kéo thật trên trang offline; không kéo trên đăng nhập.";
             }
             catch (Exception)
             {

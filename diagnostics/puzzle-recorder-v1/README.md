@@ -46,3 +46,37 @@ Không tự tải ảnh hoặc log lên mạng. Các tọa độ chuột đượ
 - Bấm **Kiểm tra vùng (không kéo)**. Công cụ chỉ chụp vùng đã chọn trong RAM để anh xác nhận. Nút **Xuất vùng đã duyệt** sẽ ghi ZIP gồm `region-v22.png` và `region-v22.json`, không có màn hình đăng nhập đầy đủ. Đọc lại ZIP trước khi gửi.
 - Không bấm Test/kéo tự động; V2.2 không thử lại, không tự đăng nhập, không tự điều hướng trang Confirm. Hoàn thành thử thách phải do người dùng thực hiện hoặc qua API/SSO chính thức do WMS cho phép.
 - `--startup-smoke` kiểm tra OpenCV synthetic V2 và giới hạn tọa độ ROI synthetic V2.2, không truy cập WMS hoặc mạng thật.
+
+## V2.3 — Mô phỏng ROI lệch ±15 px và kéo cục bộ (offline)
+
+1. Giải nén toàn bộ ZIP Windows x64, mở `SUPRA.Puzzle.Tester.V2.exe` (version 2.3.0).
+2. Nhấn **Mô phỏng kéo (offline)**. Không cần đăng nhập, không truy cập WMS hoặc CAPTCHA thật.
+3. Nhập độ lệch vùng chọn X/Y từ -15 đến +15 px, thử nhiều tổ hợp (-15,-15), (0,0), (+15,+15).
+4. Nhấn **Mô phỏng kéo**. Hình chữ nhật màu xanh di chuyển trên hình giả lập tới ô viền xanh. Màn hình hiện `SIM PASS` nếu chuyển động mô phỏng khớp khoảng đã biết.
+5. Nhấn **Lưu kết quả** để tạo JSON mô phỏng, không chứa URL, tài khoản hoặc dữ liệu từ Web.
+6. V2.2 vẫn hỗ trợ **Chọn vùng trò chơi**, **Kiểm tra vùng (không kéo)** và **Xuất vùng đã duyệt**. Nút Test kéo tự động trên trang WMS không được bật.
+
+`SIM PASS` chỉ xác minh phép toán tọa độ trong hình giả lập có nhãn cố định, **không phải** độ chính xác nhận diện hình ngẫu nhiên, không chứng minh kéo CAPTCHA qua được trang đăng nhập và không xác minh tính năng Confirm Picklist.
+
+## V2.3 cập nhật — Phòng thử kéo THẬT trên trang offline WebView2
+
+Phần **Mô phỏng kéo (offline)** bên dưới là ghi chú lịch sử của bản dựng V2.3 đầu tiên. Ứng dụng hiện hiển thị nút **Phòng thử kéo thật (offline)**. Đây là thao tác chuột thực bằng CDP trên **trang thử nghiệm nội bộ**, không phải thao tác giải CAPTCHA hay đăng nhập WMS.
+
+1. Giải nén toàn bộ ZIP, mở `SUPRA.Puzzle.Tester.V2.exe`, chọn **Phòng thử kéo thật (offline)**. Không cần truy cập WMS.
+2. Trên trang mẫu, nhấn **Chọn vùng**, khoanh khu vực có ô vuông xanh (nguồn), khung viền cam (đích) và đường kéo. Sai lệch nhỏ vẫn được kiểm tra nhờ biên 16 px.
+3. Nhấn **Kéo thật 1 lần**. Chương trình chụp ảnh, nhận diện màu qua OpenCV trong ROI, gửi sự kiện chuột nhấn/di chuyển/thả qua WebView2 và đo ảnh sau kéo. Nếu không nhận diện đủ chắc chắn, sẽ không kéo.
+4. Nhấn **Mẫu mới** để thử hình khác; tối đa 8 lượt, không tự thử lại trong cùng lượt. Nếu vùng quá chặt hoặc bị cắt, chọn vùng lại.
+5. Nhấn **Lưu ZIP chẩn đoán**, lưu `puzzle-browser-drag-v23.zip` (JSON + ảnh trước/sau của trang mẫu) và gửi file để phân tích.
+
+Các kết quả `LOCAL_DRAG_PASS` chỉ xác nhận WebView2 đã kéo đúng trong trang thử offline. Không được coi là WMS CAPTCHA/đăng nhập FIELD PASS hoặc sự cho phép phát hành Agent Production.
+
+## V2.3 sửa lỗi tạo trang offline — log khởi tạo
+
+Nếu chọn **Phòng thử kéo thật (offline)** mà không thấy trang mẫu (ô xanh/khung cam):
+
+1. Đọc dòng trạng thái bên dưới cửa sổ phòng thử. Ứng dụng giờ ghi từng bước khởi tạo WebView2, điều hướng `about:blank` và kiểm tra phần tử canvas.
+2. Nếu màn hình trắng hoặc báo lỗi, nhấn **Lưu ZIP chẩn đoán** ngay trong phòng thử, ngay cả khi chưa thực hiện lượt kéo nào. ZIP chứa `startup_events` với bước/mã lỗi/thời gian, tuyệt đối không chứa URL hoặc dữ liệu WMS.
+3. Gửi `puzzle-browser-drag-v23.zip`. Nếu không mở được cửa sổ phòng thử, báo nguyên dòng lỗi dạng `ExceptionType (0xXXXXXXXX)` trên thanh trạng thái cửa sổ chính.
+4. Không cần đăng nhập WMS hoặc thực hiện thêm thao tác xác minh để lấy log lỗi khởi tạo.
+
+Build gate: `--startup-smoke` kiểm tra thuật toán bằng ảnh giả lập và `--lab-smoke` phải thực sự khởi tạo WebView2 trên Windows, tải trang HTML offline và phát hiện canvas trước khi xuất artifact.

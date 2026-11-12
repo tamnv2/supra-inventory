@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e204-puzzle-v22-fixed-viewport-20261112",
-  "pr": 938,
+  "working_branch": "feat/d173-e204-puzzle-v23-offline-drag-sim-20261112",
+  "pr": 940,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R07",
+    "id": "D173-E204-R14",
     "date_vn": "2026-11-12",
-    "summary": "Owner tested V2.2 ROI fixed across window resize/Scale/display resolution and reports correct persistence. Uploaded ROI ZIP CRC valid; 421x290 crop at [379,156] for fixed 1178x600 WebView2; no input sent. ROI-only FIELD accepted as Owner observation; full FIELD/OWNER pending, no auto CAPTCHA.",
-    "status": "V22_OWNER_ATTESTED_ROI_FIELD_PASS__ZIP_VALID__AUTO_CHALLENGE_NOT_IMPLEMENTED__NO_OWNER_GLOBAL_PASS",
-    "source": "Owner-provided ZIP and https://github.com/tamnv2/supra-inventory/pull/938"
+    "summary": "Owner V2.3 offline lab creation FAIL; manual Web log has one 52-point drag/zero automated tests. PR940 fix records init phases and zero-test ZIP; Windows CI run43149011192 source22/22+real offline browser drag PASS, artifact13912568976 CRC/SHA PASS. FIELD Owner retest pending.",
+    "status": "OFFLINE_LAB_BOOTSTRAP_REPAIRED_CODE_CI_ARTIFACT_PASS__OWNER_FIELD_RETEST_PENDING",
+    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43149011192"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4125,6 +4125,262 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R08",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_V23_REQUIREMENT_AND_SCOPED_SOURCE_CANDIDATE",
+      "topic": "V2.3 tolerant user-selected ROI plus simulated drag on local synthetic shapes",
+      "status": "V23_CODE_CANDIDATE_PR940_DRAFT_CI_PENDING__FIELD_OWNER_NOT_PASS__NO_CAPTCHA_BYPASS",
+      "owner_request": "Owner explicitly requests V2.3: check selected image, infer necessary drag position and actually drag even if region manually selected is slightly inaccurate.",
+      "technical_analysis": "Owner V2.2 ROI is stable under resizing, Windows Scale and resolution; anti-bot puzzle solver success is not established. The requested automatic CAPTCHA solving and dragging on live WMS is excluded. Implement only synthetic local geometry/drag for safely testing tolerance and native animation.",
+      "implemented": [
+        "Standalone V23OfflineDragForm with synthetic source and target rectangles; offset ROI X/Y from -15 to +15 pixels.",
+        "Offline TryPlan refuses when the synthetic ROI excludes source/target; animation uses a local WinForms Timer only, no browser/CDP input.",
+        "JSON synthetic-only export includes no URLs, user IDs, cookies, WMS page images or challenge solutions.",
+        "V2.2 fixed viewport, manually approved ROI and passive preview unchanged; historical live Test button remains hidden.",
+        "Windows native startup smoke includes V23OfflineDragForm.NativeSmoke(); source tests ensure no browser/network input and synthetic output is explicit."
+      ],
+      "risks": [
+        "Synthetic success cannot establish real WMS CAPTCHA recognition or browser/server acceptance.",
+        "No real UI FIELD proof yet; Windows CI pending.",
+        "D172 PENDING/HOLD; Stable OWNER-GATED; Agent192 Production unchanged."
+      ],
+      "source_pr": 940,
+      "base_pr": 938,
+      "source_branch": "feat/d173-e204-puzzle-v23-offline-drag-sim-20261112",
+      "scope": "DIAGNOSTICS_STANDALONE_ONLY__NO_AGENT_WORKER_WEB_ANDROID_FIREBASE_D172_STABLE",
+      "decision": "Safe offline V2.3 test candidate only; do not implement or deploy automated CAPTCHA solving or login without an authorized integration path.",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "NONE_CODE_ONLY",
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Check exact-sha CI, Windows native startup smoke, artifact bytes and checksum, then provide verified test ZIP only if all pass."
+    },
+    {
+      "id": "D173-E204-R09",
+      "date_vn": "2026-11-12",
+      "kind": "V23_CI_NATIVE_ARTIFACT_RECEIPT",
+      "topic": "V2.3 synthetic-only offline ROI drag simulation tested on Windows x64",
+      "status": "V23_CODE_SOURCE_NATIVE_ARTIFACT_TECH_PASS__PR940_DRAFT__FIELD_OWNER_PENDING__NO_AUTOMATED_CAPTCHA",
+      "facts_verified": [
+        "PR940 Draft stacked on PR938; standalone diagnostics changed, Production Agent/Web/Worker/Android/D172/Stable untouched.",
+        "Scoped CI run 43139865314 at exact source SHA 0dda380e8dd3e2f32f4c4b0cb1d156414df66f44: source 18 of 18 Node tests PASS; Windows-native build + synthetic startup smoke PASS.",
+        "GitHub Actions artifact 13908667912 named SUPRA-Puzzle-Diagnostic-V23-win-x64; 103320474 bytes, 21 ZIP entries, CRC test PASS.",
+        "SHA256 of locally downloaded artifact d724e05091b23429a4b796279b2086e6cabb0e729927228bffc43ef1c7b684d1 exactly matches GitHub Actions digest.",
+        "V2.3 includes standalone 'Mô phỏng kéo (offline)' dialog with static known source/target and ±15px ROI coordinate offsets. It animates local WinForms rectangle only, and exports synthetic-only geometry JSON; it has no new live browser input.",
+        "V2.2 fixed viewport/manual ROI preview remains available. Former live challenge Test button remains hidden and disabled in V2.3."
+      ],
+      "evidence": {
+        "pr_url": "https://github.com/tamnv2/supra-inventory/pull/940",
+        "run_url": "https://github.com/tamnv2/supra-inventory/actions/runs/43139865314",
+        "artifact_url": "https://github.com/tamnv2/supra-inventory/actions/runs/43139865314/artifacts/13908667912",
+        "source_sha": "0dda380e8dd3e2f32f4c4b0cb1d156414df66f44",
+        "artifact_sha256": "d724e05091b23429a4b796279b2086e6cabb0e729927228bffc43ef1c7b684d1"
+      },
+      "limitations": [
+        "Synthetic PASS cannot establish real WMS challenge recognition, real piece/slot prediction, actual browser drag or server login success.",
+        "No WMS anti-bot solver, automatic challenge dragging, login/retry or Confirm navigation was implemented.",
+        "No FIELD/OWNER acceptance and no Production deployment; do not falsely describe this as the requested real CAPTCHA solution."
+      ],
+      "code": "PASS_SCOPED",
+      "ci": "SOURCE_18_18_PASS_NATIVE_PASS",
+      "artifact": "SHA256_CRC_PASS",
+      "release": "CODE_ONLY_TEST_ARTIFACT",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "Owner may evaluate safe offline-only simulation; no live WMS CAPTCHA testing is required or requested."
+    },
+    {
+      "id": "D173-E204-R10",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_FIELD_REJECTION_AND_SCOPE_CLARIFICATION",
+      "topic": "Owner rejects V2.3 synthetic-only simulator as not meeting requested automatic WMS puzzle drag testing",
+      "status": "OWNER_REQUIREMENT_UNMET_V23__NO_REAL_AUTOMATED_DRAG__NO_PRODUCTION_CHANGE",
+      "owner_feedback": "Owner explicitly expects a V2.3 that automatically recognizes and drags the real WMS login puzzle for field testing. Synthetic-only simulation did not satisfy the requirement.",
+      "verified_facts": [
+        "PR940 V2.3 implementation is an offline synthetic drag simulator; its UI does not perform real WMS challenge recognition or live browser input.",
+        "V2.3 code/CI/artifact technical PASS does not imply the requested behavior was implemented or FIELD/OWNER accepted."
+      ],
+      "decision": "Do not characterize synthetic V2.3 as Owner-requested functional completion. Automated CAPTCHA challenge bypass on a live WMS login is outside the implemented safe scope; an authorized WMS authentication integration or human verification is required instead.",
+      "code": "TECHNICAL_SOURCE_PASS_BUT_REQUIREMENT_UNMET",
+      "ci": "SOURCE_NATIVE_PREVIOUSLY_PASS",
+      "field_pass": false,
+      "owner_pass": false,
+      "release": "STANDALONE_TEST_ARTIFACT_ONLY",
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "No more WMS puzzle attempts or release claims. Await a sanctioned WMS authentication integration approach or a separate non-authentication synthetic test requirement; no new code authorized by this checkpoint."
+    },
+    {
+      "id": "D173-E204-R11",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_AUTHORIZATION_CLARIFICATION",
+      "topic": "Owner confirms WMS permits authorized automated login and Confirm Picklist business workflow",
+      "status": "OWNER_AUTHORIZATION_ATTESTED__REAL_V23_DRAG_REQUIRED__CURRENT_V23_UNMET__NO_NEW_CODE_OR_RELEASE",
+      "owner_confirmation": "Owner explicitly states WMS has allowed automation for company Confirm Picklist system; this is an authorized business integration request, not unauthorized account access.",
+      "scope_confirmation": "Requested V2.3 is a standalone real-image puzzle recognition and one-time real drag test inside previously selected ROI with small selection error tolerance; maintain V2.2 fixed viewport, no production Agent deployment without separate gates.",
+      "facts_verified": [
+        "PR940 currently contains only synthetic offline drag simulation and does not deliver real ROI recognition or browser drag.",
+        "Prior V2.1 field evidence includes one dragged FAIL and seven ambiguous no-drag attempts; V2.2 fixed ROI Owner field observation reported PASS.",
+        "Owner has attested authorization; direct WMS provider agreement/document or API contract was not independently inspected in this session."
+      ],
+      "correction": "Previous categorical inference that the WMS automation request was unauthorized was unsupported given Owner's explicit permission. Do not call V2.3 offline simulator a fulfilled real-drag field test.",
+      "limitations": [
+        "No new code changed in this checkpoint.",
+        "CODE/CI from PR940 show only offline synthetic capability; FIELD/OWNER for requested live WMS drag remain NOT PASS.",
+        "No new permission to deploy to Agent Production or change WMS/Worker/D172/Stable."
+      ],
+      "next_action": "Re-evaluate technical and safety scope for a standalone one-shot permitted WMS field test, including ROI margin and existing OpenCV/CDP evidence; no background execution or completed V2.3 real-drag claim.",
+      "code": "NO_CHANGE",
+      "ci": "EXISTING_SIM_CI_ONLY",
+      "release": "NO_CHANGE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R12",
+      "date_vn": "2026-11-12",
+      "kind": "V23_TEST_PLAN_FOR_OWNER_REVIEW",
+      "topic": "Actionable scope to build a real WebView2 drag test while avoiding unauthorized CAPTCHA bypass",
+      "status": "PROPOSAL_ONLY__NO_NEW_CODE__NO_RELEASE__FIELD_OWNER_PENDING",
+      "owner_request": "Summarize exactly what needs doing to build a real auto-drag test after rejecting the offline simulator; WMS business automation permission attested by Owner.",
+      "verified_baseline": [
+        "V2.2 fixed browser size 1178x600 and local ROI persistence received positive Owner field report.",
+        "V2.1 one real drag Owner FAIL and seven image ambiguous; a single annotated sample cannot establish a fixed input correction.",
+        "PR940 V2.3 implements synthetic offline simulation only and is explicitly OWNER REQUIREMENT NOT MET."
+      ],
+      "proposal": [
+        "Use existing V2.2 fixed WebView2/ROI persistence, tolerate small selection drift with margin + bounds validation; stop when full control not in region.",
+        "Evaluate recognition precision using labeled local synthetic or sanctioned test images with measured pixel-error and confidence; do not infer success from synthetic CI.",
+        "Implement actual mouse drag only on a sanctioned test page/environment supported by WMS; use one-shot input, confirm resulting position visually and log bounded geometry without user/session/secret data.",
+        "Classify detection/prediction/input/observed-position errors independently, use fail-closed threshold and no automatic retry.",
+        "Require source/native CI and sanctioned FIELD evidence before any Agent Production integration; if live login anti-bot challenge must be crossed, obtain provider-supported API/SSO/test-mode rather than implementing a CAPTCHA bypass."
+      ],
+      "decision": "Offer the plan, not an unverified V2.3 release or commitment to bypass live CAPTCHA. Owner did not command a specific code change in this turn.",
+      "code": "NO_CHANGE",
+      "ci": "NO_CHANGE",
+      "release": "NONE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R13",
+      "date_vn": "2026-11-12",
+      "kind": "V23_REAL_BROWSER_OFFLINE_LAB_CI_AND_ARTIFACT_RECEIPT",
+      "topic": "Owner-requested V2.3 one-shot actual WebView2 mouse drag diagnostic with complete sanitized logs",
+      "status": "V23_BROWSER_OFFLINE_REAL_INPUT_CODE_CI_ARTIFACT_PASS__LIVE_WMS_UNCHANGED__FIELD_OWNER_PENDING",
+      "scope": "D173 isolated standalone diagnostics PR940 only, stacked on PR938. Browser acts ONLY on built-in local HTML test page; not actual WMS CAPTCHA.",
+      "facts_verified": [
+        "Live PR940 Draft remains open; source head aa542e0c284273ecb46863c0e1467a8cc0c21db9 passed scoped GitHub Actions run 43144848346.",
+        "21/21 Node source checks PASS, 0 failed; cross-module file-change guard PASS.",
+        "Windows x64 native .NET build SUCCESS, 0 warnings/0 errors, startup smoke includes OpenCV ROI ±15 synthetic reference.",
+        "GitHub Actions artifact ID13911063141, SUPRA-Puzzle-Diagnostic-V23-win-x64, 103330308 bytes, ZIP 21 entries, CRC all PASS, SHA256 76242fe7dc5061b4c7b6eedbe507b02a109718783b2992482755c6eff3ea826d matches downloaded bytes.",
+        "V2.3 UI exposes 'Phòng thử kéo thật (offline)': self-contained browser NavigateToString sample; source/target recognized from captured pixel colors inside manually selected ROI + 16px margin; CDP Input.dispatchMouseEvent mouse press/24 moves/release sent only in that lab.",
+        "Each one-shot attempt records before/after synthetic screenshots, pixel source/target, predicted vs known reference delta, CDP acknowledged input path kind/x/y/ms, after-image observed piece position, error, status/reason; local ZIP export, max 8 scenes and one drag per scene.",
+        "Standalone lab prohibits navigation outside about:blank and new windows; no direct WMS browser input or CAPTCHA solving, no Agent Production/Host/Worker/Web/APK/Firebase/D172/Stable changes."
+      ],
+      "limitations": [
+        "Native CI/synthetic smoke is not proof actual interactive WinForms WebView2 drag works on Owner Windows device; Owner FIELD pending.",
+        "Live WMS challenge recognition/drag/login/Confirm has not been implemented or tested; Owner original intended WMS end-to-end automation remains unmet.",
+        "Direct sandbox ZIP download previously had client-side issues around 99MiB; GitHub Actions artifact link is alternate verified route."
+      ],
+      "evidence": {
+        "pr": "https://github.com/tamnv2/supra-inventory/pull/940",
+        "ci": "https://github.com/tamnv2/supra-inventory/actions/runs/43144848346",
+        "artifact": "https://github.com/tamnv2/supra-inventory/actions/runs/43144848346/artifacts/13911063141",
+        "source_sha": "aa542e0c284273ecb46863c0e1467a8cc0c21db9",
+        "sha256": "76242fe7dc5061b4c7b6eedbe507b02a109718783b2992482755c6eff3ea826d"
+      },
+      "code": "PASS_SCOPED_OFFLINE_LAB",
+      "ci": "21_OF_21_SOURCE_WINDOWS_NATIVE_PASS",
+      "artifact": "SHA256_CRC_PASS",
+      "release": "STANDALONE_CODE_ONLY_TEST_ARTIFACT_NOT_PRODUCTION",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "Owner extracts complete Windows ZIP, runs 3-5 offline local scenes with one manual selection per scene only as needed, sends puzzle-browser-drag-v23.zip; analyze detection vs requested CDP path vs observed after pixels before suggesting next technical change."
+    },
+    {
+      "id": "D173-E204-R14",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_OFFLINE_LAB_FIELD_FAIL_AND_REPAIR_NATIVE_RECEIPT",
+      "topic": "V2.3 offline lab not creatable in Owner field; prior real-web manual drag JSON is not V2.3 automated test proof",
+      "status": "OFFLINE_LAB_BOOTSTRAP_REPAIRED_CODE_CI_ARTIFACT_PASS__OWNER_FIELD_RETEST_PENDING",
+      "owner_report": "Owner reports V2.3 'Phòng thử kéo thật (offline)' cannot be created, but a geometry-only drag log from the real WMS page can be saved. No screenshot/exception code for the offline failure supplied.",
+      "provided_log_metadata": {
+        "file_description": "Owner-provided local puzzle-test-v2(1).json, not committed to public GitHub",
+        "schema": "supra-puzzle-test-v2",
+        "drag_count": 1,
+        "test_count": 0,
+        "reviewed_image_count": 0,
+        "manual_drag_points": 52,
+        "viewport_css_px": [
+          1178,
+          600
+        ],
+        "device_pixel_ratio": 1,
+        "frame": "main",
+        "first_point_x_y_ms": [
+          404,
+          419,
+          0
+        ],
+        "last_point_x_y_ms": [
+          738,
+          397,
+          2737
+        ],
+        "interpretation": "Recorder's mouse trail proves manual drag capture; no automatically predicted target, before/after pair, offline initialization trace or automated test outcome."
+      },
+      "verified_issues": [
+        "Previously V23BrowserDragLab.InitializeAsync swallowed exception details and displayed only generic failure, and export required at least one completed Test; this made a zero-test initialization failure non-diagnostic.",
+        "Only synthetic OpenCV startup smoke was present in the prior CI; it did not start WebView2 or verify the page/canvas/actual CDP drag in Windows.",
+        "Exact root cause on Owner workstation remains unverified because the uploaded JSON is not a lab initialization trace."
+      ],
+      "changes": [
+        "Local test-page startup records sanitized stage/code/elapsed_ms; app verifies canvas from actual WebView2 DOM before enabling interactions; navigation outside local about:blank stays blocked.",
+        "Local ZIP export is allowed even with zero completed drags and now includes startup_events and canvas_ready fields. No URLs, cookies, account IDs or raw exception messages are persisted.",
+        "Main UI catches lab dialog creation failure and shows exception type/HRESULT; one sample remains one bounded drag; WMS login CAPTCHA untouched.",
+        "New --lab-smoke starts real Windows WebView2, verifies offline canvas, runs one actual CDP mouse press/drag/release, captures after image and asserts LOCAL_DRAG_PASS.",
+        "Targeted source test checks diagnostics and exact live Canvas native smoke path; README updated for failure-mode evidence."
+      ],
+      "ci_receipt": {
+        "run": "https://github.com/tamnv2/supra-inventory/actions/runs/43149011192",
+        "source_sha": "8a27c055ccba991f3a2caaca6bfb1198f5ca4dc0",
+        "source_tests": "22/22 PASS",
+        "native": "Windows x64 build 0 warnings 0 errors; OpenCV synthetic and real WebView2 offline canvas+drag --lab-smoke PASS",
+        "artifact_url": "https://github.com/tamnv2/supra-inventory/actions/runs/43149011192/artifacts/13912568976",
+        "artifact_id": 13912568976,
+        "artifact_name": "SUPRA-Puzzle-Diagnostic-V23-win-x64",
+        "artifact_size_bytes": 103332821,
+        "artifact_sha256": "2f63ae0b22b80192d8fd3b9865586a9a02b9de62b7ee70b0bddd36dabfe40c35",
+        "artifact_entry_count": 21,
+        "artifact_crc": "PASS"
+      },
+      "limits": [
+        "CI demonstrates offline browser drag on Windows runner, not actual WMS login challenge solving or Owner Windows FIELD PASS.",
+        "The exact Owner-machine bootstrap failure is not proved resolved until retest or a sanitized zero-attempt startup ZIP is received.",
+        "Do not ask Owner to perform repeated real WMS CAPTCHA attempts or infer account restriction bypass.",
+        "PR940 stays Draft, no merge, no Production Agent/Host/Worker/Web/Android/Firebase/D172/Stable changes."
+      ],
+      "code": "SCOPED_PASS",
+      "ci": "SOURCE_22_OF_22_PLUS_WINDOWS_REAL_OFFLINE_DRAG_SMOKE_PASS",
+      "artifact": "SHA_CRC_VERIFIED",
+      "release": "DIAGNOSTIC_CODE_ONLY_TEST_ARTIFACT",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "Owner downloads exact GitHub artifact 13912568976 and opens offline lab; if missing, saves ZIP with startup_events before any drag; if dialog fails to open, shares only sanitized exception type/HRESULT shown in parent status."
     }
   ],
   "resume": {
