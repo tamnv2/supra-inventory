@@ -7,11 +7,11 @@
   "pr": 961,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E238",
+    "id": "D173-E239",
     "date_vn": "2026-11-12",
-    "summary": "Web3.3.15 Draft PR961 scoped Web build/regression, D172 isolation, Repo Authority and Project State PASS at SHA923612db. UI Design Guard historic three failures persist (Agent D137/D130, Web D063). No Production authorization, FIELD/OWNER pending.",
-    "status": "WEB3315_SCOPED_CI_PASS__LEGACY_UI_GUARD_BASELINE_FAIL__RELEASE_HOLD",
-    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43256615606",
+    "summary": "Owner authorizes guarded PR961 Web3.3.15 Production release for 3 scoped UI changes, after exact Web+D172 CI and release gate. No D172/Agent/APK/business/stable mutation. Deployment pending until real receipt.",
+    "status": "OWNER_WEB3315_RELEASE_APPROVED__CI_AND_DEPLOY_PENDING",
+    "source": "docs/D173_E239_WEB3315_RELEASE_AUTHORIZATION_2026-11-12.md",
     "branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
     "pr": 961
   },
@@ -4731,6 +4731,34 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E239",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly orders Web3.3.15 protected merge and Production deployment after scoped CI",
+      "status": "WEB3315_RELEASE_OWNER_AUTHORIZED__SOURCE_CI_AFTER_GATE_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 961,
+      "branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
+      "accepted_base_sha": "7d5b1856857483c7696b53a0eda1db4fbc9fad14",
+      "source_code_sha": "c3573285809281a2a77dc5acbc72e71ce43e5ee4",
+      "facts": [
+        "Owner explicitly orders implement and deploy Web3.3.15 to completion; previous code-only restriction superseded strictly for E237 Web UI.",
+        "Scope: three Web presentation requirements only. Existing Worker/Web Production hostname, D172 independent business and Stable owner gate unchanged.",
+        "New release gate and source pin require two-parent protected main merge with exact marker, post-CI immutable Web/tests/workflow/guard, D172 isolation and verified health; no direct main push.",
+        "Three historical UI Design Guard assertions outside requested scope remained failing before new release gate; separate from exact scoped Web/D172 gate."
+      ],
+      "evidence": "docs/D173_E239_WEB3315_RELEASE_AUTHORIZATION_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/961; https://github.com/tamnv2/supra-inventory/actions/runs/43257062539",
+      "next_action": "Verify new E237 scoped CI, authority/state and D172; fill exact source CI receipt, protected PR merge with D173-E237_WEB3315_PRODUCTION_RELEASE marker, monitor full Production Worker release and exact health, record verified SHA; no invented FIELD/OWNER PASS.",
+      "code": "CANDIDATE",
+      "ci": "PENDING_GATE_PRECHECK",
+      "release": "OWNER_APPROVED__NOT_YET_DEPLOYED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -4759,7 +4787,8 @@
       "E161 Owner authorized Agent173 P0/P1 tray/CDP and SFT3/Confirm repairs plus conditional signed OTA after CI/native/D172 gates, no provider or D172 mutations.",
       "D173-E169 Owner 08/11 authorizes additional diagnostic CODE + TEST on current Cloudflare/Firebase Service/Agent paths, zero new provider polling/writes; no Production release approval.",
       "D173-E170 Owner 08/11 authorizes Production updates for existing Worker HMAC daily diagnostics and signed Agent175 error-only log changes after exact-head CI; Web UI/Android/Rules unchanged.",
-      "D173-E174 Owner 09/11 approves Agent176-only focus repair and conditional signed OTA; Launcher explicitly deferred backlog."
+      "D173-E174 Owner 09/11 approves Agent176-only focus repair and conditional signed OTA; Launcher explicitly deferred backlog.",
+      "D173-E239: Owner explicitly authorizes code/merge/Production release of the three Web3.3.15 UI requirements on PR961 after exact-source scoped CI and D172 isolation; no Stable/D172 mutation."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -4917,7 +4946,8 @@
       "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded.",
       "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven.",
       "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending.",
-      "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated."
+      "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated.",
+      "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately."
     ],
     "release_boundary": "D173-E174 Agent-only signed release allowed after protected source-pinned gates; D172 untouched, stable gated; no logging or Launcher deployment.",
     "pending": []
