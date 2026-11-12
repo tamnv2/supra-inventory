@@ -60,6 +60,7 @@ namespace SupraInventoryRelayAgent
             {
                 button.Anchor = AnchorStyles.Top | AnchorStyles.Left;
                 agent.Controls.Add(button);
+                button.Visible = HasAgentSession();
             }
             _openAgentDataFolder.Text = "Mở thư mục dữ liệu";
             _moveAgentDataFolder.Text = "Đổi nơi lưu trữ";
@@ -288,17 +289,24 @@ namespace SupraInventoryRelayAgent
             SetD173BoundsIfChanged(_d128AgentResourceStatus, left, resourceTop,
                 width, resourceHeight);
 
+            // One measured toolbar owns both Agent and Web-data actions.
+            // These are the original handlers; visual placement never changes RBAC.
+            _d150PrimaryTakeoverButton.Text = "Chuyển Agent chính";
+            _manualUpdate.Text = "Cập nhật";
+            _background.Text = "Xuống nền";
+            _logout.Text = "Đăng xuất";
             var actionTop = resourceTop + resourceHeight + 5;
             var actionX = left;
             var actions = new Control[] {
-                _d150PrimaryTakeoverButton, _manualUpdate, _background, _logout, _agentExit
-            }.Where(control => control.Visible).ToArray();
+                _d150PrimaryTakeoverButton, _manualUpdate, _background, _logout, _agentExit,
+                _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder
+            }.Where(control => control.Visible && control.Parent == host).ToArray();
             foreach (var control in actions)
             {
                 var measuredWidth = TextRenderer.MeasureText(control.Text ?? "",
                     control.Font, new Size(1000, 30),
-                    TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 20;
-                var actionWidth = Math.Max(70, Math.Min(150, measuredWidth));
+                    TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 24;
+                var actionWidth = Math.Max(72, Math.Min(172, measuredWidth));
                 if (actionX > left && actionX + actionWidth > host.ClientSize.Width - left)
                 {
                     actionTop += 31;
