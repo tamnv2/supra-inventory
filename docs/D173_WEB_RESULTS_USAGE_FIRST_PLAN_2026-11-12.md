@@ -47,10 +47,15 @@
 5. HTML/CSS HD/HD+/zoom 100/125/150%; date controls auto apply đúng, không duplicate fetch. D172 isolation + auth + source CI/TypeScript/Web build + SQL fixture + exact readbacks.
 6. Đo provider/CI: DO requests per logical search (sau debounce max 1 GET), per reopen cached (0), per unique detail (1 GET), 0 new provider request cho layout/first_report_at, SQL `rowsRead` query IDs, p50/p95; đối chiếu tổng hourly request/Rows Read theo cùng workload. Không tuyên bố tiết kiệm khi chưa đo. Rollback bằng nguyên bản Web + API trước thay đổi, không schema migration trong phương án gốc.
 
-## E. Các câu hỏi Owner cần chốt trước khi code
-1. **Phạm vi tìm:** A (khuyến nghị) cả 5 tab đều có suffix search; riêng `Đang xử lý` và `Quá hạn` tìm trong **toàn bộ pending/overdue** (không lọc ngày) để không giấu công việc cũ. Chỉ 3 tab kết quả áp dụng khoảng ngày; B: buộc cả 5 tab lọc ngày (rủi ro giấu backlog pending cũ); C: chỉ 3 tab kết quả có search.
-2. **Picker đã thu hồi có nhiều người cùng đợt:** A (khuyến nghị) **1 batch = 1 dòng**, hiển thị các mã/tên trong ô và nếu dài thì gói gọn cùng dấu mở rộng; B: 1 picker = 1 dòng khiến tổng số dòng có thể khác badge batch.
-3. **Ngày cho 3 tab kết quả:** A (khuyến nghị) giữ semantics code hiện tại là lọc theo `first_report_at` của batch; B: thay thành ngày xử lý/thu hồi `resolved_at` (thay đổi nghiệp vụ lịch sử và badge, cần test bổ sung).
+## E. Owner đã chốt ba lựa chọn (12/11/2026) — có hiệu lực cho thiết kế
+1. **Phạm vi SKU:** chỉ tìm trong **tab đang mở**. Tab `Đang xử lý` và `Quá hạn`: tìm **toàn bộ pending/overdue chưa hoàn tất**, không áp bộ lọc ngày của ba tab kết quả. Ba tab `Đã có hàng`, `Cho phép Skip`, `Picker đã thu hồi`: **tuyệt đối giới hạn đúng khoảng ngày hiện áp dụng**, lọc theo `report_batches.first_report_at` như hiện tại; không tự mở rộng khoảng ngày, không tìm trên tab khác.
+2. **Picker đã thu hồi:** **mỗi picker một dòng**; cùng SKU/batch được phép nhiều dòng. Không gộp mọi picker thành một dòng batch. Trình bày và phân trang phải phản ánh bản ghi picker thuộc đúng batch.
+3. **Thời gian lọc 3 tab kết quả:** `first_report_at` của batch (giữ nguyên cách hiện có), **không** thay bằng `withdrawn_at`/`resolved_at`.
+
+## F. Hai điểm nghiệp vụ còn cần Owner quyết định
+1. **Badge/tab/KPI ở “Picker đã thu hồi”:** hiện `CLOSED` count theo **batch**, nhưng Owner chọn hiển thị **một dòng cho từng picker**. Chọn (A, khuyến nghị) giữ badges/KPI là **số đợt SKU** như hiện tại, song footer/pagination nói rõ **số dòng picker**; hoặc (B) đổi badges/KPI sang **số picker đã thu hồi** (thay đổi cách tính số đang hiển thị, tác động counters/realtime).
+2. **Một picker báo–thu hồi nhiều lần trong cùng batch:** source `business-core.ts` cho phép thu hồi ticket rồi báo lại khi batch vẫn pending do picker khác còn OPEN. Chọn (A, khuyến nghị) **một dòng mỗi picker cho mỗi batch**, hiển thị lần thu hồi mới nhất, lịch sử báo/thu hồi của picker không biến mất khỏi dữ liệu; hoặc (B) một dòng **mỗi lượt thu hồi/ticket**, cùng picker có thể xuất hiện nhiều lần trong cùng batch. Phải giữ thời gian thu hồi `withdrawn_at` đúng ticket, không dùng `first_report_at` làm thời gian thu hồi riêng.
+Các câu hỏi trên là **cần chốt để code**, không phải thiếu dữ liệu để phân tích kỹ thuật. Không suy diễn Owner duyệt một trong hai.
 
 ## Ranh giới
-Code **NOT STARTED**; CI **NOT RUN**; Production **UNCHANGED**; Field **NOT TESTED**; Owner chưa chốt 3 lựa chọn và chưa cấp quyền triển khai. Mọi đánh giá savings/cost/latency ở đây là **thiết kế và hypothesis**, không phải kết quả đo tại Production.
+Code **NOT STARTED**; CI **NOT RUN**; Production **UNCHANGED**; Field **NOT TESTED**; 3 lựa chọn trước đã được Owner chốt, 2 điểm phía trên chờ quyết định; **chưa có quyền triển khai**. Không khẳng định mức giảm usage/cost khi chưa đo.
