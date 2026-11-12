@@ -16,6 +16,8 @@ ALLOWED = RUNTIME | {
     "tools/d173_e227_web3312_release_gate.py", "ops/d173-e227-web3312-release-authorization.json",
     "tests/d173-e227-web3312-eight-ui.test.mjs",
     "docs/D173_E227_WEB3312_EIGHT_UI_OWNER_2026-11-12.md",
+    "docs/D173_E225_WEB3311_BADGE_COUNTER_FIELD_REVIEW_2026-11-12.md",
+    "docs/D173_E226_WEB3311_UI_LAYOUT_OWNER_CORRECTION_2026-11-12.md",
     "docs/OWNER_DECISIONS.md", "ops/authority-manifest.json", "ops/current-context.json",
     "ops/change-continuity/D173.json", "ops/project-state.json", "ops/resource-registry.json",
 }
