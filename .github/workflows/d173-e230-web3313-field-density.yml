@@ -11,6 +11,9 @@ on:
       - '.github/workflows/d173-e230-web3313-field-density.yml'
       - 'ops/change-continuity/D173.json'
       - 'ops/project-state.json'
+      - 'ops/d173-e230-web3313-release-authorization.json'
+      - 'tools/d173_e230_web3313_release_gate.py'
+      - '.github/workflows/deploy-beta.yml'
 permissions:
   contents: read
 jobs:
@@ -42,5 +45,9 @@ jobs:
         run: |
           python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
           node --test tests/d172-*.test.mjs
+      - name: E231 owner source and release authorization preflight (read-only)
+        run: |
+          python3 tools/d173_e230_web3313_release_gate.py --component web --preflight
+          python3 tools/d173_e230_web3313_release_gate.py --component worker --preflight
       - name: Code-only boundary
         run: echo "D173_E230_WEB3313_CODE_ONLY__NO_PROVIDER_RELEASE"
