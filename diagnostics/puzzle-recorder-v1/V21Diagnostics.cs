@@ -33,7 +33,7 @@ namespace SupraPuzzleRecorder
         private readonly Button _v21Bundle = new Button
             { Text = "Lưu bộ chẩn đoán", Width = 154, Enabled = false };
         private readonly Button _v23Sim = new Button
-            { Text = "Mô phỏng kéo (offline)", Width = 174 };
+            { Text = "Phòng thử kéo thật (offline)", Width = 206 };
         private readonly List<V21Evidence> _v21Evidence = new List<V21Evidence>();
         private Rectangle _v21Region = Rectangle.Empty;
         private V21Evidence _v21Active;
@@ -60,7 +60,7 @@ namespace SupraPuzzleRecorder
             _v21ChooseRegion.Click += async (sender, args) => await V21SelectRegionAsync();
             _v22Inspect.Click += async (sender, args) => await V22InspectRegionAsync();
             _v22Export.Click += (sender, args) => V22ExportApprovedRegion();
-            _v23Sim.Click += (sender, args) => { using (var sim = new V23OfflineDragForm()) sim.ShowDialog(this); };
+            _v23Sim.Click += (sender, args) => { using (var sim = new V23BrowserDragLab()) sim.ShowDialog(this); };
             _v21Bundle.Click += (sender, args) => V21SaveBundle();
             return bar;
         }
