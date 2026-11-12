@@ -126,7 +126,7 @@ body[data-theme="dark"] .d173-tabler-shell .result-audit-table tbody tr.d173-ski
 .d173-tabler-shell .ops-business-workspace .table-wrap {
   border:0 !important;
   border-radius:0 !important;
-  max-height:calc(100dvh - 190px);
+  max-height:none;
 }
 .d173-tabler-shell .ops-business-workspace .table-wrap :is(th,td) { padding:6px 7px !important; }
 .d173-tabler-shell .ops-business-workspace .business-summary-grid {
@@ -147,4 +147,59 @@ body[data-theme="dark"] .d173-tabler-shell .result-audit-table tbody tr.d173-ski
 .d173-tabler-shell .ops-business-workspace .fast-detail { padding:10px !important; }
 .d173-tabler-shell .ops-business-workspace :is(.workspace-tab,.btn,#ops-sku-suffix,#recent-day) {
   border-radius:4px !important;
+}
+
+/* D173-E233: desktop Reporter workspace owns the only vertical SKU-list scroll.
+   Height comes from the remaining grid row, never viewport-minus-constant. */
+@media (min-width: 781px) {
+  .d173-tabler-shell > .d173-page-content:has(.ops-business-workspace) {
+    display:flex;
+    flex-direction:column;
+    min-height:0 !important;
+    overflow-x:hidden !important;
+    overflow-y:hidden !important;
+    padding-bottom:28px !important;
+  }
+  .d173-tabler-shell .ops-business-workspace {
+    display:flex;
+    flex:1 1 auto;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
+  .d173-tabler-shell .ops-business-workspace > :is(.sku-day-banner,.d173-ops-toolbar,.business-summary-grid) {
+    flex:0 0 auto;
+  }
+  .d173-tabler-shell .ops-business-workspace .ops-panel {
+    display:flex;
+    flex:1 1 auto;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
+  .d173-tabler-shell .ops-business-workspace .table-wrap {
+    flex:1 1 auto;
+    min-height:0;
+    max-height:none !important;
+    overflow-y:auto;
+    overscroll-behavior-y:contain;
+    padding-bottom:24px;
+    scroll-padding-bottom:24px;
+  }
+  .d173-tabler-shell .ops-business-workspace .fast-workspace {
+    flex:1 1 auto;
+    min-height:0 !important;
+    overflow:hidden;
+  }
+  .d173-tabler-shell .ops-business-workspace .fast-list {
+    min-height:0 !important;
+    max-height:none !important;
+    overflow-y:auto;
+    overscroll-behavior-y:contain;
+    padding-bottom:24px;
+  }
+  .d173-tabler-shell .ops-business-workspace .fast-detail {
+    min-height:0;
+    overflow-y:auto;
+  }
 }
