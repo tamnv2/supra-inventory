@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E230",
     "date_vn": "2026-11-12",
-    "summary": "Owner Web3.3.12 FIELD 3 UI corrections: human Skip neutral, auto Skip distinct; compact five-tab SKU lists/remove footer; exact suffix placeholder. Web3.3.13 code-only Draft PR957; CI pending, no Production permission.",
-    "status": "WEB3313_CODE_ONLY_SOURCE_CI_PENDING__WEB3312_PRODUCTION_UNCHANGED__D172_HOLD",
+    "summary": "Web3.3.13 D173 E230 code-only: human Skip neutral, auto marked; compact SKU lists, footer gone, exact suffix placeholder. Exact-source a4ec0e CI E230 12/12 UI, Web build, D172 74/74, authority/continuity PASS. UI Design legacy baseline FAIL pre-existing. No Production authorization.",
+    "status": "WEB3313_SOURCE_SCOPED_CI_PASS__PRODUCTION_WEB3312_UNCHANGED__FIELD_OWNER_PENDING__D172_HOLD",
     "source": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md",
     "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
     "pr": 957
@@ -4458,7 +4458,7 @@
       "date_vn": "2026-11-12",
       "kind": "OWNER_COMMAND",
       "topic": "Owner requires three UI corrections after Production Web3.3.12; Web3.3.13 Draft PR957",
-      "status": "OWNER_WEB3312_FIELD_CORRECTION__WEB3313_CODE_ONLY_CANDIDATE__CI_PENDING__NO_DEPLOY",
+      "status": "WEB3313_SOURCE_12_UI_PASS_BUILD_PASS_D172_74_PASS__NO_DEPLOY__OWNER_FIELD_PENDING",
       "owner_approval": true,
       "owner_release_approved": false,
       "pr": 957,
@@ -4469,17 +4469,28 @@
         "Human-operated Skip blue backgrounds came from d173-skip-human CSS, not server data; only SYSTEM_TIMEOUT/SYSTEM_DAY_END should be highlighted, including dark mode.",
         "Result and overdue lists carried redundant user-pagination footers; existing page and table styling layered borders/radii/padding, reducing SKU density.",
         "Requested exact search placeholder is Tìm SKU tối thiểu 3 chữ số cuối; existing suffix-only minimum 3 business filter is unchanged.",
-        "Web 3.3.13 UI-only source candidate in Draft PR957; service/DO/SQLite/schema/API, Agent, Android, Firebase, D172, Stable unchanged."
+        "Web 3.3.13 UI-only source candidate in Draft PR957; service/DO/SQLite/schema/API, Agent, Android, Firebase, D172, Stable unchanged.",
+        "Exact source CI run 43224546702: 12/12 E227+E230 UI assertions PASS, Web TypeScript/Vite build PASS, 74/74 D172 isolated regression PASS with 0 Provider writes. Separate D172 isolation run43224547266 SUCCESS, Repo Authority43224547001 SUCCESS, Project State/continuity43224546938 SUCCESS.",
+        "UI Design Guard pre-existing failure on main b995b1 (run43221618297) and current branch run43224546814: agent_d137, agent_d130 and legacy web_d063 checks; not claimed as E230 scoped PASS."
       ],
-      "evidence": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/957; code test tests/d173-e230-web3313-field-density.test.mjs",
-      "next_action": "Verify scoped Web build/UI tests plus D172 isolation on exact PR head, correct source failures if any, then seek explicit Owner authorization before protected merge/Production release.",
-      "code": "SOURCE_CANDIDATE",
-      "ci": "PENDING",
+      "evidence": "docs/D173_E230_WEB3313_FIELD_DENSITY_CODE_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/957; code test tests/d173-e230-web3313-field-density.test.mjs; https://github.com/tamnv2/supra-inventory/actions/runs/43224546702; https://github.com/tamnv2/supra-inventory/actions/runs/43224547266",
+      "next_action": "Preserve Draft PR957/code-only; no Production release until explicit Owner command and protected gate. FIELD screenshots after any future release.",
+      "code": "SOURCE_TEST_PASS",
+      "ci": "PASS_E230_SOURCE_D172_AUTHORITY_CONTINUITY",
       "release": "PRODUCTION_WEB3312_UNCHANGED",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "a4ec0e052418608850a19c9217541e69afb0e6c2",
+      "ci_run_ids": {
+        "e230": 43224546702,
+        "d172": 43224547266,
+        "authority": 43224547001,
+        "continuity": 43224546938,
+        "ui_baseline_fail": 43221618297,
+        "ui_current_fail": 43224546814
+      }
     }
   ],
   "resume": {
