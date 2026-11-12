@@ -4818,5 +4818,61 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "sanitized": true
+  },
+  "d173_web_results_owner_3_decisions_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "OWNER_DECISION_THREE_WEB_RESULTS_RULES__TWO_UNRESOLVED_FOR_REVIEW",
+    "pr": 942,
+    "branch": "docs/d173-web-results-ux-review-20261112",
+    "verified_main_sha": "f9237ec593ce1e8ecc1f20af04ae497a5269fb08",
+    "owner_approved": {
+      "sku_search_scope": "ONLY_ACTIVE_TAB; PENDING_AND_OVERDUE_ALL_NOT_FINISHED_INDEPENDENT_OF_RESULTS_DATE; HAS_STOCK_SKIP_ALLOWED_CLOSED_WITHIN_SELECTED_DATE_RANGE_ONLY",
+      "closed_rendering": "ONE_ROW_PER_PICKER_PER_SKU_BATCH__MULTIPLE_ROWS_SAME_SKU_ALLOWED",
+      "result_date_scope": "report_batches.first_report_at; EXISTING_SEMANTICS_PRESERVED",
+      "suffix": "DIGITS_ONLY_MIN_3__ENDS_WITH__PLACEHOLDER_TIM_SKU_THEO_CAC_CHU_SO_CUOI",
+      "priority": [
+        "USAGE",
+        "STABILITY",
+        "SPEED"
+      ]
+    },
+    "unresolved_owner_review": [
+      {
+        "id": "CLOSED_TAB_COUNTER_SEMANTICS",
+        "question": "CLOSED badge/KPI retains batch count while pagination counts picker rows, OR switch badge/KPI to picker count?",
+        "recommended": "KEEP_BATCH_BADGES_AND_KPI; SHOW_PICKER_ROW_COUNT_IN_FOOTER",
+        "reason": "Current APIs/realtime badges count report_batches not tickets; changing would alter current operational metric."
+      },
+      {
+        "id": "REPEAT_WITHDRAW_SAME_PICKER_BATCH",
+        "question": "One row per unique picker per batch (latest withdrawal), OR one row per ticket/withdrawal attempt when same picker reports again?",
+        "recommended": "ONE_ROW_PER_UNIQUE_PICKER_PER_BATCH_WITH_LATEST_WITHDRAWAL",
+        "reason": "Existing create/withdraw code allows report again after withdrawing while another picker keeps batch PENDING."
+      }
+    ],
+    "facts_from_code": [
+      "service/src/business-core.ts withdrawReport marks ticket WITHDRAWN at withdrawn_at, CLOSED only when no remaining active tickets",
+      "service/src/operational-v2-core.ts reporterRecent totals CLOSED from batch counts and reporterBatchTickets returns picker ticket rows",
+      "service/src/business-core.ts createReport checks only OPEN ticket uniqueness; same picker can report again after withdraw in still-open batch"
+    ],
+    "docs": [
+      "docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md",
+      "docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md",
+      "docs/OWNER_DECISIONS.md",
+      "docs/specs/REPORTING_DASHBOARD.md"
+    ],
+    "authorization": {
+      "code": false,
+      "merge": false,
+      "release": false
+    },
+    "code": "NOT_STARTED",
+    "ci": "NOT_RUN",
+    "release": "NO_CHANGE",
+    "field": "NOT_TESTED",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "privacy": "NO_OPERATIONAL_PERSONAL_DATA"
   }
 }
