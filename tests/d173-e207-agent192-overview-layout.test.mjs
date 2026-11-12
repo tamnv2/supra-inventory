@@ -114,3 +114,13 @@ test('E212 roster tools stay on one row and right-align only when they fit', () 
   assert.match(block, /_d173E148ManualRefreshButton, _d173E140CloseAllCalls/);
   assert.match(block, /_d168GroupContact, _d161BulkKickAllButton/);
 });
+
+test('E213 released Agent193 has consistent runtime build, assembly and update version', () => {
+  const config = source('relay-agent/AgentConfig.cs');
+  const csproj = source('relay-agent/SupraInventoryRelayAgent.csproj');
+  const version = source('relay-agent/VERSION').trim();
+  assert.match(config, /AgentBuild = 193;/);
+  assert.match(csproj, /<AssemblyVersion>0\.193\.0\.0<\/AssemblyVersion>/);
+  assert.match(csproj, /<FileVersion>0\.193\.0\.0<\/FileVersion>/);
+  assert.equal(version, '193');
+});
