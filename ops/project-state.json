@@ -7604,7 +7604,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
     "pr": 961,
-    "latest_checkpoint_id": "D173-E237",
+    "latest_checkpoint_id": "D173-E238",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7613,7 +7613,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 961,
     "active_working_branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
-    "working_pr_lifecycle": "PR961_OPEN_DRAFT_CODE_ONLY__WEB3315_NOT_RELEASED"
+    "working_pr_lifecycle": "PR961_OPEN_DRAFT_WEB3315_SCOPED_CI_PASS__LEGACY_UI_GUARD_BASELINE_FAIL__NO_RELEASE_AUTHORITY"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14218,14 +14218,21 @@
     "owner_code_requested": true,
     "owner_production_release_approved": false,
     "scope": "WEB_D173_PRESENTATION_ONLY_GLOBAL_SPACING_RADIUS_COLORS_DUPLICATE_HEADINGS_STICKY_TABS",
-    "code": "CANDIDATE_PR961",
+    "code": "PASS_SOURCE_SCOPED",
     "static_source_checks": "PASS_NOT_BROWSER",
-    "ci": "PENDING_EXACT_HEAD",
+    "ci": "PASS_WEB_BUILD_D172_AUTHORITY_STATE_SHA923612DB__LEGACY_UI_GUARD_BASELINE_FAIL",
     "release": "WEB3315_NOT_DEPLOYED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "doc": "docs/D173_E237_WEB3315_GLOBAL_LAYOUT_CODE_ONLY_2026-11-12.md"
+    "doc": "docs/D173_E237_WEB3315_GLOBAL_LAYOUT_CODE_ONLY_2026-11-12.md",
+    "ci_source_sha": "923612dbffc48ad6771ae973e992a80d068451f5",
+    "ci_runs": {
+      "web_d172": 43256615606,
+      "authority": 43256615644,
+      "state": 43256615721,
+      "legacy_ui_fail": 43256615819
+    }
   }
 }
