@@ -7,12 +7,12 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E208",
-    "pr": 939,
-    "branch": "docs/d173-e208-agent192-signed-ota-receipt-20261112",
-    "status": "AGENT192_CODE_CI_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "owner_merge_approved": true,
-    "owner_release_approved": true
+    "checkpoint_id": "D173-E212",
+    "pr": 945,
+    "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
+    "status": "AGENT193_CODE_ONLY_CANDIDATE__CI_PENDING__NO_MERGE_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_merge_approved": false,
+    "owner_release_approved": false
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
@@ -70,7 +70,9 @@
     "PHYSICAL_FIELD_PASS",
     "OWNER_PASS",
     "ALL_DEVICES_INSTALLED_LATEST",
-    "PRODUCTION_DEPLOY_FROM_THIS_PR"
+    "PRODUCTION_DEPLOY_FROM_THIS_PR",
+    "AGENT193_PUBLISHED",
+    "AGENT193_OWNER_APPROVED_MERGE"
   ],
   "main_source_at_reconciliation": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
   "active_implementation": {
@@ -86,13 +88,14 @@
     "host14_ota_unchanged": true
   },
   "active_candidate": {
-    "change_id": "D173-E207",
-    "pr": 939,
-    "version": 192,
-    "source_pin": "b0aebb45d962283abaa17c112d352b6470f409cd",
-    "release": "SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING",
+    "change_id": "D173-E212",
+    "pr": 945,
+    "version": 193,
+    "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
+    "source_pin": "PENDING_EXACT_CI",
+    "release": "CODE_ONLY_NO_RELEASE__SIGNED_AGENT192_PRODUCTION",
     "host_build": 14,
-    "scope": "AGENT_WINFORMS_OVERVIEW_ONLY__NO_OTHER_RUNTIME_CHANGE"
+    "scope": "AGENT_WINFORMS_UI_ONLY_5_OWNER_CORRECTIONS"
   },
   "active_field_analysis": {
     "id": "D173-E202",
