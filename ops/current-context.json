@@ -7,13 +7,13 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E238",
+    "checkpoint_id": "D173-E239",
     "pr": 961,
     "branch": "fix/d173-e237-web3315-global-layout-sticky-tabs-20261112",
-    "status": "WEB3315_SCOPED_CI_PASS_SHA923612DB__LEGACY_UI_GUARD_BASELINE_FAIL__NO_PRODUCTION_APPROVAL",
-    "owner_merge_approved": false,
-    "owner_release_approved": false,
-    "source_doc": "docs/D173_E237_WEB3315_GLOBAL_LAYOUT_CODE_ONLY_2026-11-12.md",
+    "status": "OWNER_WEB3315_RELEASE_APPROVED__EXACT_SOURCE_CI_PENDING__NO_DEPLOY_YET",
+    "owner_merge_approved": true,
+    "owner_release_approved": true,
+    "source_doc": "docs/D173_E239_WEB3315_RELEASE_AUTHORIZATION_2026-11-12.md",
     "production_web_version": "3.3.14",
     "source_main_sha": "7d5b1856857483c7696b53a0eda1db4fbc9fad14",
     "target_web_version": "3.3.15",
@@ -23,7 +23,8 @@
     "source_ci_sha": "923612dbffc48ad6771ae973e992a80d068451f5",
     "source_ci_run_id": 43256615606,
     "authority_ci_run_id": 43256615644,
-    "state_ci_run_id": 43256615721
+    "state_ci_run_id": 43256615721,
+    "release_marker": "D173-E237_WEB3315_PRODUCTION_RELEASE:"
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
