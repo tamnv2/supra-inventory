@@ -7,11 +7,11 @@
   "pr": 938,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R04",
+    "id": "D173-E204-R05",
     "date_vn": "2026-11-12",
-    "summary": "Owner requested fixed Web login ROI plus auto puzzle solve; V2.2 PR938 implements only passive fixed-viewport ROI inspection/reviewed ZIP, not anti-bot solving or WMS automation. CI pending, no Production changes.",
-    "status": "V22_CODE_CANDIDATE_PR938_DRAFT__CI_PENDING__NO_AUTO_CHALLENGE_SOLVE__NO_PRODUCTION",
-    "source": "https://github.com/tamnv2/supra-inventory/pull/938"
+    "summary": "PR938 V2.2 passive fixed viewport/ROI source and Windows CI 15/15 PASS at b83d014; artifact ID13906912746 sha256 b3cf2bbe.. CRC 21 entries verified. FIELD/OWNER pending; no auto CAPTCHA, no Production.",
+    "status": "V22_CODE_CI_ARTIFACT_PASS__FIELD_OWNER_PENDING__NO_PRODUCTION",
+    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43135479919"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4032,6 +4032,44 @@
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED",
       "next_action": "Verify PR938 source and Windows-native CI on exact SHA; repair code-only errors; do not claim installable ZIP until artifact exists and checksum passes."
+    },
+    {
+      "id": "D173-E204-R05",
+      "date_vn": "2026-11-12",
+      "kind": "V22_CODE_CI_ARTIFACT_RECEIPT",
+      "topic": "V2.2 fixed viewport passive ROI: exact native Windows x64 artifact",
+      "status": "V22_CODE_CI_ARTIFACT_PASS__FIELD_OWNER_PENDING__NO_PRODUCTION",
+      "verified_facts": [
+        "PR938 Draft stacked onto PR935; no merge to main, no Production/Agent/Host/Worker/Web/Android/Firebase/D172/Stable changes.",
+        "Exact source branch SHA b83d01402c51f2e9f2b28c264708fd08091a41d2 passed GitHub Actions run 43135479919 source and windows-native jobs.",
+        "15/15 Node tests PASS, 0 failed; source scope guard PASS.",
+        "Windows x64 native build/startup synthetic OpenCV and ROI bounds smoke SUCCESS.",
+        "Artifact SUPRA-Puzzle-Diagnostic-V22-win-x64, artifact ID 13906912746, 103317339 bytes, 21 files, ZIP CRC verified locally.",
+        "GitHub artifact and downloaded file SHA-256 identical b3cf2bbe498a12c36d2300baca9fd779c86807f1035e26c0950c08b8cdcf527b.",
+        "Includes SUPRA.Puzzle.Tester.V2.exe assembly version 2.2.0; extract complete ZIP for native WebView2/OpenCV dependencies.",
+        "One-time ROI is geometry-only under LocalApplicationData, reused only if screenshot dimensions match; ROI preview/export is passive and requires explicit image approval.",
+        "Automatic challenge-solving Test button is not exposed in V2.2 and V2.2 does not automate WMS login or Confirm navigation."
+      ],
+      "evidence": {
+        "pr": "https://github.com/tamnv2/supra-inventory/pull/938",
+        "ci_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43135479919",
+        "artifact_url": "https://github.com/tamnv2/supra-inventory/actions/runs/43135479919/artifacts/13906912746",
+        "artifact_id": 13906912746,
+        "sha256": "b3cf2bbe498a12c36d2300baca9fd779c86807f1035e26c0950c08b8cdcf527b"
+      },
+      "pending": [
+        "FIELD: no physical ROI persistence/viewport DPI/visual approval proof from Owner yet",
+        "OWNER PASS: not confirmed",
+        "No authorization or implementation for automated anti-bot puzzle solving, login or Confirm navigation"
+      ],
+      "code": "PASS_AT_VERIFIED_SHA",
+      "ci": "15_OF_15_SOURCE_PLUS_WINDOWS_NATIVE_PASS",
+      "artifact": "ZIP_SHA256_AND_CRC_PASS",
+      "release": "CODE_ONLY_TEST_ARTIFACT_NOT_PRODUCTION",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
