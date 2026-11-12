@@ -21,7 +21,7 @@ test("E209: suffix-only search, no prefix or middle match, numeric minimum 3", (
   assert.match(core, /sku_suffix/);
   assert.match(web, /placeholder="Tìm SKU theo các chữ số cuối"/);
   assert.match(web, /opsInput\.value\.replace\(\/\\D\/g, ""\)/);
-  assert.match(web, /if \(!wasSearching && next\.length < 3\) return/);
+  assert.match(web, /if \(!wasSearching && opsSkuSuffix\.length < 3\) return/);
 });
 
 test("E209: search is server-side before pagination and omits expensive aggregates", () => {
