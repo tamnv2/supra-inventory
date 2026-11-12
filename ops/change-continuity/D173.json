@@ -4733,7 +4733,6 @@
       "DO Rows Read/request, p50/p95 measurement and D172 isolation regression before any shared release"
     ],
     "uncertain": [
-      "SKU match is prefix vs contains; choose only after usage/UX benchmark",
       "five-tab vs completed-tab search scope; scope must be confirmed before code if behavior differs"
     ],
     "code": "NOT_STARTED_ANALYSIS_ONLY",
@@ -4745,6 +4744,35 @@
     "owner_release_approval": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
-    "privacy": "NO_PERSONNEL_OR_OPERATIONAL_ROWS_COMMITTED"
+    "privacy": "NO_PERSONNEL_OR_OPERATIONAL_ROWS_COMMITTED",
+    "owner_approved_search_semantics": {
+      "approved": true,
+      "date_vn": "2026-11-12",
+      "match": "SKU_SUFFIX_ONLY_ENDSWITH",
+      "placeholder": "Tìm SKU theo các chữ số cuối",
+      "input": "DIGITS_ONLY_MIN_3_NO_BUTTON_AUTO_SEARCH",
+      "matching_examples": [
+        {
+          "sku": "10011233",
+          "query": "233",
+          "match": true
+        },
+        {
+          "sku": "10011233",
+          "query": "1233",
+          "match": true
+        },
+        {
+          "sku": "10011233",
+          "query": "123",
+          "match": false
+        }
+      ],
+      "search_scope": "ACTIVE_TAB_AND_ALL_RESULTS_IN_SELECTED_DATE_RANGE_BEFORE_PAGINATION",
+      "backend_guard": "DO_NOT_SILENTLY_SWITCH_TO_PREFIX_OR_CONTAINS_FOR_INDEX_PERFORMANCE",
+      "usage_guard": "MEASURE_DO_ROWS_READ_AND_LATENCY_BEFORE_IMPLEMENTATION",
+      "authority": "BUSINESS_SEMANTICS_APPROVED_ONLY__NO_CODE_MERGE_RELEASE_PERMISSION"
+    },
+    "status": "OWNER_APPROVED_SUFFIX_SEARCH_SEMANTICS__DOCS_ONLY_CODE_NOT_STARTED"
   }
 }
