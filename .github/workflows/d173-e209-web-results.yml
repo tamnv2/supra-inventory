@@ -4,6 +4,8 @@ on:
     paths:
       - 'web/**'
       - 'service/src/operational-v2-core.ts'
+      - 'service/src/read-api.ts'
+      - 'service/src/business-api.ts'
       - 'tests/d173-e209-web-results.test.mjs'
       - 'tools/d173_e209_suffix_sql_regression.py'
       - '.github/workflows/d173-e209-web-results.yml'
