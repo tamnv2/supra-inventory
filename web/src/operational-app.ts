@@ -3406,6 +3406,12 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
     const before = recentCounterEndpoint(values.before_status, values.before_at);
     const after = recentCounterEndpoint(values.after_status, values.after_at);
     if (!before.valid || !after.valid) return false;
+    // Outcome tab dates are based on the batch's FIRST report, never the
+    // resolution/withdrawal event time (which can fall on the next day).
+    const firstAt = String(realtimeSnapshotRecord(row)?.first_report_at || "");
+    if (!firstAt || !Number.isFinite(Date.parse(firstAt))) return false;
+    if (before.endpoint.status) before.endpoint.at = firstAt;
+    if (after.endpoint.status) after.endpoint.at = firstAt;
     next += (recentCounterMatches(after.endpoint) ? 1 : 0) - (recentCounterMatches(before.endpoint) ? 1 : 0);
     // Every inactive tab remains realtime on the same authoritative delta.
     if (before.endpoint.status && before.endpoint.at && recentDateRangeContains(before.endpoint.at))
@@ -3637,7 +3643,10 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
       }
     }
 
-    if (touchesOverdue) {
+    if (touchesOverdue && activeSection === "overdue" && opsSkuSuffix.length >= 3) {
+      // Filtered/server-paged overdue view cannot accept an unfiltered batch.
+      overdueExact = false;
+    } else if (touchesOverdue) {
       const row = overdueRowFromSnapshot(snapshot);
       overdueRows = row
         ? replaceByBatch(overdueRows, row).sort((a, b) => a.first_overdue_at.localeCompare(b.first_overdue_at) || a.batch_id.localeCompare(b.batch_id))
@@ -3663,7 +3672,12 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
         const values = transition as Record<string, unknown>;
         const before = recentCounterEndpoint(values.before_status, values.before_at);
         const after = recentCounterEndpoint(values.after_status, values.after_at);
-        if (!before.valid || !after.valid) {
+        const firstAt = snapshotText(snapshot, "first_report_at");
+        if (firstAt && Number.isFinite(Date.parse(firstAt))) {
+          if (before.endpoint.status) before.endpoint.at = firstAt;
+          if (after.endpoint.status) after.endpoint.at = firstAt;
+        }
+        if (!before.valid || !after.valid || !firstAt) {
           recentExact = false;
         } else {
           const beforeInRange = before.endpoint.status && before.endpoint.at
