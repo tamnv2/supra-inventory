@@ -88,12 +88,12 @@
     "doc": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
   },
   "current_status": {
-    "beta": "D173_E229_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "beta": "D173_E232_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D173_E229_WEB_3_3_12_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "web": "D173_E232_WEB_3_3_13_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
     "android": "SIGNED_ANDROID_VC128_CHANNEL_RELEASE_PASS__FLEET_INSTALL_UNVERIFIED",
     "latest_beta_apk": "beta-vc128__SIGNED_APK_RELEASE_PUBLISHED__PHYSICAL_FLEET_INSTALL_UNVERIFIED",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
@@ -7602,18 +7602,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e230-web3313-field-density-skip-20261112",
-    "pr": 957,
-    "latest_checkpoint_id": "D173-E231",
+    "working_branch": "docs/d173-e232-web3313-production-receipt-20261112",
+    "pr": 958,
+    "latest_checkpoint_id": "D173-E232",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E231_WEB3313_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_PRODUCTION_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E232_WEB3313_PRODUCTION_TECH_PASS__PR958_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 957,
-    "active_working_branch": "fix/d173-e230-web3313-field-density-skip-20261112",
-    "working_pr_lifecycle": "PR957_OPEN_READY_REVIEW__WEB3313_OWNER_RELEASE_APPROVED__EXACT_CI_PENDING"
+    "working_pr": 958,
+    "active_working_branch": "docs/d173-e232-web3313-production-receipt-20261112",
+    "working_pr_lifecycle": "PR958_OPEN_DOCS_ONLY_WEB3313_PRODUCTION_RECEIPT__NO_PROVIDER_REDEPLOY"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14011,9 +14011,9 @@
       "Simplify border/radius/gap/padding for the five-tab SKU workspace; remove visible result/overdue footer totals",
       "Exact search placeholder Tìm SKU tối thiểu 3 chữ số cuối; suffix >=3 logic unchanged"
     ],
-    "code": "SOURCE_TEST_PASS",
-    "ci": "PASS_E230_SCOPED_12_UI_WEB_BUILD_D172_74_AND_REPO_GUARDS",
-    "release": "OWNER_APPROVED_SOURCE_CI_PASS__PROTECTED_MERGE_PRODUCTION_PENDING",
+    "code": "PASS_SOURCE",
+    "ci": "PASS_4_FINAL_SCOPED",
+    "release": "PASS_PRODUCTION_TECHNICAL_RUN43227915003",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -14041,6 +14041,44 @@
       43227189986,
       43227189717,
       43227189801
+    ],
+    "release_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
+    "release_run_id": 43227915003,
+    "worker_version_id_at_deploy": "c5352328-5955-4884-bf12-8945d71d2835",
+    "receipt": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "receipt_pr": 958,
+    "final_source_ci_sha": "da8854c706b9071bd6902a6c145461bcaef5aabe",
+    "final_ci_run_ids": [
+      43227626521,
+      43227627011,
+      43227626703,
+      43227627062
     ]
+  },
+  "d173_e232_web3313_release_receipt": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E232",
+    "source_pr": 957,
+    "docs_pr": 958,
+    "source_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
+    "source_ci_sha": "da8854c706b9071bd6902a6c145461bcaef5aabe",
+    "source_ci_runs": [
+      43227626521,
+      43227627011,
+      43227626703,
+      43227627062
+    ],
+    "release_run_id": 43227915003,
+    "worker_version_id_at_deploy": "c5352328-5955-4884-bf12-8945d71d2835",
+    "code": "PASS",
+    "ci": "PASS_SCOPED",
+    "release": "PASS_TECHNICAL",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "receipt_doc": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "scope": "WEB_ASSETS_ONLY__EXISTING_WORKER__NO_BUSINESS_OR_D172_SOURCE_CHANGES"
   }
 }
