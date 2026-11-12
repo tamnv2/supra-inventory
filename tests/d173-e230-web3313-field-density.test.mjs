@@ -37,12 +37,12 @@ test("D173-E230: compact only the Reporter operation workspace without touching 
   assert.match(css, /\.ops-business-workspace \.table-wrap/);
   assert.match(css, /\.ops-business-workspace \.d173-ops-toolbar/);
   assert.match(css, /\.ops-business-workspace \.business-summary-card/);
-  assert.match(css, /max-height:calc\(100dvh - 190px\)/);
+  assert.match(css, /max-height:none/);
 });
 
 test("D173-E230: exact suffix-search instruction and Web candidate version", () => {
   assert.match(web, /placeholder="Tìm SKU tối thiểu 3 chữ số cuối"/);
   assert.match(web, /opsSkuSuffix\.length < 3 \|\| row\.sku\.endsWith\(opsSkuSuffix\)/);
-  assert.match(version, /WEB_VERSION = "3\.3\.13"/);
-  assert.equal(pkg.version, "3.3.13");
+  assert.match(version, /WEB_VERSION = "3\.3\.14"/);
+  assert.equal(pkg.version, "3.3.14");
 });
