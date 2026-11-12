@@ -140,6 +140,7 @@ namespace SupraPuzzleRecorder
                 _crop.Enabled = true;
                 _test.Enabled = false;
                 _v21ChooseRegion.Enabled = true;
+                _v22Inspect.Enabled = true;
                 _status.Text = "V2.2: chọn vùng trò chơi một lần, Kiểm tra vùng chỉ xem ảnh; thao tác xác minh thực hiện thủ công.";
             }
             catch (Exception)
