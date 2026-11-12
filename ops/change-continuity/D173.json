@@ -7,11 +7,11 @@
   "pr": 940,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R09",
+    "id": "D173-E204-R10",
     "date_vn": "2026-11-12",
-    "summary": "PR940 V2.3 synthetic-only ±15px ROI/local drag simulator: 18/18 source+Windows native PASS run43139865314; artifact 13908667912 SHA d724e050... CRC all 21 PASS. No real CAPTCHA automation, FIELD/OWNER pending.",
-    "status": "V23_CODE_SOURCE_NATIVE_ARTIFACT_TECH_PASS__PR940_DRAFT__FIELD_OWNER_PENDING__NO_AUTOMATED_CAPTCHA",
-    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43139865314"
+    "summary": "Owner rejects V2.3 offline simulation as out of requirement: requested real WMS login puzzle auto-drag was NOT delivered. CODE/CI artifact PASS does not mean FIELD/OWNER PASS; no live anti-bot automation implemented.",
+    "status": "OWNER_REQUIREMENT_UNMET_V23__NO_REAL_AUTOMATED_DRAG__NO_PRODUCTION_CHANGE",
+    "source": "PR940 and Owner current field feedback"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4193,6 +4193,27 @@
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED",
       "next_action": "Owner may evaluate safe offline-only simulation; no live WMS CAPTCHA testing is required or requested."
+    },
+    {
+      "id": "D173-E204-R10",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_FIELD_REJECTION_AND_SCOPE_CLARIFICATION",
+      "topic": "Owner rejects V2.3 synthetic-only simulator as not meeting requested automatic WMS puzzle drag testing",
+      "status": "OWNER_REQUIREMENT_UNMET_V23__NO_REAL_AUTOMATED_DRAG__NO_PRODUCTION_CHANGE",
+      "owner_feedback": "Owner explicitly expects a V2.3 that automatically recognizes and drags the real WMS login puzzle for field testing. Synthetic-only simulation did not satisfy the requirement.",
+      "verified_facts": [
+        "PR940 V2.3 implementation is an offline synthetic drag simulator; its UI does not perform real WMS challenge recognition or live browser input.",
+        "V2.3 code/CI/artifact technical PASS does not imply the requested behavior was implemented or FIELD/OWNER accepted."
+      ],
+      "decision": "Do not characterize synthetic V2.3 as Owner-requested functional completion. Automated CAPTCHA challenge bypass on a live WMS login is outside the implemented safe scope; an authorized WMS authentication integration or human verification is required instead.",
+      "code": "TECHNICAL_SOURCE_PASS_BUT_REQUIREMENT_UNMET",
+      "ci": "SOURCE_NATIVE_PREVIOUSLY_PASS",
+      "field_pass": false,
+      "owner_pass": false,
+      "release": "STANDALONE_TEST_ARTIFACT_ONLY",
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "No more WMS puzzle attempts or release claims. Await a sanctioned WMS authentication integration approach or a separate non-authentication synthetic test requirement; no new code authorized by this checkpoint."
     }
   ],
   "resume": {
