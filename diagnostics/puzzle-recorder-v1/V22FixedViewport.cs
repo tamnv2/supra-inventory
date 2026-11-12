@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO.Compression;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace SupraPuzzleRecorder
     {
         private readonly Button _v22Inspect = new Button
             { Text = "Kiểm tra vùng (không kéo)", Width = 184, Enabled = false };
+        private readonly Button _v22Export = new Button
+            { Text = "Xuất vùng đã duyệt", Width = 143, Enabled = false };
+        private byte[] _v22ApprovedPng;
         private static readonly string V22RegionPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "SUPRA", "PuzzleDiagnostic", "region-v22.json");
@@ -66,6 +70,8 @@ namespace SupraPuzzleRecorder
         {
             if (_browser.CoreWebView2 == null || _testing || _recording || _pendingTest != null) return;
             _v22Inspect.Enabled = false;
+            _v22ApprovedPng = null;
+            _v22Export.Enabled = false;
             try
             {
                 using (var frame = new MemoryStream())
@@ -99,8 +105,19 @@ namespace SupraPuzzleRecorder
                             {
                                 Dock = DockStyle.Fill, Image = image, SizeMode = PictureBoxSizeMode.Zoom
                             };
+                            var approve = new Button
+                            {
+                                Text = "Xác nhận: ảnh chỉ chứa trò chơi", Dock = DockStyle.Bottom,
+                                Height = 42, DialogResult = DialogResult.OK
+                            };
                             dialog.Controls.Add(picture);
-                            dialog.ShowDialog(this);
+                            dialog.Controls.Add(approve);
+                            dialog.AcceptButton = approve;
+                            if (dialog.ShowDialog(this) == DialogResult.OK)
+                            {
+                                _v22ApprovedPng = pixels;
+                                _v22Export.Enabled = true;
+                            }
                         }
                         _status.Text = "Vùng " + _v21Region.Width + "×" + _v21Region.Height +
                             " px đúng viewport " + screenshot.Width + "×" + screenshot.Height +
@@ -113,6 +130,39 @@ namespace SupraPuzzleRecorder
                 _status.Text = "Không kiểm tra được vùng. Không tự thử lại hoặc kéo chuột.";
             }
             finally { _v22Inspect.Enabled = true; }
+        }
+
+        private void V22ExportApprovedRegion()
+        {
+            if (_v22ApprovedPng == null || _testing || _recording) return;
+            using (var dialog = new SaveFileDialog
+            {
+                Filter = "ZIP kiểm tra vùng (*.zip)|*.zip",
+                FileName = "puzzle-region-v22.zip", AddExtension = true
+            })
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK) return;
+                try
+                {
+                    var metadata = _json.Serialize(new Dictionary<string, object>
+                    {
+                        ["schema"] = "supra-puzzle-region-v22",
+                        ["viewport_fixed_control_px"] = new[] { 1178, 600 },
+                        ["region_image_px"] = new[]
+                        { _v21Region.X, _v21Region.Y, _v21Region.Width, _v21Region.Height },
+                        ["input_sent"] = false,
+                        ["privacy"] = "owner-approved ROI pixels only; no URL or session content"
+                    });
+                    using (var file = File.Create(dialog.FileName))
+                    using (var zip = new ZipArchive(file, ZipArchiveMode.Create))
+                    {
+                        V21WriteEntry(zip, "region-v22.png", _v22ApprovedPng);
+                        V21WriteEntry(zip, "region-v22.json", Encoding.UTF8.GetBytes(metadata));
+                    }
+                    _status.Text = "Đã lưu ảnh vùng được duyệt; kiểm tra ZIP trước khi gửi.";
+                }
+                catch (Exception) { _status.Text = "Không ghi được ZIP; không gửi dữ liệu tự động."; }
+            }
         }
 
         // Native synthetic smoke: reject stale DPI dimensions and out-of-bounds regions.
