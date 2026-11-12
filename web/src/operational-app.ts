@@ -302,6 +302,7 @@ function clearRoleScopedViewState(): void {
   recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
   batchDetails.clear();
   expandedRecentPickerBatches.clear();
+  resultTabAutoSkipCount = 0;
   opsSkuSuffix = "";
   if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
   opsSkuInputTimer = null;
@@ -423,6 +424,7 @@ let recentTotal = 0;
 const RECENT_PAGE_SIZE = 50;
 let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
 let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
+let resultTabAutoSkipCount = 0;
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "HAS_STOCK";
 let opsSkuSuffix = "";
@@ -1605,8 +1607,9 @@ function render(): void {
 
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
   // Five tabs share existing counters; suffix only applies to the active tab.
+  const skipBreakdown = `Tổng ${resultTabBadgeCounts.SKIP_ALLOWED}: Tự động ${resultTabAutoSkipCount} - Nhân sự ${Math.max(0, resultTabBadgeCounts.SKIP_ALLOWED - resultTabAutoSkipCount)}`;
   const outcomeTab = (status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED", label: string) =>
-    `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}">${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
+    `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}">${label} ${status === "SKIP_ALLOWED" ? `(<span data-workspace-count="SKIP_ALLOWED">${skipBreakdown}</span>)` : `<b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b>`}</button>`;
   const today = dateDaysAgo(0);
   const preset = recentFrom === today && recentTo === today ? "TODAY"
     : recentFrom === dateDaysAgo(1) && recentTo === dateDaysAgo(1) ? "YESTERDAY"
@@ -1629,12 +1632,12 @@ function renderOperationalTabs(current: "operations" | "overdue" | "results"): s
       <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
       <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
       ${outcomeTab("HAS_STOCK", "Đã có hàng")}
-      ${outcomeTab("SKIP_ALLOWED", "Cho phép Skip")}
+      ${outcomeTab("SKIP_ALLOWED", "Cho phép skip")}
       ${outcomeTab("CLOSED", "Picker đã thu hồi")}
     </div>
     <div class="d173-ops-toolbar-right">
-      <input id="ops-sku-suffix" aria-label="Tìm SKU theo các chữ số cuối" placeholder="Tìm SKU theo các chữ số cuối" inputmode="numeric" autocomplete="off" maxlength="32" value="${esc(opsSkuSuffix)}" />
       ${range}
+      <input id="ops-sku-suffix" aria-label="Tìm SKU theo các chữ số cuối" placeholder="Tìm SKU theo các chữ số cuối" inputmode="numeric" autocomplete="off" maxlength="32" value="${esc(opsSkuSuffix)}" />
     </div>
   </div>`;
 }
@@ -1646,7 +1649,9 @@ function syncOperationalTabBadges(): void {
   if (overdue) overdue.textContent = String(overdueBadgeCount);
   for (const status of ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const) {
     const badge = document.querySelector<HTMLElement>(`[data-workspace-count="${status}"]`);
-    if (badge) badge.textContent = String(resultTabBadgeCounts[status]);
+    if (badge) badge.textContent = status === "SKIP_ALLOWED"
+      ? `Tổng ${resultTabBadgeCounts.SKIP_ALLOWED}: Tự động ${resultTabAutoSkipCount} - Nhân sự ${Math.max(0, resultTabBadgeCounts.SKIP_ALLOWED - resultTabAutoSkipCount)}`
+      : String(resultTabBadgeCounts[status]);
   }
 }
 
@@ -1727,7 +1732,6 @@ function renderOperations(): string {
   const affected = queueRows.reduce((sum, row) => sum + Number(row.affected_picker_count || 0), 0);
   return `<section id="fastEvents" class="fast-events ops-business-workspace">
     ${skuDayBanner()}
-    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
     ${renderOperationalTabs("operations")}
     <section class="business-summary-grid queue-summary-grid">
       <button type="button" class="business-summary-card summary-filter-card primary ${queueFilter === "ALL" ? "active" : ""}" data-queue-filter="ALL"><span>SKU đang chờ xử lý</span><strong>${queueRows.length.toLocaleString("vi-VN")}</strong><small>${affected.toLocaleString("vi-VN")} Picker đang bị ảnh hưởng</small></button>
@@ -1827,7 +1831,6 @@ function updateQueueClockDom(): void {
 function renderOverdue(): string {
   return `<section class="ops-route ops-business-workspace">
     ${skuDayBanner()}
-    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
     ${renderOperationalTabs("overdue")}
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>SKU quá hạn</h3></div></div>
@@ -1855,9 +1858,9 @@ function resultPickerMarkup(batchId: string): string {
   const details = batchDetails.get(batchId);
   if (!details) return '<div class="d173-result-picker-loading">Đang tải Picker đã báo trong đợt này…</div>';
   return `<div class="d173-result-picker-list">
-    <strong>Picker đã báo trong đợt SKU này</strong>
     ${details.length ? details.map((item) => `<div class="d173-result-picker">
-      <span>${esc(item.picker_employee_code)} — ${esc(item.picker_display_name || "Chưa có họ tên")}</span>
+      <span>${esc(item.picker_employee_code)}</span>
+      <span>${esc(item.picker_display_name || "Chưa có họ tên")}</span>
       <time>${esc(fmt(item.reported_at))}</time>
     </div>`).join("") : "<span>Không có bản ghi picker trong đợt này.</span>"}
   </div>`;
@@ -1865,30 +1868,15 @@ function resultPickerMarkup(batchId: string): string {
 
 function renderResults(): string {
   const visible = recentRows;
-  const hasStock = Number(recentTotals.has_stock || 0);
-  const skipped = Number(recentTotals.skip_allowed || 0);
-  const withdrawn = Number(recentTotals.withdrawn || 0);
-  const displayedCount = Number(recentTotals.displayed_count || 0);
-  const targets = Number(recentTotals.ack_target_count || 0);
-  const automaticSkipped = Number(recentTotals.automatic_skipped || 0);
-  const humanSkipped = Math.max(0, skipped - automaticSkipped);
   const pageFrom = recentTotal ? recentOffset + 1 : 0;
   const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
   const showFirstReport = recentFilter === "HAS_STOCK" || recentFilter === "SKIP_ALLOWED";
-  const columnCount = showFirstReport ? 10 : 9;
+  const columnCount = showFirstReport ? 9 : 8;
   return `<section class="ops-route ops-business-workspace">
     ${skuDayBanner()}
-    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
     ${renderOperationalTabs("results")}
-    <section class="business-summary-grid business-summary-grid-5">
-      <article class="business-summary-card good"><span>Đã có hàng</span><strong>${hasStock}</strong></article>
-      <article class="business-summary-card danger"><span>Bỏ qua bởi nhân sự</span><strong>${humanSkipped}</strong></article>
-      <article class="business-summary-card warning"><span>Tự động bỏ qua</span><strong>${automaticSkipped}</strong></article>
-      <article class="business-summary-card"><span>Picker đã thu hồi</span><strong>${withdrawn}</strong></article>
-      <article class="business-summary-card primary"><span>Đã hiển thị trên PDA/Web</span><strong>${displayedCount}/${targets}</strong></article>
-    </section>
     <article class="ops-panel">
-      <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th>${showFirstReport ? "<th>Thời gian báo hàng đầu tiên</th>" : ""}<th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th>${showFirstReport ? "<th>Thời gian báo hàng đầu tiên</th>" : ""}<th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
         ${visible.map((row) => { const correctionEnd = Date.parse(row.correction_deadline_at || "");
           const canCorrect = roleCanResolve() &&
             (row.status === "HAS_STOCK" || row.status === "SKIP_ALLOWED") &&
@@ -1897,7 +1885,7 @@ function renderResults(): string {
             correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED"
             ? [row.withdrawn_picker_employee_code, row.withdrawn_picker_display_name].filter(Boolean).join(" - ") || "—"
             : resolutionActorLabel(row);
-          return `<tr ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
+          return `<tr ${showFirstReport ? `data-recent-picker-batch="${esc(row.batch_id)}" tabindex="0" title="Nhấp đúp để xem Picker đã báo"` : ""}><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td>${showFirstReport ? `<td>${esc(fmt(row.first_report_at))}</td>` : ""}<td>${esc(fmt(row.status === "CLOSED" ? row.withdrawn_picker_withdrawn_at || row.first_report_at : row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>
           ${showFirstReport && expandedRecentPickerBatches.has(row.batch_id) ? `<tr class="d173-picker-detail-tr"><td colspan="${columnCount}">${resultPickerMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="${columnCount}" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} ${recentFilter === "CLOSED" ? "dòng Picker thu hồi" : "kết quả"}</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
@@ -3353,6 +3341,7 @@ async function loadReporterTabCounters(force = false): Promise<void> {
     SKIP_ALLOWED: Math.max(0, Number(counters.skip_allowed_total || 0)),
     CLOSED: Math.max(0, Number(counters.withdrawn_total || 0)),
   };
+  resultTabAutoSkipCount = Math.min(resultTabBadgeCounts.SKIP_ALLOWED, Math.max(0, Number(counters.automatic_skipped_total || 0)));
   queueBadgeInitialized = true;
   overdueBadgeInitialized = true;
   recentBadgeInitialized = true;
@@ -3418,6 +3407,13 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
       nextTabs[before.endpoint.status] -= 1;
     if (after.endpoint.status && after.endpoint.at && recentDateRangeContains(after.endpoint.at))
       nextTabs[after.endpoint.status] += 1;
+    // Corrections from a Skip cannot reveal the old resolution source from
+    // the current snapshot. Let the normal event-driven counter reconcile it.
+    if (eventName === "BATCH_CORRECTED" && (before.endpoint.status === "SKIP_ALLOWED" || after.endpoint.status === "SKIP_ALLOWED")) return false;
+    if (["TICKET_AUTO_SKIP_ALLOWED", "BATCH_AUTO_SKIP_ALLOWED"].includes(eventName) &&
+        before.endpoint.status !== "SKIP_ALLOWED" && after.endpoint.status === "SKIP_ALLOWED" &&
+        recentDateRangeContains(firstAt))
+      resultTabAutoSkipCount += 1;
   }
   recentBadgeCount = Math.max(0, next);
   resultTabBadgeCounts = {
@@ -3425,6 +3421,7 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
     SKIP_ALLOWED: Math.max(0, nextTabs.SKIP_ALLOWED),
     CLOSED: Math.max(0, nextTabs.CLOSED),
   };
+  resultTabAutoSkipCount = Math.min(Math.max(0, nextTabs.SKIP_ALLOWED), resultTabAutoSkipCount);
   syncOperationalTabBadges();
   return true;
 }
@@ -3789,6 +3786,7 @@ async function loadReporterRecentSnapshot(includeTotals = false): Promise<void> 
   recentTotal = recent.total;
   if (recent.totals_included !== false) {
     recentTotals = recent.totals;
+    resultTabAutoSkipCount = Math.min(Math.max(0, Number(recentTotals.skip_allowed || 0)), Math.max(0, Number(recentTotals.automatic_skipped || 0)));
     recentBadgeCount = Math.max(0, Number(recentTotals.has_stock || 0) +
       Number(recentTotals.skip_allowed || 0) + Number(recentTotals.withdrawn || 0));
     recentBadgeInitialized = true;
@@ -3902,6 +3900,7 @@ function applyReporterReadModel(value: unknown): boolean {
   recentRows = recent.items;
   recentTotal = recent.total;
   recentTotals = recent.totals;
+  resultTabAutoSkipCount = Math.min(Math.max(0, Number(counters.skip_allowed_total || 0)), Math.max(0, Number(counters.automatic_skipped_total || 0)));
   recentBadgeCount = counters.recent_total;
   perPickerOverdueEnabled = Boolean(counters.auto_skip_enabled && counters.auto_skip_mode === "PER_PICKER");
   overdueBadgeCount = perPickerOverdueEnabled ? counters.overdue_total : 0;
@@ -5156,14 +5155,24 @@ function bindSection(): void {
     expandedRecentPickerBatches.clear();
     if (opsSkuInputTimer !== null) window.clearTimeout(opsSkuInputTimer);
     opsSkuInputTimer = null;
-    if (!wasSearching && next.length < 3) return; // No request for 1–2 digits.
+    if (!wasSearching && opsSkuSuffix.length < 3) return; // No call for 1–2 digits.
+    if (activeSection === "operations") {
+      patchActiveSection(true); // Client-side filter of the complete queue: zero API calls.
+      return;
+    }
     opsSkuInputTimer = window.setTimeout(() => {
       opsSkuInputTimer = null;
-      if (activeSection === "operations") {
-        patchActiveSection(true); // Already holds the complete pending queue: zero API calls.
-      } else {
-        void run(async () => { await loadOperations(); patchActiveSection(true); });
-      }
+      const expectedSuffix = opsSkuSuffix;
+      const section = activeSection;
+      // Bypass run(): an unrelated busy action must never silently drop SKU search.
+      const load = section === "results" ? loadReporterRecentSnapshot()
+        : section === "overdue" ? loadReporterOverdueSnapshot() : Promise.resolve();
+      void load.then(() => {
+        if (activeSection === section && opsSkuSuffix === expectedSuffix) patchActiveSection(true);
+      }).catch((error) => {
+        if (activeSection === section && opsSkuSuffix === expectedSuffix)
+          setNotice("warning", error instanceof Error ? error.message : "Không tìm được SKU. Vui lòng thử lại.");
+      });
     }, 500);
   });
   const toggleRecentDetails = (batchId: string) => {
@@ -5909,7 +5918,12 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
         (reporterQueueChanged && !queueBadgeExact && activeSection !== "operations") ||
         (reporterOverdueChanged && !overdueBadgeExact && activeSection !== "overdue") ||
         (reporterRecentChanged && !recentBadgeExact && activeSection !== "results");
-      if (needsCounterReconcile) tasks.push(loadReporterTabCounters(true));
+      if (needsCounterReconcile || (reporterRecentChanged && events.some((event) =>
+        event.event === "BATCH_CORRECTED" &&
+        (["before_status", "after_status"] as const).some((key) =>
+          (event.metadata?.recent_counter as { before_status?: string; after_status?: string } | undefined)?.[key] === "SKIP_ALLOWED"
+        )
+      ))) tasks.push(loadReporterTabCounters(true));
 
       if (tasks.length) await Promise.all(tasks);
       if (reporterRelevant) patchActiveSection(true);

@@ -1,0 +1,54 @@
+name: D173 E210 Web338 Field Search and Picker UI Regression
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'service/src/operational-v2-core.ts'
+      - 'tests/d173-e209-field-ui.test.mjs'
+      - 'tools/d173_e210_withdrawn_identity_sql.py'
+      - 'tools/d173_e210_web_release_gate.py'
+      - '.github/workflows/d173-e210-web-field.yml'
+permissions:
+  contents: read
+jobs:
+  field-repair:
+    if: contains(github.head_ref, 'd173-e209-field-ux-search')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce and validate field UI, search, SQL identity and prior E209 contracts
+        run: |
+          node --test tests/d173-e209-field-ui.test.mjs tests/d173-e209-web-results.test.mjs
+          python3 tools/d173_e209_suffix_sql_regression.py
+          python3 tools/d173_e210_withdrawn_identity_sql.py
+          node --test tests/d170-d171-release-parity.test.mjs tests/d173-e032-ui-code-only.test.mjs tests/d167-web-ux-consistency.test.mjs
+          python3 tools/d167_dual_track_regression.py
+      - name: Protected E210 Owner scope release preflight, no provider writes
+        run: |
+          python3 tools/d173_e210_web_release_gate.py --component worker --preflight
+          python3 tools/d173_e210_web_release_gate.py --component web --preflight
+      - name: Web install, TypeScript and production build
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Shared Worker TypeScript compatibility
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Independent D172 and protected D173 business isolation
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: PR source verification is not Production/Field/Owner PASS
+        run: echo "D173_E210_CODE_CI_ONLY__FIELD_OWNER_PENDING"

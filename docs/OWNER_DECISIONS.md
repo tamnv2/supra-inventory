@@ -1,3 +1,9 @@
+## 12/11/2026 — D173-E210: Owner yêu cầu sửa field Web 3.3.7
+
+Owner phản hồi Web 3.3.7 **chưa đạt FIELD**: tìm SKU đúng hậu tố không hoạt động, thiếu tên/mã Picker thu hồi và thanh tab/ngày bị lệch. Chốt 8 điều chỉnh Web-only: bỏ tiêu đề và cards kết quả; tab/ngày/tìm SKU đồng hàng, input cuối cùng bên phải; bỏ cột "Picker đã nhận"; chi tiết Picker theo mã–họ tên–giờ; tab Skip ghi tổng/tự động/nhân sự; giữ chính xác nghiệp vụ, realtime, usage ưu tiên. Sửa theo D173-E210 Web3.3.8 + Worker read API hiện hữu, không đổi D172/Agent/APK/Firebase/DB/Stable; chưa cấp FIELD/OWNER PASS. Chi tiết: `docs/D173_E210_WEB337_FIELD_REPAIR_2026-11-12.md`.
+
+---
+
 ## D173-E209 — Owner 12/11/2026: chốt logic thu hồi và triển khai Web 3.3.7 (Worker/Web only)
 
 Owner duyệt triển khai trọn các thay đổi đã phân tích Web vận hành Báo hàng: (1) tìm SKU chỉ bằng **chữ số cuối** trong **tab đang chọn**, tối thiểu 3 số; Đang xử lý/Quá hạn tra toàn bộ chưa hoàn tất, 3 tab kết quả tra theo `first_report_at` trong đúng khoảng ngày đã chọn; (2) ẩn nút mở báo cáo chi tiết tại workspace; (3) Picker đã thu hồi **mỗi picker một dòng** nhưng badge/KPI **vẫn đếm số batch** như hiện tại và phân trang theo **dòng picker**; (4) một picker báo/thu hồi nhiều lượt trong cùng batch chỉ hiện **một dòng, lần thu hồi mới nhất**; (5) double-click chi tiết picker theo batch trong Đã có hàng/Cho phép Skip; (6) auto ngày, thu gọn toolbar, thêm cột first report.

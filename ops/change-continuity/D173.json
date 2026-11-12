@@ -4972,5 +4972,95 @@
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED",
     "privacy": "NO_RAW_LOGS"
+  },
+  "d173_e210_field_web337_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "OWNER_FIELD_FAIL_AND_FIELD_REPAIR_INSTRUCTIONS",
+    "change_id": "D173",
+    "subchange": "E210",
+    "owner_field": "NOT_PASS",
+    "parent_release": {
+      "pr": 942,
+      "sha": "7d67e5f0510ef98c3b0222b6c8000ac06aa1e141",
+      "web": "3.3.7"
+    },
+    "issue_groups": [
+      "remove redundant heading and five result summary cards",
+      "align tabs/date and fixed rightmost SKU input",
+      "fix suffix filtering dropped by busy run()",
+      "show actual picker employee_code and display_name from newest withdrawn ticket",
+      "remove picker received column",
+      "three-column inline picker detail without title",
+      "show total/automatic/human Skip based on date-scoped batch counters"
+    ],
+    "technical_facts": [
+      "busy run() silently returns when busy and is used for suffix request",
+      "existing query joined name by current employee_code, not ticket user_id",
+      "skip source split available in existing COUNT SQL without extra DO request"
+    ],
+    "hypotheses": [
+      "Production screenshot missing picker employee code may also involve stale read model; exact API field proof pending"
+    ],
+    "source_branch": "fix/d173-e209-field-ux-search-20261112",
+    "source_base_sha": "7d67e5f0510ef98c3b0222b6c8000ac06aa1e141",
+    "pr": 943,
+    "approved_component_scope": "D173_WEB_338_AND_SHARED_WORKER_READ_API",
+    "excluded": [
+      "D172",
+      "Agent",
+      "Android",
+      "Firebase",
+      "SQLite schema",
+      "Stable"
+    ],
+    "tests": [
+      "tests/d173-e209-field-ui.test.mjs",
+      "tools/d173_e210_withdrawn_identity_sql.py"
+    ],
+    "status": {
+      "code": "SOURCE_TEST_PASS",
+      "ci": "SIX_SCOPED_GATES_PASS",
+      "release": "PENDING",
+      "field": "WEB337_NOT_PASS_WEB338_PENDING",
+      "owner_pass": false
+    },
+    "privacy_safe": true,
+    "next": "run exact Web/Worker/D172 source CI and release only via new Owner-scoped gate",
+    "source_ci_sha": "08e7b214c8a1ec27bd17190e0e4f2c33ce31a702",
+    "proof": {
+      "e210": 43159132749,
+      "d172": 43159131977,
+      "authority": 43159132755,
+      "continuity": 43159132613,
+      "d166": 43159132500,
+      "d170": 43159132223
+    },
+    "gates_note": "historical Agent-only/old release pin jobs failing, not counted as E210 PASS"
+  },
+  "d173_e210_source_ci_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "SOURCE_CI_EVIDENCE",
+    "change_id": "D173",
+    "subchange": "E210",
+    "field_source": "OWNER_WEB337_NOT_PASS",
+    "tested_sha": "08e7b214c8a1ec27bd17190e0e4f2c33ce31a702",
+    "base_main_sha": "7d67e5f0510ef98c3b0222b6c8000ac06aa1e141",
+    "pr": 943,
+    "proof": {
+      "e210": 43159132749,
+      "d172": 43159131977,
+      "authority": 43159132755,
+      "continuity": 43159132613,
+      "d166": 43159132500,
+      "d170": 43159132223
+    },
+    "code": "PASS_SOURCE",
+    "ci": "SIX_E210_RELEVANT_SUCCESS",
+    "release": "PENDING_GATED",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "privacy_safe": true
   }
 }

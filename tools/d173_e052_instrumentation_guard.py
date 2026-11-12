@@ -154,7 +154,11 @@ assert f"<AssemblyVersion>0.{agent_version}.0.0</AssemblyVersion>" in read("rela
 # E123 signed Web3.3.3 remains historical baseline; E167 explicitly approves
 # Web3.3.4 for log changes. No arbitrary future version accepted.
 current_web = read("web/src/web-version.ts")
-if 'WEB_VERSION = "3.3.6"' in current_web:
+if 'WEB_VERSION = "3.3.8"' in current_web:
+    grant = json.loads(read("ops/d173-e210-web-release-authorization.json"))
+    assert grant["owner_code_approved"] is True and grant["web_target_version"] == "3.3.8"
+    assert grant["d172_pending_hold"] is True and grant["stable_mutation"] is False
+elif 'WEB_VERSION = "3.3.6"' in current_web:
     import json
     grant = json.loads(read("ops/d173-e185-release-authorization.json"))
     assert grant["owner_code_approved"] is True and grant["web_target_version"] == "3.3.6"

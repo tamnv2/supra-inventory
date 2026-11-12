@@ -51,7 +51,7 @@ type D173ViewCapture = (payload: D173ViewPayload) => void;
 type D173CounterReuse = {
   queue_total?: number;
   overdue_total?: number;
-  recent?: { from: string; to: string; has_stock: number; skip_allowed: number; withdrawn: number };
+  recent?: { from: string; to: string; has_stock: number; skip_allowed: number; withdrawn: number; automatic_skipped?: number };
 };
 
 function capturedView(payload: D173ViewPayload, capture?: D173ViewCapture, status = 200): Response {
@@ -816,12 +816,14 @@ function reporterCounters(state: DurableObjectState, url: URL, capture?: D173Vie
   const recentTotalRow = recentReuse ? {
     total: recentReuse.has_stock + recentReuse.skip_allowed + recentReuse.withdrawn,
     has_stock_total: recentReuse.has_stock, skip_allowed_total: recentReuse.skip_allowed,
+    automatic_skipped_total: recentReuse.automatic_skipped || 0,
     withdrawn_total: recentReuse.withdrawn,
   } : first(
     d166MeasuredSqlRows<SqlRow>(state, "COUNTER_RECENT_TOTAL", 
       `SELECT COUNT(*) AS total,
               SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END) AS has_stock_total,
               SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END) AS skip_allowed_total,
+              SUM(CASE WHEN b.status = 'SKIP_ALLOWED' AND b.resolution_source IN ('SYSTEM_TIMEOUT','SYSTEM_DAY_END') THEN 1 ELSE 0 END) AS automatic_skipped_total,
               SUM(CASE WHEN b.status = 'CLOSED' THEN 1 ELSE 0 END) AS withdrawn_total
          FROM report_batches b WHERE ${recentWhere.join(" AND ")}`,
       ...recentArgs,
@@ -849,6 +851,7 @@ function reporterCounters(state: DurableObjectState, url: URL, capture?: D173Vie
     recent_total: filteredRecentTotal,
     has_stock_total: Number(recentTotalRow.has_stock_total || 0),
     skip_allowed_total: Number(recentTotalRow.skip_allowed_total || 0),
+    automatic_skipped_total: Number(recentTotalRow.automatic_skipped_total || 0),
     withdrawn_total: Number(recentTotalRow.withdrawn_total || 0),
     auto_skip_enabled: Boolean(config?.auto_skip_enabled),
     auto_skip_mode: config?.auto_skip_mode || null,
@@ -1091,7 +1094,7 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
               ''
             ) AS resolved_by_employee_code,
             b.version, p.batch_id AS previous_batch_id, p.resolved_at AS previous_resolved_at,
-            ${pickerRows ? "page.picker_employee_code AS withdrawn_picker_employee_code, COALESCE(withdrawn_user.display_name, '') AS withdrawn_picker_display_name, page.withdrawn_at AS withdrawn_picker_withdrawn_at," : ""}
+            ${pickerRows ? "page.picker_employee_code AS withdrawn_picker_employee_code, COALESCE(NULLIF(withdrawn_user.display_name, ''), code_user.display_name, '') AS withdrawn_picker_display_name, page.withdrawn_at AS withdrawn_picker_withdrawn_at," : ""}
             ${rowCountsSql}
        FROM page_ids page
        JOIN report_batches b ON b.batch_id = page.batch_id
@@ -1099,7 +1102,14 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
           AND date(p.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours')
        LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
-       ${pickerRows ? "LEFT JOIN users withdrawn_user ON withdrawn_user.employee_code = page.picker_employee_code" : ""}
+       ${pickerRows ? `LEFT JOIN report_tickets latest_withdrawal ON latest_withdrawal.ticket_id = (
+           SELECT t.ticket_id FROM report_tickets t
+            WHERE t.batch_id = page.batch_id AND t.picker_employee_code = page.picker_employee_code
+              AND t.status = 'WITHDRAWN'
+            ORDER BY t.withdrawn_at DESC, t.ticket_id DESC LIMIT 1
+         )
+         LEFT JOIN users withdrawn_user ON withdrawn_user.user_id = latest_withdrawal.picker_user_id
+         LEFT JOIN users code_user ON code_user.employee_code = page.picker_employee_code` : ""}
       ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC${pickerRows ? ", page.picker_employee_code ASC" : ""}`,
     ...args,
     limit,

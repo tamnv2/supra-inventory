@@ -13,7 +13,7 @@ permissions:
   contents: read
 jobs:
   web-results:
-    if: contains(github.head_ref, 'd173')
+    if: contains(github.head_ref, 'd173-web-results-ux-review-20261112')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

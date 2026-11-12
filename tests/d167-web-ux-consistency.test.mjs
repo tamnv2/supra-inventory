@@ -62,7 +62,10 @@ test("Owner NOT PASS: SLA three compact steps and two policy columns", () => {
   const e209=JSON.parse(readFileSync(new URL("../ops/d173-e209-web-release-authorization.json",import.meta.url),"utf8"));
   const authorizedE209=e209.owner_code_approved && e209.owner_production_release_approved &&
     e209.web_target_version === "3.3.7" && e209.d172_pending_hold && e209.stable_mutation === false;
-  const webVersion=authorizedE209 ? "3.3.7" : authorizedE185 ? "3.3.6" : e175.owner_approved_code && e175.web_target_version === "3.3.5" && e175.d172_pending_hold && e175.no_stable ? "3.3.5" : release.log_protocol_approved && release.web_mutation ? "3.3.4" : "3.3.3";
+  const e210=JSON.parse(readFileSync(new URL("../ops/d173-e210-web-release-authorization.json",import.meta.url),"utf8"));
+  const authorizedE210=e210.owner_code_approved && e210.owner_production_release_approved &&
+    e210.web_target_version === "3.3.8" && e210.d172_pending_hold && e210.stable_mutation === false;
+  const webVersion=authorizedE210 ? "3.3.8" : authorizedE209 ? "3.3.7" : authorizedE185 ? "3.3.6" : e175.owner_approved_code && e175.web_target_version === "3.3.5" && e175.d172_pending_hold && e175.no_stable ? "3.3.5" : release.log_protocol_approved && release.web_mutation ? "3.3.4" : "3.3.3";
   assert.ok(version.includes('WEB_VERSION = "' + webVersion + '"'));
 });
 

@@ -13610,7 +13610,7 @@
     "code": "PASS_TESTED_SOURCE",
     "ci": "SIX_REQUIRED_E209_SCOPE_CHECKS_PASS__LEGACY_OPTIONAL_FAILURES_REMAIN",
     "release": "OWNER_GATED_PROTECTED_MERGE_PENDING",
-    "field": "NOT_TESTED",
+    "field": "FIELD_NOT_PASS__OWNER_SCREENSHOT_20261112",
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
@@ -13630,6 +13630,45 @@
       "log_sql": 43152827820,
       "official_host": 43152827361
     },
-    "test_claim_scope": "E209_SOURCE_WEB_BUILD_WORKER_TYPECHECK_SQL_FIXTURE_D172_ISOLATION"
+    "test_claim_scope": "E209_SOURCE_WEB_BUILD_WORKER_TYPECHECK_SQL_FIXTURE_D172_ISOLATION",
+    "field_repair": "D173-E210"
+  },
+  "d173_e210_web_field_repair": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E210",
+    "parent_release": "E209_WEB337_MAIN_7d67e5f0510ef98c3b0222b6c8000ac06aa1e141",
+    "owner_field": "WEB337_FIELD_NOT_PASS",
+    "owner_code_approved": true,
+    "branch": "fix/d173-e209-field-ux-search-20261112",
+    "pr": 943,
+    "accepted_main_sha": "7d67e5f0510ef98c3b0222b6c8000ac06aa1e141",
+    "target_web_version": "3.3.8",
+    "scope": "WEB_UI_SEARCH_WITHDRAWN_IDENTITY_READ_API_ONLY",
+    "code": "SOURCE_TEST_PASS",
+    "ci": "SIX_SCOPED_CHECKS_PASS__NONSCOPED_LEGACY_FAILURES_UNCHANGED",
+    "release": "OWNER_GATED_PROTECTED_MERGE_PENDING",
+    "field": "FIELD_NOT_PASS_WEB337__WEB338_FIELD_UNVERIFIED",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "done_condition": [
+      "build Web 3.3.8",
+      "Worker TypeScript check",
+      "reproduce suffix search and actor binding",
+      "SQL latest withdrawn identity test",
+      "D172 independence regression",
+      "protected PR CI",
+      "production release receipt and field confirmation"
+    ],
+    "source_ci_sha": "08e7b214c8a1ec27bd17190e0e4f2c33ce31a702",
+    "ci_evidence": {
+      "e210": 43159132749,
+      "d172": 43159131977,
+      "authority": 43159132755,
+      "continuity": 43159132613,
+      "sql_log": 43159132500,
+      "origin": 43159132223
+    }
   }
 }

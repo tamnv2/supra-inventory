@@ -99,7 +99,7 @@ export async function readD173Snapshot(
       queue_total: numberField(queue.total),
       ...(overdue?.enabled === true ? { overdue_total: numberField(overdue.total) } : {}),
       ...(equalRecentRange ? { recent: { from, to, has_stock: numberField(totals.has_stock),
-        skip_allowed: numberField(totals.skip_allowed), withdrawn: numberField(totals.withdrawn) } } : {}),
+        skip_allowed: numberField(totals.skip_allowed), automatic_skipped: numberField(totals.automatic_skipped), withdrawn: numberField(totals.withdrawn) } } : {}),
     });
   } else {
     read("reports", endpoint("picker/reports", { user_id: user.user_id, employee_code: user.employee_code || "",

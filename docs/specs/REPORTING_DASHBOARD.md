@@ -1,3 +1,9 @@
+## D173-E210 — Web 3.3.7 FIELD NOT PASS và sửa đúng phạm vi (12/11/2026)
+
+Đổi hiển thị 5 tab cùng thanh điều khiển, bỏ tiêu đề và KPI card của 3 tab kết quả. Ngày/preset đặt trước ô SKU ở mép phải; tất cả controls chiều cao bằng nhau và không bị đẩy lên khi chuyển tab. Tìm hậu tố SKU tự động với `>=3` chữ số, chỉ tab hiện tại, không bỏ sự kiện khi UI busy; không thay đổi date filter và không thêm polling/DO request cố định. Thẻ Skip hiện `Tổng xx: Tự động yy - Nhân sự zz` theo batch trong khoảng ngày; lấy `automatic_skipped_total` trong truy vấn COUNTER_RECENT_TOTAL hiện hữu. Tab CLOSED hiện mã người thu hồi + tên từ user_id ở ticket WITHDRAWN mới nhất cùng batch/picker; fallback mã hiện tại khi thiếu. Bỏ cột Picker đã nhận; chi tiết double-click hiển thị mã/tên/thời gian ba cột, không tiêu đề; bảng mở rộng tự khớp colspan. Chi tiết E210 trong tài liệu field-repair; nguồn field ảnh là PRIVATE, không ghi dữ liệu nhân sự lên GitHub. D172 HOLD độc lập, Stable OWNER-GATED. Web3.3.8 source pending CI/release/field.
+
+---
+
 ## D173 — Owner chốt phạm vi tìm và dòng Picker thu hồi (12/11/2026; chưa triển khai)
 - 5 tab dùng đúng ngữ cảnh hiện hành: `Đang xử lý`/`Quá hạn` tìm toàn bộ chưa hoàn tất, không tự áp ngày đã chọn ở tab kết quả; `Đã có hàng`/`Cho phép Skip`/`Picker đã thu hồi` chỉ tìm trong khoảng ngày đang áp dụng theo `first_report_at` của đợt. Tìm SKU theo **chữ số cuối**, không đầu/giữa.
 - Tab Picker đã thu hồi: **mỗi Picker riêng một dòng**, cùng SKU có thể nhiều dòng. Không gộp thành một dòng chứa danh sách Picker.
