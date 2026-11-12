@@ -31,6 +31,10 @@ EXACT = RUNTIME | {
     "docs/D173_WEB_RESULTS_UX_REVIEW_2026-11-12.md",
     "docs/D173_WEB_RESULTS_USAGE_FIRST_PLAN_2026-11-12.md",
     "tests/d173-e209-web-results.test.mjs",
+    "tests/d170-d171-release-parity.test.mjs",
+    "tests/d173-e032-ui-code-only.test.mjs",
+    "tests/d167-web-ux-consistency.test.mjs",
+    "tools/d167_dual_track_regression.py",
     "tools/d173_e209_suffix_sql_regression.py",
     "tools/d173_e209_web_release_gate.py",
 }
