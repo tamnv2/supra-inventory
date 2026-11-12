@@ -7,11 +7,11 @@
   "pr": 950,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E216",
+    "id": "D173-E217",
     "date_vn": "2026-11-12",
-    "summary": "Owner reports Web3.3.9 SKU search returns all after loading; date pickers should be right beside SKU; active tab background not persistent. Surgical Web-only PR950, CI pending, no release authorization; D172 HOLD.",
-    "status": "WEB339_E216_CODE_SOURCE_CI_PASS__PR950_DRAFT_RELEASE_HOLD__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E216_WEB339_SEARCH_TABS_DATES_FIELD_2026-11-12.md",
+    "summary": "Owner orders Web release of E216 3 fixes. PR950 now Web3.3.10 source candidate, exact CI/owner pin/guarded merge required; live Web remains 3.3.9; D172 held.",
+    "status": "E217_WEB3310_OWNER_RELEASE_APPROVED_CI_PENDING__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
     "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
     "pr": 950
   },
@@ -4086,6 +4086,32 @@
         "authority": 43178722392,
         "state": 43178722565
       }
+    },
+    {
+      "id": "D173-E217",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Release Web after E216 SKU filter, date-right and active tabs repair",
+      "status": "OWNER_RELEASE_APPROVED__SOURCE_CI_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 950,
+      "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+      "source_base_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
+      "facts": [
+        "Owner explicitly ordered 'Phát hành web đi' after the Web3.3.9 E216 repair checkpoint.",
+        "Web release candidate is 3.3.10; only Web assets and existing Worker deployment wrapper (same service bytes), no new provider assets or D172 business changes.",
+        "Exact-source fresh Web test/build/SQL suffix + D172 regression + authority/state gate must succeed before protected merge and verified Production."
+      ],
+      "evidence": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/950",
+      "next_action": "Pin exact PR950 E217 source CI runs and SHA; guarded merge then official Worker/Web health+shell readback; FIELD/OWNER pending.",
+      "code": "E216_SOURCE_FIX_PRESENT",
+      "ci": "PENDING_FRESH_E217_EXACT_SOURCE",
+      "release": "PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -5392,5 +5418,18 @@
       "authority": 43178722392,
       "state": 43178722565
     }
+  },
+  "d173_e217_web3310_release": {
+    "pr": 950,
+    "branch": "fix/d173-e216-web-search-tabs-dates-20261112",
+    "base_main_sha": "75cc1b812c9491bf904c37175d8cc498105e2b5b",
+    "owner_release_approved": true,
+    "target_web_version": "3.3.10",
+    "source_ci": "PENDING",
+    "release": "PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "doc": "docs/D173_E217_WEB3310_RELEASE_2026-11-12.md",
+    "auth": "ops/d173-e217-web-release-authorization.json"
   }
 }

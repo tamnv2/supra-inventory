@@ -30,3 +30,6 @@
   - [Repository authority](https://github.com/tamnv2/supra-inventory/actions/runs/43178722392) và [project-state](https://github.com/tamnv2/supra-inventory/actions/runs/43178722565) — **SUCCESS**.
 - Các lần chạy đầu thất bại do bước test tổng thiếu module TypeScript tại `service`; đã thêm cài dependency test, chạy lại PASS mà không sửa D172 source.
 - **CODE/CI PASS, RELEASE CHƯA ĐƯỢC DUYỆT, FIELD/OWNER PENDING.** Web Production tiếp tục 3.3.9.
+
+## Cập nhật lệnh Owner — 12/11/2026
+Owner đã yêu cầu **phát hành Web**, thay thế giới hạn code-only/no-release của E216. Tạo release gate D173-E217 nhắm Web **3.3.10** từ PR #950, giữ nguyên logic service/D172/Agent/APK/DB/Stable. Cần CI nguồn mới và bằng chứng Production; FIELD/OWNER PASS còn chờ. Xem `docs/D173_E217_WEB3310_RELEASE_2026-11-12.md`.
