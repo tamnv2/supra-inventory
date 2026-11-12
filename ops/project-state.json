@@ -7602,18 +7602,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
-    "pr": 959,
-    "latest_checkpoint_id": "D173-E235",
+    "working_branch": "docs/d173-e236-web3314-production-receipt-20261112",
+    "pr": 960,
+    "latest_checkpoint_id": "D173-E236",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E235_WEB3314_SCOPED_CI_PASS__PROTECTED_PR959_MERGE_AND_RELEASE_PENDING__D172_HOLD",
+    "owner_release_gate": "WEB3314_PRODUCTION_TECH_PASS__PR960_DOCS_ONLY_RECEIPT__NO_NEW_DEPLOY__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 959,
-    "active_working_branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
-    "working_pr_lifecycle": "PR959_OPEN_WEB3314_CODE_AND_SCOPED_CI_PASS__PRODUCTION_NOT_RELEASED"
+    "working_pr": 960,
+    "active_working_branch": "docs/d173-e236-web3314-production-receipt-20261112",
+    "working_pr_lifecycle": "PR960_OPEN_DOCS_ONLY_AFTER_WEB3314_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14121,7 +14121,7 @@
     "pr": 959,
     "base_main_sha": "99da97d69490f68818a5a1e49c566a0c5e12141b",
     "source_code_pin": "6986afe823a254c068ec720a7eaf5e0614fe8310",
-    "production_web_version": "3.3.13",
+    "production_web_version": "3.3.14",
     "candidate_web_version": "3.3.14",
     "owner_code_approved": true,
     "owner_merge_approved": true,
@@ -14139,7 +14139,7 @@
     "release_marker": "D173-E233_WEB3314_PRODUCTION_RELEASE:",
     "source_ci": "PASS_WEB_BUILD_D172_ISOLATION_AUTHORITY_PROJECT_STATE_CITED",
     "code": "PASS_SOURCE_SCOPED",
-    "release": "WEB3314_NOT_DEPLOYED",
+    "release": "PASS_TECHNICAL_RUN43238438595_ATTEMPT2",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -14152,7 +14152,11 @@
       43237001008,
       43237001025,
       43237447899
-    ]
+    ],
+    "release_main_sha": "8671da348b371a79f09fc7cdc766cdcba137b80a",
+    "release_run_id": 43238438595,
+    "release_run_attempt": 2,
+    "release_receipt": "docs/D173_E236_WEB3314_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
   },
   "d173_e235_web3314_source_ci": {
     "date_vn": "2026-11-12",
@@ -14175,5 +14179,30 @@
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED"
+  },
+  "d173_e236_web3314_production_receipt": {
+    "date_vn": "2026-11-12",
+    "change_id": "D173",
+    "subchange": "E236",
+    "kind": "PRODUCTION_TECHNICAL_RELEASE_RECEIPT",
+    "branch": "docs/d173-e236-web3314-production-receipt-20261112",
+    "pr": 960,
+    "source_pr": 959,
+    "production_web_version": "3.3.14",
+    "release_main_sha": "8671da348b371a79f09fc7cdc766cdcba137b80a",
+    "release_workflow": ".github/workflows/deploy-beta.yml",
+    "release_run_id": 43238438595,
+    "release_run_attempt": 2,
+    "attempt1": "FAILED_D166_POST_SECRET_SOURCE_COMMIT_MISMATCH",
+    "attempt2": "SUCCESS_ALL_STEPS_EXACT_SOURCE_HEALTH_AND_AUTH_WEB_SHELL",
+    "code": "PASS",
+    "ci": "PASS_4_EXACT_SOURCE",
+    "release": "PASS_TECHNICAL",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E236_WEB3314_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "scope": "DOCS_OPS_RECEIPT_ONLY_NO_NEW_WORKER_MUTATION"
   }
 }
