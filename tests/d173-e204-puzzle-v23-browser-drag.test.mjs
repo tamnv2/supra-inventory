@@ -45,3 +45,14 @@ test("evidence has before and after, prediction, input ACK and observation",()=>
   assert.ok(source.includes("MaxTests = 8"));
   assert.ok(ui.includes("new V23BrowserDragLab()"));
 });
+
+test("offline scene startup verifies actual canvas and exposes sanitized error events",()=>{
+  for (const expected of ["VerifySceneAsync", "document.getElementById('board')",
+    "CANVAS_READY", "CANVAS_NOT_READY", "INITIALIZE_ERROR", "NEW_SAMPLE_ERROR",
+    '"startup_events"', 'TraceStartup("INITIALIZE", "START")', "_export.Enabled = true"])
+    assert.ok(source.includes(expected), expected);
+  assert.ok(main.includes('args[0] == "--lab-smoke"'));
+  assert.ok(main.includes("lab.SmokePassed"));
+  assert.ok(source.includes("Interval = 20000"));
+  assert.ok(!source.includes("ex.Message"));
+});
