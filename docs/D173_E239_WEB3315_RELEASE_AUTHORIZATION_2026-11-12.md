@@ -17,3 +17,6 @@ Owner yêu cầu **“phát hành đi. yêu cầu là chạy code và triển kh
 4. Deploy existing Worker/Web trên `inventory.supra.cc.cd`, kiểm tra /health exact merge SHA, SQLite/API/Windows/Android không thay đổi, Web shell/version. Không khẳng định FIELD/OWNER PASS nếu chưa test trình duyệt trực tiếp.
 
 **Trạng thái khi tạo tài liệu:** Owner RELEASE APPROVED nhưng SOURCE CI sau thêm gate còn đang chạy; no deploy until verified.
+
+## Kiểm chứng SOURCE / CI E240 (chưa deploy)
+Source exact SHA `fded9f288911f83de03e64b32b4ea50e87dd2f00` được xác nhận tại: Web build, các regression E237/E233/E230/E227 và D172 independent isolation, Worker/Web release preflight [run 43258444616](https://github.com/tamnv2/supra-inventory/actions/runs/43258444616) **SUCCESS**; Repo Authority [43258444669](https://github.com/tamnv2/supra-inventory/actions/runs/43258444669) **SUCCESS**; Project State [43258444850](https://github.com/tamnv2/supra-inventory/actions/runs/43258444850) **SUCCESS**. UI Design Guard [43258444692](https://github.com/tamnv2/supra-inventory/actions/runs/43258444692) còn 3 assertion lịch sử Agent D137/D130, Web D063; không báo full CI PASS. Auth receipt đã khóa source_ci_sha và 3 required scoped CI. Production chưa phát hành tại checkpoint này.
