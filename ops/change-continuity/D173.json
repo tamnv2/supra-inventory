@@ -4456,7 +4456,7 @@
     {
       "id": "D173-E230",
       "date_vn": "2026-11-12",
-      "kind": "OWNER_FIELD_FEEDBACK_AND_CODE_ONLY",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner requires three UI corrections after Production Web3.3.12; Web3.3.13 Draft PR957",
       "status": "OWNER_WEB3312_FIELD_CORRECTION__WEB3313_CODE_ONLY_CANDIDATE__CI_PENDING__NO_DEPLOY",
       "owner_approval": true,
