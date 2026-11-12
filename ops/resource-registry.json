@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D173_E217_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "status": "D173_E224_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -196,7 +196,7 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D173_E217_WEB_3_3_10_WORKER_PRODUCTION_TECH_RELEASE_PASS__FIELD_SKU_NOT_PASS__OWNER_PENDING",
+      "web_source_status": "D173_E224_WEB_3_3_11_WORKER_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
       "web_admin_report_monitoring": "D148_OWNER_FIELD_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SHIFT_COMPARISON",
       "android_source_status": "SIGNED_ANDROID_VC128_CHANNEL_PUBLISHED__FLEET_INSTALL_UNVERIFIED",
