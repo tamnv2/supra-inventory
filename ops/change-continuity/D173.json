@@ -4255,7 +4255,7 @@
     {
       "id": "D173-E223",
       "date_vn": "2026-11-12",
-      "kind": "OWNER_RELEASE_COMMAND",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner Web3.3.11 not deployed; demands complete Production release",
       "status": "OWNER_PRODUCTION_APPROVED__PINNED_SOURCE_CI_5_PASS__PROTECTED_PR_PREDEPLOY_IN_PROGRESS",
       "owner_approval": true,
