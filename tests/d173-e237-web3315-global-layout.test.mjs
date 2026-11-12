@@ -10,9 +10,9 @@ const pkg = JSON.parse(read("web/package.json"));
 
 test("E237: redundant navigation-level titles are absent; operational subheadings remain", () => {
   for (const label of ["Danh mục SKU", "Nhân sự & tài khoản", "Tổng quan & báo cáo", "Thời gian xử lý", "Nhật ký", "Ca vận hành", "Đặt lại hệ thống", "Công cụ", "Tài khoản"]) {
-    assert.doesNotMatch(web, new RegExp("<h2>" + label.replace(/[.*+?^$\{\}()|[\]\\]/g, "\\$&") + "<\\/h2>"));
+    assert.equal(web.includes("<h2>" + label + "</h2>"), false, "Duplicate title: " + label);
   }
-  assert.match(web, /<h2>Giờ nghỉ · tạm dừng tự động Skip<\\/h2>/);
+  assert.ok(web.includes("<h2>Giờ nghỉ · tạm dừng tự động Skip</h2>"));
   assert.match(web, /id="export-reports"/);
   assert.match(web, /id="send-web-log"/);
   assert.match(web, /id="reset-select-all"/);
