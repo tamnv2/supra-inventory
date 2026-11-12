@@ -13621,14 +13621,14 @@
       "protected merge and deploy receipt",
       "physical field acceptance"
     ],
-    "source_ci_sha": "02bc15ae241581e79527c67f7ec77c89dbd484b0",
+    "source_ci_sha": "c29364446bd081d573fcb53e6b36984ef4b46006",
     "source_ci_evidence": {
-      "e209": 43152254899,
-      "d172": 43152254918,
-      "authority": 43152255053,
-      "continuity": 43152255040,
-      "log_sql": 43152254823,
-      "official_host": 43152254783
+      "e209": 43152827669,
+      "d172": 43152827768,
+      "authority": 43152827408,
+      "continuity": 43152827605,
+      "log_sql": 43152827820,
+      "official_host": 43152827361
     },
     "test_claim_scope": "E209_SOURCE_WEB_BUILD_WORKER_TYPECHECK_SQL_FIXTURE_D172_ISOLATION"
   }
