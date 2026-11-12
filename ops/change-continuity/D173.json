@@ -4176,22 +4176,6 @@
       "owner_release_approved": false,
       "pr": 952,
       "branch": "docs/d173-e220-web-daily-client-search-review-20261112",
-      "verified_facts": [
-        "Web source api.ts and service read-api.ts forward sku_suffix, picker_rows, include_totals; authorized service/src/core.ts reporter/recent drops them before operational-v2-core SQL, as seen at live main da5f6948.",
-        "Overdue authorized handler also drops sku_suffix. UI rejects returned unfiltered results via existing E216 guard, matching Owner screenshot error.",
-        "Service operational-v2-core.ts clamps page limits to 200; current Web result page is 50, queue already all-pages, overdue only first 200.",
-        "Official Web3.3.10 technical release remains SUCCESS (run 43183196333), but actual FIELD SKU search is NOT PASS."
-      ],
-      "owner_requested": [
-        "Remove visible pagination; display complete result list for the selected day; one date input only, default today on F5/login; remove presets and from/to.",
-        "Client-side SKU search against fully loaded active-tab data, no per-keystroke Service search; preserve realtime/status/roles and existing business behavior."
-      ],
-      "review_trades": [
-        "Daily results should filter three terminal tabs by first_report_at in VN timezone; pending/overdue must remain live across days to avoid hidden unresolved batches.",
-        "Web may page internally <=200 rows per call, de-duplicate/verify total, load only active tab/date and hold in RAM; 357 rows require at least two API calls, potential first-load Rows Read/render increase.",
-        "Core param forwarding repair is shared Worker code and requires D172 independent regression and Owner scope acceptance; exact use of include_totals affects SQL aggregate cost.",
-        "No confirmed production usage/latency delta yet; physical authenticated/browser test remains needed."
-      ],
       "evidence": "docs/D173_E220_WEB_DAILY_CLIENT_SEARCH_REVIEW_2026-11-12.md; https://github.com/tamnv2/supra-inventory/pull/952; main da5f6948852777528ced565cf894b35364841ee0",
       "next_action": "Owner review impact of results-only day selector vs live pending/overdue and potential initial-load usage; then code/source CI/release only under explicit scoped approval. No cross-module mutation.",
       "code": "NOT_STARTED",
@@ -4200,7 +4184,19 @@
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "facts": [
+        "Web source api.ts and service read-api.ts forward sku_suffix, picker_rows, include_totals; authorized service/src/core.ts reporter/recent drops them before operational-v2-core SQL, as seen at live main da5f6948.",
+        "Overdue authorized handler also drops sku_suffix. UI rejects returned unfiltered results via existing E216 guard, matching Owner screenshot error.",
+        "Service operational-v2-core.ts clamps page limits to 200; current Web result page is 50, queue already all-pages, overdue only first 200.",
+        "Official Web3.3.10 technical release remains SUCCESS (run 43183196333), but actual FIELD SKU search is NOT PASS.",
+        "Owner request: Remove visible pagination; display complete result list for the selected day; one date input only, default today on F5/login; remove presets and from/to.",
+        "Owner request: Client-side SKU search against fully loaded active-tab data, no per-keystroke Service search; preserve realtime/status/roles and existing business behavior.",
+        "Impact review: Daily results should filter three terminal tabs by first_report_at in VN timezone; pending/overdue must remain live across days to avoid hidden unresolved batches.",
+        "Impact review: Web may page internally <=200 rows per call, de-duplicate/verify total, load only active tab/date and hold in RAM; 357 rows require at least two API calls, potential first-load Rows Read/render increase.",
+        "Impact review: Core param forwarding repair is shared Worker code and requires D172 independent regression and Owner scope acceptance; exact use of include_totals affects SQL aggregate cost.",
+        "Impact review: No confirmed production usage/latency delta yet; physical authenticated/browser test remains needed."
+      ]
     }
   ],
   "resume": {
