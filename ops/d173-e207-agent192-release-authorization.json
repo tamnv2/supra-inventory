@@ -7,7 +7,7 @@
   "component": "agent",
   "target_version": 192,
   "source_main_sha": "385875072386c39c612ede14f813dc5ae4dfc7cc",
-  "source_pin": "e8dc8a8ebb6c99949840529f3163fef7682332aa",
+  "source_pin": "b0aebb45d962283abaa17c112d352b6470f409cd",
   "prior_signed_release": "relay-agent-v191",
   "previous_exe_sha256": "6cebc31af550a90b7200bffced6c3b2dacff01e71a3f65641c88ec8d08b8c00f",
   "existing_host_build": 14,

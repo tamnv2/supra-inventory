@@ -49,7 +49,7 @@ test('Agent toolbar always places five control actions before three visually dis
   assert.match(toolbar, /_d150PrimaryTakeoverButton\.Text = "Chuyển Agent chính"/);
   assert.match(toolbar, /_logout\.Text = "Đăng xuất"/);
   assert.match(toolbar, /SetD173BoundsIfChanged\(control, actionX, actionTop/);
-  assert.match(legacy, /if \(_d173E182AdaptiveTopReady\) return;/);
+  assert.match(legacy, /if \(_d173E182AdaptiveTopReady\)[\s\S]*?D173E179FitAgentFleet\(host\);/);
   assert.match(overview, /button\.BackColor = Color\.FromArgb\(226, 237, 248\)/);
 });
 

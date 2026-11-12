@@ -13536,7 +13536,7 @@
     "pr": 937,
     "branch": "feat/d173-e207-agent192-two-column-overview-20261112",
     "source_main_sha": "385875072386c39c612ede14f813dc5ae4dfc7cc",
-    "source_pin": "e8dc8a8ebb6c99949840529f3163fef7682332aa",
+    "source_pin": "b0aebb45d962283abaa17c112d352b6470f409cd",
     "code": "SOURCE_CANDIDATE",
     "ci": "PENDING_SOURCE_NATIVE_D172",
     "release": "AGENT191_SIGNED_CURRENT__V192_PENDING",

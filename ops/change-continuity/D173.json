@@ -3872,7 +3872,7 @@
       "approved_scope": "WinForms Agent overview only; 60/40 upper cols; Agent/PickList 65/35 in left; move existing Web download/folder actions; hide Supra summary/Desktop Web option; order 5 existing Agent buttons. No business handler or other passed feature change.",
       "pr": 937,
       "source_main_sha": "385875072386c39c612ede14f813dc5ae4dfc7cc",
-      "source_pin": "e8dc8a8ebb6c99949840529f3163fef7682332aa",
+      "source_pin": "b0aebb45d962283abaa17c112d352b6470f409cd",
       "facts": [
         "Owner approved the reviewed mockup and ordered Agent deployment; explicitly prohibits changing other PASS/stable features.",
         "Code moves the original WinForms Agent and PickList cards into a shared 65/35 column and Desktop resources into 40%; lower online-session roster remains at its existing 40/60 outer layout.",
@@ -3880,7 +3880,7 @@
         "Native Windows build, independent D172 tests, exact source and signed OTA channel SHA are pending. Physical HD/HD+ FIELD and explicit Owner PASS are not inferred.",
         "D172 remains independent PENDING/HOLD; Worker, Web, Android, Firebase, Host14, Stable, usage cadence and provider resources are unchanged."
       ],
-      "evidence": "docs/D173_E207_AGENT192_TWO_COLUMN_LAYOUT_2026-11-12.md; owner approved in current 12/11/2026 conversation; source pin e8dc8a8ebb6c99949840529f3163fef7682332aa",
+      "evidence": "docs/D173_E207_AGENT192_TWO_COLUMN_LAYOUT_2026-11-12.md; owner approved in current 12/11/2026 conversation; source pin b0aebb45d962283abaa17c112d352b6470f409cd",
       "next_action": "Run exact Agent192 source CI, Windows native x64 smoke and D172 tests; repair only scoped failures; protected merge and signed v192 OTA with channel SHA readback; retain FIELD/OWNER pending.",
       "ci": "PENDING",
       "release": "RELAY_AGENT_V191_SIGNED_CURRENT__AGENT192_NOT_YET_RELEASED",
@@ -4022,7 +4022,7 @@
       "E172 PR875: restore same SHA Worker+Agent175 signed release, strict exact-head CI and merge ancestry required; no field evidence yet.",
       "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending.",
       "D173-E174 PR878 Agent176 focus-only source and exact CI verification in progress; no Worker/APK/Web production change.",
-      "D173-E207: Agent192 Owner-approved UI-only PR937; source pin e8dc8a8ebb6c99949840529f3163fef7682332aa; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes."
+      "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
