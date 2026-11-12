@@ -13,7 +13,7 @@ test("D173 Web 3.3.8 field: the corporate title is exactly 150% of its old 11px 
 });
 
 test("D173 Web 3.3.8 field: Skip tab has a compact count and no visible breakdown", () => {
-  assert.match(app, /<b data-workspace-count="${status}">${resultTabBadgeCounts\[status\]}<\/b>/);
+  assert.match(app, /<b data-workspace-count="\$\{status\}">\$\{resultTabBadgeCounts\[status\]\}<\/b>/);
   assert.doesNotMatch(app, /<span data-workspace-count="SKIP_ALLOWED">\$\{skipBreakdown\}<\/span>/);
   assert.match(app, /badge\.textContent = String\(resultTabBadgeCounts\[status\]\)/);
 });
@@ -31,7 +31,7 @@ test("D173 Web 3.3.8 field: changing SKU immediately invalidates and hides stale
   assert.match(app, /recentLoadedViewKey = viewKey;/);
   assert.match(app, /const waitingForResults = recentLoadedViewKey !== recentPageKey\(\)/);
   assert.match(app, /const visible = waitingForResults \? \[\] : recentRows;/);
-  assert.match(app, /if \(activeSection === "results"\) patchActiveSection\(true\);/);
+  assert.match(app, /if \(activeSection === "results" && \(wasSearching \|\| opsSkuSuffix\.length >= 3\)\) patchActiveSection\(true\);/);
 });
 
 test("D173 Web 3.3.8 field: withdrawn identity comes from latest withdrawn ticket, not the batch resolver", () => {
