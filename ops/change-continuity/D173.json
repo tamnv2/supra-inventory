@@ -4592,7 +4592,7 @@
     {
       "id": "D173-E234",
       "date_vn": "2026-11-12",
-      "kind": "OWNER_COMMAND_AND_CODE",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner deploy Web3.3.14 repair for E233 FIELD defects",
       "status": "WEB3314_WEB_ONLY_OWNER_CODE_MERGE_RELEASE_APPROVED__CI_PENDING__PRODUCTION_UNCHANGED",
       "owner_approval": true,
