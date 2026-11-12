@@ -29,6 +29,7 @@ test("D173 Web 3.3.8 field: desktop controls stay on one row, dates and SKU shri
 test("D173 Web 3.3.8 field: changing SKU immediately invalidates and hides stale results", () => {
   assert.match(app, /function recentPageKey\(\): string/);
   assert.match(app, /recentLoadedViewKey = viewKey;/);
+  assert.match(app, /if \(saved\.id === "ops-sku-suffix"\) continue;/);
   assert.match(app, /const waitingForResults = recentLoadedViewKey !== recentPageKey\(\)/);
   assert.match(app, /const visible = waitingForResults \? \[\] : recentRows;/);
   assert.match(app, /if \(activeSection === "results" && \(wasSearching \|\| opsSkuSuffix\.length >= 3\)\) patchActiveSection\(true\);/);
