@@ -7,16 +7,18 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E233",
+    "checkpoint_id": "D173-E234",
     "pr": 959,
     "branch": "docs/d173-e233-web3313-field-scroll-cache-review-20261112",
-    "status": "WEB3313_PRODUCTION_TECH_PASS__E233_FIELD_NOT_PASS_REVIEW_ONLY__NO_NEW_RELEASE",
-    "owner_merge_approved": false,
-    "owner_release_approved": false,
-    "source_doc": "docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md",
+    "status": "WEB3314_OWNER_SCOPED_CODE_MERGE_RELEASE_APPROVED__CI_PENDING__PRODUCTION_WEB3313_UNCHANGED",
+    "owner_merge_approved": true,
+    "owner_release_approved": true,
+    "source_doc": "docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md",
     "production_web_version": "3.3.13",
     "source_main_sha": "99da97d69490f68818a5a1e49c566a0c5e12141b",
-    "target_web_version": null
+    "target_web_version": "3.3.14",
+    "source_code_pin": "2707623f53b932a3cb1cf892fd88f9d0879a76e0",
+    "release_marker": "D173-E233_WEB3314_PRODUCTION_RELEASE:"
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
