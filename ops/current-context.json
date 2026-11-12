@@ -7,30 +7,17 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E231",
-    "pr": 957,
-    "branch": "fix/d173-e230-web3313-field-density-skip-20261112",
-    "status": "WEB3313_OWNER_RELEASE_APPROVED__SCOPED_SOURCE_CI_PASS__PROTECTED_MERGE_PRODUCTION_PENDING",
+    "checkpoint_id": "D173-E232",
+    "pr": 958,
+    "branch": "docs/d173-e232-web3313-production-receipt-20261112",
+    "status": "WEB3313_PRODUCTION_TECH_PASS__PR958_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_merge_approved": true,
     "owner_release_approved": true,
-    "source_doc": "docs/D173_E231_WEB3313_RELEASE_AUTHORIZATION_2026-11-12.md",
-    "production_web_version": "3.3.12",
-    "source_main_sha": "b995b1f7ac6f822cd609cd499892f7dbd4fdaaed",
+    "source_doc": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "production_web_version": "3.3.13",
+    "source_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
     "target_web_version": "3.3.13",
-    "source_ci_sha": "b287887e6613ab60b750947a7b7133a201700288",
-    "ci_run_ids": {
-      "e230": 43224546702,
-      "d172": 43224547266,
-      "authority": 43224547001,
-      "continuity": 43224546938
-    },
-    "owner_command": "2026-11-12_TRIEN_KHAI_3.3.13",
-    "required_ci_run_ids": [
-      43227189692,
-      43227189986,
-      43227189717,
-      43227189801
-    ]
+    "release_run": 43227915003
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -57,13 +44,13 @@
       "host_build": 14
     },
     "web": {
-      "version": "3.3.12",
-      "worker_web_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43220864308",
-      "source_change_id": "D173-E227",
-      "source_main_sha": "8dc91e50a31c3f547b4e1b16819f492c5da1fa65",
-      "worker_version_id_at_deploy": "d42062b6-2f9a-4203-b5ec-eec52339e79d",
+      "version": "3.3.13",
+      "worker_web_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43227915003",
+      "source_change_id": "D173-E230",
+      "source_main_sha": "69542d49bc658231d50374aaf590e488792a5fce",
+      "worker_version_id_at_deploy": "c5352328-5955-4884-bf12-8945d71d2835",
       "ci_release": "PASS_TECHNICAL_EXACT_SOURCE",
-      "field": "PENDING_REAL_BROWSER_EIGHT_UI_REGRESSIONS",
+      "field": "PENDING_REAL_BROWSER_WEB3313_SKU_DENSITY_AND_SKIP_VISUAL",
       "owner_pass": "PENDING"
     },
     "android": {
@@ -73,7 +60,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E229_WEB3312_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
+    "receipt": "docs/D173_E232_WEB3313_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
   },
   "d172": {
     "change_id": "D172",
@@ -105,7 +92,7 @@
     "AGENT193_OWNER_APPROVED_MERGE",
     "AGENT193_RELEASE_PASS_BEFORE_TAG_CHANNEL_READBACK"
   ],
-  "main_source_at_reconciliation": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
+  "main_source_at_reconciliation": "69542d49bc658231d50374aaf590e488792a5fce",
   "active_implementation": {
     "id": "D173-E208",
     "source_main_sha": "7cb0037af96d57e650bdad371d9b7ffa663f185e",
