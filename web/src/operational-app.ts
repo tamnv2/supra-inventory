@@ -5920,7 +5920,9 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
         (reporterRecentChanged && !recentBadgeExact && activeSection !== "results");
       if (needsCounterReconcile || (reporterRecentChanged && events.some((event) =>
         event.event === "BATCH_CORRECTED" &&
-        (event.metadata?.recent_counter as { before_status?: string; after_status?: string } | undefined)?.before_status === "SKIP_ALLOWED"
+        (["before_status", "after_status"] as const).some((key) =>
+          (event.metadata?.recent_counter as { before_status?: string; after_status?: string } | undefined)?.[key] === "SKIP_ALLOWED"
+        )
       ))) tasks.push(loadReporterTabCounters(true));
 
       if (tasks.length) await Promise.all(tasks);
