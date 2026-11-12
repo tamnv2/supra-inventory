@@ -3805,6 +3805,9 @@ async function loadReporterRecentSnapshot(): Promise<void> {
     recentTotal = cached.total;
     recentTotals = { ...cached.totals };
     recentLoadedViewKey = viewKey;
+    recentBadgeCount = Math.max(0, Number(recentTotals.has_stock || 0) +
+      Number(recentTotals.skip_allowed || 0) + Number(recentTotals.withdrawn || 0));
+    recentBadgeInitialized = true;
     resultTabAutoSkipCount = Math.min(Math.max(0, Number(recentTotals.skip_allowed || 0)),
       Math.max(0, Number(recentTotals.automatic_skipped || 0)));
     syncOperationalTabBadges();
