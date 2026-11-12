@@ -3925,7 +3925,6 @@ function applyReporterReadModel(value: unknown): boolean {
   if (!Array.isArray(queue?.items) || !Array.isArray(recent?.items) || !counters ||
       !Number.isFinite(queue.total) || !Number.isFinite(recent.total) || !Number.isFinite(counters.recent_total) ||
       !Number.isFinite(counters.overdue_total) || !Number.isFinite(counters.queue_total) || (activeSection === "operations" && queue.total > queue.items.length) ||
-      (activeSection === "overdue" && !Array.isArray(overdue?.items)) ||
       (recent.total > 0 && recentOffset >= recent.total)) return false;
   queueRows = queue.items;
   queueBadgeCount = counters.queue_total;
