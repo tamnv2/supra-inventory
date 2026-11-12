@@ -57,6 +57,9 @@ jobs:
           if (!(Test-Path $exe)) { throw "EXE_MISSING" }
           & $exe --startup-smoke
           if ($LASTEXITCODE -ne 0) { throw "SMOKE_FAIL" }
+          # Actually initialize Windows WebView2 and verify the local canvas loads.
+          & $exe --lab-smoke
+          if ($LASTEXITCODE -ne 0) { throw "OFFLINE_LAB_STARTUP_FAIL" }
       - uses: actions/upload-artifact@v4
         with:
           name: SUPRA-Puzzle-Diagnostic-V23-win-x64
