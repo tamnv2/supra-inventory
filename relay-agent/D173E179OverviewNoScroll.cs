@@ -276,6 +276,9 @@ namespace SupraInventoryRelayAgent
         private int D173E182FitAgentHeader(Control host)
         {
             if (!HasAgentSession() || host.ClientSize.Width < 220) return 158;
+            _logout.Visible = false;
+            _agentExit.Visible = false;
+            _d173E212ExitMenuButton.Visible = true;
             const int left = 12;
             const int gap = 6;
             var width = Math.Max(120, host.ClientSize.Width - 24);
@@ -325,7 +328,7 @@ namespace SupraInventoryRelayAgent
                 var measuredWidth = TextRenderer.MeasureText(control.Text ?? "",
                     control.Font, new Size(1000, 30),
                     TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 24;
-                var actionWidth = Math.Max(72, Math.Min(172, measuredWidth));
+                var actionWidth = Math.Min(width, Math.Max(72, measuredWidth));
                 if (actionX > left && actionX + actionWidth > host.ClientSize.Width - left)
                 {
                     actionTop += 31;
