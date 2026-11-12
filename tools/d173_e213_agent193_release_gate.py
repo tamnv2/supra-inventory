@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = "d06d1342706a77d8afb9b43b4dd7c02e77694053"
 SOURCE = "5125b4750daf2a2b53f160ed979a2a279b296d18"
 MARKER = "D173-E213_AGENT193_ONLY_RELEASE:"
-AUTH = "ops/d173-e207-agent193-release-authorization.json"
+AUTH = "ops/d173-e213-agent193-release-authorization.json"
 ALLOWED = {
     ".github/workflows/d173-e212-agent193-code-only.yml",
     ".github/workflows/d173-e213-agent193-release.yml",
@@ -94,7 +94,7 @@ def main():
         deny("OUT_OF_SCOPE:" + ",".join(extra))
     registry = json.loads((ROOT / "ops/resource-registry.json").read_text(encoding="utf-8"))
     if registry.get("environments", {}).get("beta", {}).get("relay_agent_release") != "relay-agent-v192__D173_E208_SIGNED_RELEASE_PASS__FIELD_OWNER_PENDING":
-        deny("AGENT191_BASELINE_DRIFT")
+        deny("AGENT192_BASELINE_DRIFT")
     journal = json.loads((ROOT / "ops/change-continuity/D173.json").read_text(encoding="utf-8"))
     if journal.get("pr") != 945 or journal.get("last_checkpoint", {}).get("id") != "D173-E213":
         deny("CHANGE_CONTINUITY_MISMATCH")
