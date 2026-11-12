@@ -7,11 +7,11 @@
   "pr": 940,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R13",
+    "id": "D173-E204-R14",
     "date_vn": "2026-11-12",
-    "summary": "PR940 V2.3 isolated real WebView2 mouse input on built-in offline page: run43144848346 21/21 source+native PASS, artifact13911063141 SHA 76242fe7... CRC21 PASS. ZIP has before/after+CDP trace. Real WMS CAPTCHA not implemented, FIELD/OWNER pending.",
-    "status": "V23_BROWSER_OFFLINE_REAL_INPUT_CODE_CI_ARTIFACT_PASS__LIVE_WMS_UNCHANGED__FIELD_OWNER_PENDING",
-    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43144848346"
+    "summary": "Owner V2.3 offline lab creation FAIL; manual Web log has one 52-point drag/zero automated tests. PR940 fix records init phases and zero-test ZIP; Windows CI run43149011192 source22/22+real offline browser drag PASS, artifact13912568976 CRC/SHA PASS. FIELD Owner retest pending.",
+    "status": "OFFLINE_LAB_BOOTSTRAP_REPAIRED_CODE_CI_ARTIFACT_PASS__OWNER_FIELD_RETEST_PENDING",
+    "source": "https://github.com/tamnv2/supra-inventory/actions/runs/43149011192"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4308,6 +4308,79 @@
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED",
       "next_action": "Owner extracts complete Windows ZIP, runs 3-5 offline local scenes with one manual selection per scene only as needed, sends puzzle-browser-drag-v23.zip; analyze detection vs requested CDP path vs observed after pixels before suggesting next technical change."
+    },
+    {
+      "id": "D173-E204-R14",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_OFFLINE_LAB_FIELD_FAIL_AND_REPAIR_NATIVE_RECEIPT",
+      "topic": "V2.3 offline lab not creatable in Owner field; prior real-web manual drag JSON is not V2.3 automated test proof",
+      "status": "OFFLINE_LAB_BOOTSTRAP_REPAIRED_CODE_CI_ARTIFACT_PASS__OWNER_FIELD_RETEST_PENDING",
+      "owner_report": "Owner reports V2.3 'Phòng thử kéo thật (offline)' cannot be created, but a geometry-only drag log from the real WMS page can be saved. No screenshot/exception code for the offline failure supplied.",
+      "provided_log_metadata": {
+        "file_description": "Owner-provided local puzzle-test-v2(1).json, not committed to public GitHub",
+        "schema": "supra-puzzle-test-v2",
+        "drag_count": 1,
+        "test_count": 0,
+        "reviewed_image_count": 0,
+        "manual_drag_points": 52,
+        "viewport_css_px": [
+          1178,
+          600
+        ],
+        "device_pixel_ratio": 1,
+        "frame": "main",
+        "first_point_x_y_ms": [
+          404,
+          419,
+          0
+        ],
+        "last_point_x_y_ms": [
+          738,
+          397,
+          2737
+        ],
+        "interpretation": "Recorder's mouse trail proves manual drag capture; no automatically predicted target, before/after pair, offline initialization trace or automated test outcome."
+      },
+      "verified_issues": [
+        "Previously V23BrowserDragLab.InitializeAsync swallowed exception details and displayed only generic failure, and export required at least one completed Test; this made a zero-test initialization failure non-diagnostic.",
+        "Only synthetic OpenCV startup smoke was present in the prior CI; it did not start WebView2 or verify the page/canvas/actual CDP drag in Windows.",
+        "Exact root cause on Owner workstation remains unverified because the uploaded JSON is not a lab initialization trace."
+      ],
+      "changes": [
+        "Local test-page startup records sanitized stage/code/elapsed_ms; app verifies canvas from actual WebView2 DOM before enabling interactions; navigation outside local about:blank stays blocked.",
+        "Local ZIP export is allowed even with zero completed drags and now includes startup_events and canvas_ready fields. No URLs, cookies, account IDs or raw exception messages are persisted.",
+        "Main UI catches lab dialog creation failure and shows exception type/HRESULT; one sample remains one bounded drag; WMS login CAPTCHA untouched.",
+        "New --lab-smoke starts real Windows WebView2, verifies offline canvas, runs one actual CDP mouse press/drag/release, captures after image and asserts LOCAL_DRAG_PASS.",
+        "Targeted source test checks diagnostics and exact live Canvas native smoke path; README updated for failure-mode evidence."
+      ],
+      "ci_receipt": {
+        "run": "https://github.com/tamnv2/supra-inventory/actions/runs/43149011192",
+        "source_sha": "8a27c055ccba991f3a2caaca6bfb1198f5ca4dc0",
+        "source_tests": "22/22 PASS",
+        "native": "Windows x64 build 0 warnings 0 errors; OpenCV synthetic and real WebView2 offline canvas+drag --lab-smoke PASS",
+        "artifact_url": "https://github.com/tamnv2/supra-inventory/actions/runs/43149011192/artifacts/13912568976",
+        "artifact_id": 13912568976,
+        "artifact_name": "SUPRA-Puzzle-Diagnostic-V23-win-x64",
+        "artifact_size_bytes": 103332821,
+        "artifact_sha256": "2f63ae0b22b80192d8fd3b9865586a9a02b9de62b7ee70b0bddd36dabfe40c35",
+        "artifact_entry_count": 21,
+        "artifact_crc": "PASS"
+      },
+      "limits": [
+        "CI demonstrates offline browser drag on Windows runner, not actual WMS login challenge solving or Owner Windows FIELD PASS.",
+        "The exact Owner-machine bootstrap failure is not proved resolved until retest or a sanitized zero-attempt startup ZIP is received.",
+        "Do not ask Owner to perform repeated real WMS CAPTCHA attempts or infer account restriction bypass.",
+        "PR940 stays Draft, no merge, no Production Agent/Host/Worker/Web/Android/Firebase/D172/Stable changes."
+      ],
+      "code": "SCOPED_PASS",
+      "ci": "SOURCE_22_OF_22_PLUS_WINDOWS_REAL_OFFLINE_DRAG_SMOKE_PASS",
+      "artifact": "SHA_CRC_VERIFIED",
+      "release": "DIAGNOSTIC_CODE_ONLY_TEST_ARTIFACT",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "Owner downloads exact GitHub artifact 13912568976 and opens offline lab; if missing, saves ZIP with startup_events before any drag; if dialog fails to open, shares only sanitized exception type/HRESULT shown in parent status."
     }
   ],
   "resume": {
