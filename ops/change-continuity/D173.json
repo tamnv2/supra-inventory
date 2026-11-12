@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e204-puzzle-v22-fixed-viewport-20261112",
-  "pr": 938,
+  "working_branch": "feat/d173-e204-puzzle-v23-offline-drag-sim-20261112",
+  "pr": 940,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204-R07",
+    "id": "D173-E204-R08",
     "date_vn": "2026-11-12",
-    "summary": "Owner tested V2.2 ROI fixed across window resize/Scale/display resolution and reports correct persistence. Uploaded ROI ZIP CRC valid; 421x290 crop at [379,156] for fixed 1178x600 WebView2; no input sent. ROI-only FIELD accepted as Owner observation; full FIELD/OWNER pending, no auto CAPTCHA.",
-    "status": "V22_OWNER_ATTESTED_ROI_FIELD_PASS__ZIP_VALID__AUTO_CHALLENGE_NOT_IMPLEMENTED__NO_OWNER_GLOBAL_PASS",
-    "source": "Owner-provided ZIP and https://github.com/tamnv2/supra-inventory/pull/938"
+    "summary": "Owner requests V2.3 real puzzle recognition/drag with tolerant ROI; stacked PR940 implements only synthetic offline ROI ±15px and local animated drag, no WMS/CAPTCHA input. Source/CI artifact pending.",
+    "status": "V23_CODE_CANDIDATE_PR940_DRAFT_CI_PENDING__FIELD_OWNER_NOT_PASS__NO_CAPTCHA_BYPASS",
+    "source": "https://github.com/tamnv2/supra-inventory/pull/940"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4125,6 +4125,38 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R08",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_V23_REQUIREMENT_AND_SCOPED_SOURCE_CANDIDATE",
+      "topic": "V2.3 tolerant user-selected ROI plus simulated drag on local synthetic shapes",
+      "status": "V23_CODE_CANDIDATE_PR940_DRAFT_CI_PENDING__FIELD_OWNER_NOT_PASS__NO_CAPTCHA_BYPASS",
+      "owner_request": "Owner explicitly requests V2.3: check selected image, infer necessary drag position and actually drag even if region manually selected is slightly inaccurate.",
+      "technical_analysis": "Owner V2.2 ROI is stable under resizing, Windows Scale and resolution; anti-bot puzzle solver success is not established. The requested automatic CAPTCHA solving and dragging on live WMS is excluded. Implement only synthetic local geometry/drag for safely testing tolerance and native animation.",
+      "implemented": [
+        "Standalone V23OfflineDragForm with synthetic source and target rectangles; offset ROI X/Y from -15 to +15 pixels.",
+        "Offline TryPlan refuses when the synthetic ROI excludes source/target; animation uses a local WinForms Timer only, no browser/CDP input.",
+        "JSON synthetic-only export includes no URLs, user IDs, cookies, WMS page images or challenge solutions.",
+        "V2.2 fixed viewport, manually approved ROI and passive preview unchanged; historical live Test button remains hidden.",
+        "Windows native startup smoke includes V23OfflineDragForm.NativeSmoke(); source tests ensure no browser/network input and synthetic output is explicit."
+      ],
+      "risks": [
+        "Synthetic success cannot establish real WMS CAPTCHA recognition or browser/server acceptance.",
+        "No real UI FIELD proof yet; Windows CI pending.",
+        "D172 PENDING/HOLD; Stable OWNER-GATED; Agent192 Production unchanged."
+      ],
+      "source_pr": 940,
+      "base_pr": 938,
+      "source_branch": "feat/d173-e204-puzzle-v23-offline-drag-sim-20261112",
+      "scope": "DIAGNOSTICS_STANDALONE_ONLY__NO_AGENT_WORKER_WEB_ANDROID_FIREBASE_D172_STABLE",
+      "decision": "Safe offline V2.3 test candidate only; do not implement or deploy automated CAPTCHA solving or login without an authorized integration path.",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "NONE_CODE_ONLY",
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Check exact-sha CI, Windows native startup smoke, artifact bytes and checksum, then provide verified test ZIP only if all pass."
     }
   ],
   "resume": {
