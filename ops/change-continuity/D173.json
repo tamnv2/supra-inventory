@@ -20,10 +20,16 @@
     {
       "id": "D173-E212",
       "date_vn": "2026-11-12",
-      "kind": "OWNER_AGENT192_FIELD_FEEDBACK_AND_AGENT193_CODE_ONLY",
+      "kind": "OWNER_COMMAND",
       "owner_approved_code": true,
       "owner_merge_release_authorized": false,
-      "owner_requests": ["TOP_AGENT_AND_PICKLIST_70_DESKTOP_30_KEEP_OVERALL_40_60", "SINGLE_EXIT_MENU_PROTECTED_TWO_CHOICES", "NETWORK_REFRESH_IN_AGENT_ACTION_TOOLBAR", "ROSTER_TOOLS_RIGHT_SAME_ROW_SCROLL_IF_NARROW", "ROSTER_WIDTHS_VIEWPORT_DPI_SCHEMA_ONLY_NO_LIVE_TEXT_REMEASURE"],
+      "owner_requests": [
+        "TOP_AGENT_AND_PICKLIST_70_DESKTOP_30_KEEP_OVERALL_40_60",
+        "SINGLE_EXIT_MENU_PROTECTED_TWO_CHOICES",
+        "NETWORK_REFRESH_IN_AGENT_ACTION_TOOLBAR",
+        "ROSTER_TOOLS_RIGHT_SAME_ROW_SCROLL_IF_NARROW",
+        "ROSTER_WIDTHS_VIEWPORT_DPI_SCHEMA_ONLY_NO_LIVE_TEXT_REMEASURE"
+      ],
       "verified_base": "d06d1342706a77d8afb9b43b4dd7c02e77694053",
       "production_agent": "relay-agent-v192",
       "branch": "fix/d173-e212-agent193-ui-stable-columns-20261112",
@@ -36,7 +42,17 @@
       "owner_pass": false,
       "d172": "PENDING_HOLD_INDEPENDENT",
       "stable": "OWNER_GATED",
-      "privacy_safe": true
+      "privacy_safe": true,
+      "status": "CODE_ONLY_SOURCE_CANDIDATE__CI_PENDING__NO_RELEASE",
+      "owner_approval": true,
+      "topic": "Agent192 Owner five UI refinements into Agent193 code-only candidate",
+      "next_action": "Complete scoped Agent UI test, D172 independent regression and Windows native build; no merge/release without separate explicit Owner instruction.",
+      "evidence": "Owner screenshot Agent192 2026-11-12; signed relay-agent-v192; Draft PR945; docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md",
+      "facts": [
+        "Agent192 signed OTA technical release is verified, Owner reports five requested UI refinements.",
+        "D173 Agent WinForms-only proposed implementation on Draft PR945; separate D172 unchanged.",
+        "No Agent193 merge or OTA release approval in this Owner message."
+      ]
     },
     {
       "id": "D173-E001",
@@ -5131,10 +5147,23 @@
     "signed_current_agent": "relay-agent-v192",
     "candidate_version": 193,
     "scope": "AGENT_WINFORMS_ONLY_5_UI_REFINEMENTS",
-    "files": ["relay-agent/D173E179OverviewNoScroll.cs", "relay-agent/D119AgentFeatures.cs", "relay-agent/Program.cs", "relay-agent/VERSION", "relay-agent/SupraInventoryRelayAgent.csproj"],
-    "tests": ["tests/d173-e207-agent192-overview-layout.test.mjs", ".github/workflows/d173-e212-agent193-code-only.yml"],
+    "files": [
+      "relay-agent/D173E179OverviewNoScroll.cs",
+      "relay-agent/D119AgentFeatures.cs",
+      "relay-agent/Program.cs",
+      "relay-agent/VERSION",
+      "relay-agent/SupraInventoryRelayAgent.csproj"
+    ],
+    "tests": [
+      "tests/d173-e207-agent192-overview-layout.test.mjs",
+      ".github/workflows/d173-e212-agent193-code-only.yml"
+    ],
     "doc": "docs/D173_E212_AGENT193_UI_STABILITY_2026-11-12.md",
-    "owner_authorization": {"code": true, "merge": false, "release": false},
+    "owner_authorization": {
+      "code": true,
+      "merge": false,
+      "release": false
+    },
     "code": "SOURCE_CANDIDATE",
     "ci": "PENDING",
     "release": "NO_CHANGE__AGENT192_OFFICIAL",
