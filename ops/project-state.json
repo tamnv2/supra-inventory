@@ -7627,7 +7627,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e242-web3316-ui-consistency-20261113",
     "pr": 965,
-    "latest_checkpoint_id": "D173-E244",
+    "latest_checkpoint_id": "D173-E245",
     "checkpoint_date_vn": "2026-11-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7636,7 +7636,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 965,
     "active_working_branch": "fix/d173-e242-web3316-ui-consistency-20261113",
-    "working_pr_lifecycle": "PR965_OPEN_WEB3316_OWNER_RELEASE_AUTHORIZED__EXACT_CI_GUARD_PENDING__D172_HOLD"
+    "working_pr_lifecycle": "PR965_OPEN_OWNER_RELEASE_APPROVED__SOURCE_CI_5_OF_5_PASS_PIN_AF8B9517__MERGE_AND_PRODUCTION_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14325,12 +14325,20 @@
     "web_version": "3.3.16",
     "scope": "WEB_UI_ONLY_EXISTING_WORKER_STATIC_ASSETS__D172_AGENT_APK_FIREBASE_STABLE_UNCHANGED",
     "code": "PASS_SCOPED",
-    "ci": "PENDING_GUARD_HEAD",
-    "release": "OWNER_AUTHORIZED_GATED_PENDING",
+    "ci": "PASS_REQUIRED_5_5_EXACT_SOURCE",
+    "release": "OWNER_GATED_MERGE_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "auth": "ops/d173-e244-web3316-release-authorization.json",
     "doc": "docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md",
-    "release_marker": "D173-E244_WEB3316_PRODUCTION_RELEASE:"
+    "release_marker": "D173-E244_WEB3316_PRODUCTION_RELEASE:",
+    "source_ci_sha": "af8b951727f09622c3c2ed6412bb30cd23fcd69d",
+    "required_ci_run_ids": [
+      43353158290,
+      43353158749,
+      43353158675,
+      43353158682,
+      43353158144
+    ]
   }
 }
