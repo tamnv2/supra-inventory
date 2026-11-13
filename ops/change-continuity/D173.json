@@ -9,17 +9,19 @@
   "last_checkpoint": {
     "id": "D173-E261",
     "date_vn": "2026-11-13",
-    "summary": "Owner ordered complete E260 and release Web3.3.20 UI-only via PR974, source CI/Production pending, D172 HOLD.",
-    "status": "WEB3320_OWNER_PRODUCTION_APPROVED__CODE_CI_PENDING__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "summary": "Owner approved Web3.3.20; exact-source 6/6 scoped CI + real release preflight PASS at e08a212b; protected merge/release pending. Global legacy UI Guard FAIL; D172 HOLD.",
+    "status": "WEB3320_SCOPED_CODE_CI_AND_RELEASE_PREFLIGHT_PASS__PRODUCTION_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
     "source": "docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md",
     "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
     "pr": 974,
     "source_code_sha": "22666e168936e57ff9c974e46a33bc0499bb6e02",
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
-    "owner_pass": false
+    "owner_pass": false,
+    "source_ci_sha": "e08a212b77aa0c4393325a4e50a5decbb344b726",
+    "source_ci_run_id": 43420379425
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5413,11 +5415,12 @@
       "kind": "OWNER_COMMAND",
       "topic": "Owner approves finish code and Production release of five E260 Web UI fixes as Web3.3.20",
       "owner_approval": true,
-      "status": "OWNER_CODE_PRODUCTION_APPROVED__SCOPED_CI_PENDING__NO_NEW_RELEASE__D172_HOLD",
+      "status": "CODE_AND_REQUIRED_SCOPED_CI_6_OF_6_PASS__PROTECTED_MERGE_RELEASE_PENDING__D172_HOLD",
       "facts": [
         "PR974 remains OPEN Draft as read on 2026-11-13; source E260 exact scoped CI previously passed on Web3.3.19, while legacy Global UI Guard reports eight unrelated Agent/Web historical invariant failures.",
         "Owner explicitly orders to finish code and release the existing E260 UI scope. Version target Web3.3.20; no request/API/DO/schema/Worker business source, D172, Agent, Android, Firebase, Gateway or Stable mutation.",
-        "Source version/tests are updated; scoped release gate D173-E261 requires source/CI pins, protected two-parent merge marker and immutable D172/Provider checks. Production Web3.3.19 remains until exact deploy and runtime readback."
+        "Source version/tests are updated; scoped release gate D173-E261 requires source/CI pins, protected two-parent merge marker and immutable D172/Provider checks. Production Web3.3.19 remains until exact deploy and runtime readback.",
+        "Exact scoped source CI on head e08a212b77aa0c4393325a4e50a5decbb344b726: Web tests, Web production build, unchanged Worker typecheck, D172 regression/isolation and exact-source release preflight all SUCCESS run43420379425. Authority 43420379344, Project State 43420379073, D172 Business Isolation 43420379367, RBAC 43420379067, E123 Safety 43420379400 SUCCESS; Global UI Design Guard remains legacy FAIL and is excluded, not falsely PASS."
       ],
       "decision": [
         "Allow code/CI repair and gated merge/Production Worker/Web repack on registered hostname only for E260 presentation.",
@@ -5429,14 +5432,23 @@
       "pr": 974,
       "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
       "source_code_sha": "22666e168936e57ff9c974e46a33bc0499bb6e02",
-      "code_pass": false,
-      "ci_pass": false,
+      "code_pass": true,
+      "ci_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED",
-      "next_action": "Complete scoped exact CI; pin auth, verify protected merge and official Production runtime before claiming technical release."
+      "next_action": "Complete scoped exact CI; pin auth, verify protected merge and official Production runtime before claiming technical release.",
+      "source_ci_sha": "e08a212b77aa0c4393325a4e50a5decbb344b726",
+      "source_ci_run_ids": [
+        43420379425,
+        43420379344,
+        43420379073,
+        43420379367,
+        43420379067,
+        43420379400
+      ]
     }
   ],
   "resume": {
