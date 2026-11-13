@@ -14277,13 +14277,17 @@
     "result": "LOCAL_MOCK_SSO_SOURCE_ONLY__BUILD_FIELD_AUTH_NOT_VERIFIED",
     "scope": "EXPERIMENT_DIRECTORY_AND_PR_CI_ONLY__NO_PROVIDER_PRODUCTION_MUTATION",
     "security": "DEFAULT_CREDENTIAL_NOT_EMBEDDED__NO_REAL_USER_ACCOUNT_VERIFICATION",
-    "code": "CANDIDATE_UNVERIFIED",
-    "ci": "PENDING",
-    "release": "NOT_RELEASED",
+    "code": "PASS_TEST_APK_BUILD",
+    "ci": "PASS_RUN_43348954640_MATCH_DEBUG_SIGNATURE",
+    "release": "NOT_RELEASED_PRODUCTION",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "journal": "d173_launcher_identity_isolated_poc_20261113"
+    "journal": "d173_launcher_identity_isolated_poc_20261113",
+    "source_sha": "1f3c017cf126b8628f33305abf031fb22df3c37c",
+    "run_id": 43348954640,
+    "artifact_id": 14002942349,
+    "remaining": "LOCAL_MOCK_ONLY_NO_REAL_EMPLOYEE_VALIDATION"
   }
 }

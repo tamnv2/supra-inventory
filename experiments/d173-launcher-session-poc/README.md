@@ -18,3 +18,10 @@
 Workflow PR: `.github/workflows/d173-launcher-session-poc.yml` build hai `:app:assembleDebug` từ hai Gradle project; artifact APK chỉ dùng kiểm thử nội bộ, không đẩy vào kênh cập nhật Launcher hoặc Báo hàng. Không cung cấp signing production keystore.
 
 **Bản test dùng package khác**, không ghi đè app đang phát hành.
+
+## CI receipt — 13/11/2026
+
+- Workflow `D173 Isolated Launcher SSO PoC`: [run #43348954640](https://github.com/tamnv2/supra-inventory/actions/runs/43348954640), **SUCCESS** on exact source SHA `1f3c017cf126b8628f33305abf031fb22df3c37c`.
+- Two debug APKs built, `apksigner verify` PASS for both, cert fingerprints match, package names separate, INTERNET permission absent.
+- Artifact `d173-launcher-identity-session-poc-debug-pair` (ID `14002942349`, ZIP 2,580,613 bytes), expires 20/11/2026 UTC.
+- Source/authority/cross-D172 guards PASS. Không có Production merge/release. **FIELD chưa kiểm; đây không phải xác minh Firebase login/logout thật.**

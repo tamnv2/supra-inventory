@@ -6219,8 +6219,8 @@
       "GitHub Actions dual APK debug build pending",
       "No PDA hardware field test or true Firebase SSO proof"
     ],
-    "code": "CANDIDATE_UNVERIFIED",
-    "ci": "PENDING",
+    "code": "PASS_TEST_APK_SOURCE_BUILD",
+    "ci": "PASS_EXACT_SOURCE_43348954640",
     "release": "NO_PRODUCTION_RELEASE",
     "field_pass": false,
     "owner_pass": false,
@@ -6232,6 +6232,22 @@
       "real account authentication without secure server proof"
     ],
     "related_review_pr": 963,
-    "provenance_doc": "experiments/d173-launcher-session-poc/README.md"
+    "provenance_doc": "experiments/d173-launcher-session-poc/README.md",
+    "test_build_receipt": {
+      "source_sha": "1f3c017cf126b8628f33305abf031fb22df3c37c",
+      "workflow_run_id": 43348954640,
+      "run_url": "https://github.com/tamnv2/supra-inventory/actions/runs/43348954640",
+      "artifact_id": 14002942349,
+      "artifact_name": "d173-launcher-identity-session-poc-debug-pair",
+      "artifact_zip_size_bytes": 2580613,
+      "artifact_expiry_utc": "2026-11-20T02:01:39Z",
+      "result": "PASS_BUILD_DEBUG_DUAL_APK_APKSIGNER_MATCH_PACKAGE_ID_ISOLATION_NO_INTERNET",
+      "cross_guards": [
+        "Repo Authority Guard PASS",
+        "Project State Guard PASS",
+        "D173 D172 Business Isolation Guard PASS"
+      ]
+    },
+    "remaining": "REAL_USER_AUTH_AND_FIREBASE_SSO_NOT_IMPLEMENTED__PDA_FIELD_TEST_PENDING"
   }
 }
