@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      D173_POC_FIREBASE_API_KEY: ${{ vars.D173_POC_FIREBASE_API_KEY }}
+      D173_POC_FIREBASE_API_KEY: ${{ vars.D173_POC_FIREBASE_API_KEY || vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
       D173_POC_TEST_USERNAME: ${{ vars.D173_POC_TEST_USERNAME }}
     steps:
       - uses: actions/checkout@v4
