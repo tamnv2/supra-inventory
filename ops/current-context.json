@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E254",
+    "checkpoint_id": "D173-E255",
     "pr": 970,
     "branch": "docs/d173-e252-dashboard-review-20261113",
-    "status": "WEB3318_CI_8_8_PASS__PROTECTED_RELEASE_PENDING__D172_HOLD",
+    "status": "WEB3318_CI_8_8_PASS_NEW_DEPLOY_GATE__PROTECTED_RELEASE_PENDING__D172_HOLD",
     "owner_merge_approved": true,
     "owner_release_approved": true,
     "source_doc": "docs/D173_E253_WEB3318_RELEASE_AUTHORIZATION_2026-11-13.md",
@@ -146,6 +146,6 @@
     "owner_pass": false,
     "read_only_existing_core_combined": true,
     "d172": "HOLD",
-    "source_ci_sha": "6041dc6b87fdd1438dffc331a06a80a1b53c1afa"
+    "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0"
   }
 }
