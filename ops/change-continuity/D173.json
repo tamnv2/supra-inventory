@@ -3,18 +3,19 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e252-dashboard-review-20261113",
-  "pr": 970,
+  "working_branch": "docs/d173-e256-web3318-production-receipt-20261113",
+  "pr": 971,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E255",
+    "id": "D173-E256",
     "date_vn": "2026-11-13",
-    "summary": "Web3318 exact source b03621f CI 8/8 PASS after deploy-gate 10-slot/Gateway repair; merge/deploy pending.",
-    "status": "PASS_SOURCE_CI_8_OF_8__MERGE_DEPLOY_PENDING",
-    "source": "ops/d173-e253-web3318-release-authorization.json",
-    "branch": "docs/d173-e252-dashboard-review-20261113",
-    "pr": 970,
-    "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0"
+    "summary": "Web3.3.18 main a9dd2eb3 Deploy run43376201506 Success exact official /health; FIELD/Owner pending; D172 HOLD.",
+    "status": "PASS_TECHNICAL_RELEASE_WEB3318__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E256_WEB3318_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
+    "branch": "docs/d173-e256-web3318-production-receipt-20261113",
+    "pr": 971,
+    "release_main_sha": "a9dd2eb32896134b2ff00b863dce0f53ea54b126",
+    "release_run_id": 43376201506
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5226,6 +5227,34 @@
       "code_pass": true,
       "ci_pass": true,
       "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E256",
+      "date_vn": "2026-11-13",
+      "topic": "Web3.3.18 exact-source protected production Worker/Web release verified; receipt docs-only",
+      "kind": "TEST",
+      "owner_approval": null,
+      "status": "WEB3318_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Owner-authorized source PR970 MERGED with protected two-parent main a9dd2eb32896134b2ff00b863dce0f53ea54b126; parents 4ecb4cfebbddac1fc90f4aa29f2cd89e17f42a33 and 07a9f0082fd87f9f61fbd1ae39aa3e732359a0f8.",
+        "Source CI 8/8 PASS at b03621fd68f591754a32b718fae5c92ff82442e0, including D172 isolated and current Worker/Web build; final PR head authority and continuity PASS.",
+        "GitHub Actions existing registered Worker/Web Deploy Beta Worker run43376201506 completed SUCCESS on merge main SHA; runner official /health HTTP200 status ok, exact source_commit main, missing bindings0, storage and schema17/17, operational7/7, Agent migration0/0.",
+        "Official Web shell/auth API/PDA registry/OAuth and scoped Worker release guard PASS. No D172 app/source changes; Agent/Android/Stable not redeployed by D173 scope.",
+        "FIELD authenticated browser layout, header fix and Inventory drilldowns remain PENDING; Owner PASS PENDING; DO Requests/Rows Read improvement billing not measured. No fake acceptance."
+      ],
+      "next_action": "Record docs-only release receipt PR971 with accepted main SHA; no runtime re-deployment; Owner separately validates Web3.3.18 FIELD. D172 remains independent HOLD.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/970 ; https://github.com/tamnv2/supra-inventory/actions/runs/43376201506 ; docs/D173_E256_WEB3318_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
+      "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0",
+      "release_main_sha": "a9dd2eb32896134b2ff00b863dce0f53ea54b126",
+      "release_run_id": 43376201506,
+      "source_pr": 970,
+      "pr": 971,
+      "branch": "docs/d173-e256-web3318-production-receipt-20261113",
+      "code_pass": true,
+      "ci_pass": true,
+      "release_pass": true,
       "field_pass": false,
       "owner_pass": false
     }
