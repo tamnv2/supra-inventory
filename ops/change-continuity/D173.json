@@ -9,13 +9,21 @@
   "last_checkpoint": {
     "id": "D173-E257",
     "date_vn": "2026-11-13",
-    "summary": "Owner Web3.3.18 Overview FIELD NOT PASS; one-page live SKU triage code-only PR972; no Production release order, CI pending; D172 HOLD.",
-    "status": "CODE_ONLY_CANDIDATE__CI_PENDING__RELEASE_HOLD__WEB3318_FIELD_FAIL_OVERVIEW__D172_HOLD",
+    "summary": "Owner Web3.3.18 Overview FIELD NOT PASS; E257 one-page live SKU triage PR972: scoped CI PASS run43401043590; full legacy UI guards FAIL; no release.",
+    "status": "SCOPED_CODE_CI_PASS__GLOBAL_STALE_E032_UI_DESIGN_GUARDS_FAIL__NO_RELEASE__FIELD_OWNER_PENDING",
     "source": "docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md",
     "branch": "fix/d173-e257-overview-live-triage-20261113",
     "pr": 972,
     "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb",
-    "published_web_version": "3.3.18"
+    "published_web_version": "3.3.18",
+    "source_ci_sha": "b202ce8bb203e5c111c434b9f319c6df0b204258",
+    "source_ci_run_id": 43401043590,
+    "ci_scoped_pass": true,
+    "ci_global_pass": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "doc": "docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5264,25 +5272,31 @@
       "kind": "STATUS",
       "topic": "Web3.3.18 overview rejected as reporting-heavy; implement evidence-first single-page Inventory triage",
       "owner_approval": true,
-      "status": "WEB3318_FIELD_NOT_PASS__PR972_DRAFT_CODE_ONLY__CI_PENDING__RELEASE_HOLD",
+      "status": "SCOPED_CODE_CI_PASS__GLOBAL_STALE_E032_UI_DESIGN_GUARDS_FAIL__NO_RELEASE__FIELD_OWNER_PENDING",
       "facts": [
         "Owner FIELD evidence: dashboard only shows aggregate open batch counts, and generic latest 5 outcomes; does not identify affected SKU, area, first report time or waiting duration on the same screen.",
         "Current Production Web3.3.18 Worker run43376201506 PASS technical; no Owner/Field acceptance of its new dashboard. Main base cfe3a7674b85b410f60297c77920408a971413fb.",
         "Draft PR972 adds a bounded six oldest pending batch read (SKU, product name, as-of-first-report area, first_report_at, ticket count) and two seven-day grouped hour reads inside the existing RBAC/WEB-only overview DO request.",
         "New screen combines live pending table, SLA source cues, 7-day by-day and today by-hour trends, area and recurrence in one page; drops last-five-resolution wall, dashboard date preference GET and dedicated 30-second presence polling.",
-        "New grouped SQL can increase DO Rows Read; no usage or p95 measurement yet. No business mutation, schema, D172-specific source/routes/data, Agent, Android or Stable changed."
+        "New grouped SQL can increase DO Rows Read; no usage or p95 measurement yet. No business mutation, schema, D172-specific source/routes/data, Agent, Android or Stable changed.",
+        "E257 exact-source scoped CI run43401043590 SUCCESS: dashboard tests, Web TS/Vite build, Worker TS and D172 independent regression; authority run43401044197, continuity run43401044638, D172 isolation run43401044091, independent D172 run43401044510 all SUCCESS.",
+        "Full-repo CI NOT PASS: E032 test expects historic Web3.3.9 while main Web3.3.18; broad UI Design Guard has stale/older requirements including intentionally removed historical dashboard wall. No out-of-scope fixes, no release grant."
       ],
-      "next_action": "Run exact PR972 source CI (Web typecheck/build, D172 independent regression, dashboard contract), repair until code PASS; measure Rows Read and browser performance; require new explicit Owner release approval before guarded Production merge.",
+      "next_action": "Review PR972 layout and new data semantics; reconcile separate stale full-repo UI guards only within approved scope, measure Rows Read/p95 and verify physical Web HD/HD+ before asking Owner for release authorization. No Production action.",
       "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/972 ; docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md ; prior release docs/D173_E256_WEB3318_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
       "branch": "fix/d173-e257-overview-live-triage-20261113",
       "pr": 972,
-      "code_pass": false,
+      "code_pass": true,
       "ci_pass": false,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "scoped_ci_pass": true,
+      "ci_scope": "D173_E257_WEB_WORKER_TYPECHECK_BUILD_AND_D172_ISOLATION__SUCCESS_RUN43401043590",
+      "source_sha": "b202ce8bb203e5c111c434b9f319c6df0b204258",
+      "source_ci_run_id": 43401043590
     }
   ],
   "resume": {
