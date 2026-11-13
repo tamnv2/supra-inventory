@@ -1,3 +1,10 @@
+## D173-E258 — Hoàn thiện và phát hành Tổng quan Inventory Web3.3.19 (13/11/2026)
+- Dựa trên E257: trên **một trang** ưu tiên SKU chờ lâu nhất (tối đa 6/tổng, nêu rõ giới hạn), khu vực khi báo đầu, mốc thời gian, số ticket mở; cảnh báo SLA/Skip tự động/tái phát; xu hướng theo ngày 7 ngày và giờ hôm nay. Không chuyển trang/không hiển thị 5 kết quả gần nhất.
+- Dữ liệu hiện tại mới trên Tổng quan cập nhật theo WebSocket event trong khi đang mở; gộp tối đa một lần đọc overview / 15 giây trong lúc có sự kiện, không cron hay polling cố định. Đồng hồ chờ client tự tính mỗi 15 giây, không request. Không nói nguyên nhân vật lý khi thiếu bằng chứng.
+- API readonly D173 tại existing Worker/DO đã đăng ký; query 7 ngày hữu hạn, không dùng D172; kiểm thử Rows Read/latency và D172 regression. Web3.3.19 Owner cho lệnh phát hành **có điều kiện CI/gate**; FIELD/OWNER PASS chờ nghiệm thu sau release.
+
+---
+
 ## D173-E257 — Tổng quan một trang để xử lý, không thay báo cáo chi tiết (13/11/2026)
 - Theo dõi hiện tại: đợt đang chờ, ticket mở, thời gian chờ lâu nhất, SLA cảnh báo/quá hạn nếu có cấu hình; bảng tối đa 6 đợt mở lâu nhất phải thấy ngay SKU, tên hàng, khu vực as-of-first-report, giờ báo đầu, số ticket mở, thời gian chờ. Không lọc tồn đọng theo ngày.
 - Theo dõi hôm nay: tổng lượt Picker báo, đợt xử lý (không cộng lẫn), Skip hệ thống theo nguồn, SKU tái phát, khu vực; 7 ngày VN và 24 giờ hôm nay xem đồng thời, không cần chuyển tab hay nhấn Chi tiết.
