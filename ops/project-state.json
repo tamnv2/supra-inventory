@@ -2569,7 +2569,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E260_WEB3319_FIELD_NOT_PASS_CODE_ONLY_PR974__CI_FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E260_WEB3319_FIELD_FAIL__SCOPED_CODE_CI_PASS__GLOBAL_UI_GUARD_FAIL__NO_NEW_RELEASE__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7636,7 +7636,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 974,
     "active_working_branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
-    "working_pr_lifecycle": "PR973_MERGED_MAIN_C4E6DCA0__PR974_DRAFT_WEB_UI_ONLY__NO_RELEASE"
+    "working_pr_lifecycle": "PR974_DRAFT_CODE_ONLY__SOURCE_CI_43415335127_SUCCESS_SHA5FB02BE4__GLOBAL_UI_GUARD_FAIL__NO_RELEASE"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14680,13 +14680,20 @@
     "owner_code_approved": true,
     "owner_release_approved": false,
     "scope": "EXISTING_WEB_MARKUP_LAYOUT_ONLY__NO_WORKER_DO_DATA_AUTH_OR_APK_AGENT_MUTATION",
-    "code": "CANDIDATE",
-    "ci": "PENDING",
+    "code": "PASS_SCOPED_SOURCE",
+    "ci": "PASS_SCOPED__GLOBAL_UI_GUARD_FAIL",
     "release": "WEB3319_UNCHANGED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "doc": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md"
+    "doc": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
+    "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
+    "source_ci_run_id": 43415335127,
+    "repo_authority_ci": 43415335037,
+    "project_state_ci": 43415334786,
+    "d172_isolation_ci": 43415335354,
+    "global_ui_design_ci": 43415335385,
+    "global_ci_pass": false
   }
 }
