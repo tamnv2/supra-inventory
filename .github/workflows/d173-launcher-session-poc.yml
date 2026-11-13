@@ -1,6 +1,12 @@
 name: D173 Isolated Launcher SSO PoC
 
 on:
+  push:
+    branches:
+      - feat/d173-launcher-session-poc-20261113
+    paths:
+      - 'experiments/d173-launcher-session-poc/**'
+      - '.github/workflows/d173-launcher-session-poc.yml'
   pull_request:
     paths:
       - 'experiments/d173-launcher-session-poc/**'
