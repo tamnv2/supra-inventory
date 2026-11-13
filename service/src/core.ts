@@ -137,7 +137,7 @@ export class InventoryCore {
       if (String(stamp?.value || "") !== String(SCHEMA_VERSION)) return false;
 
       const requiredObjects: Array<[string, string]> = [
-        ["table", "users"], ["table", "sku_master"],
+        ["table", "users"], ["table", "contractor_catalog"], ["table", "sku_master"],
         ["table", "report_batches"], ["table", "report_tickets"],
         ["table", "idempotency_keys"], ["table", "realtime_events"],
         ["table", "result_acknowledgements"], ["table", "result_event_snapshots"],
@@ -243,6 +243,12 @@ export class InventoryCore {
         ON users(employee_code)
         WHERE employee_code IS NOT NULL AND employee_code <> '';
       CREATE INDEX IF NOT EXISTS idx_users_role_status ON users(role, status);
+
+      CREATE TABLE IF NOT EXISTS contractor_catalog (
+        name TEXT PRIMARY KEY COLLATE NOCASE,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
 
       CREATE TABLE IF NOT EXISTS sku_master (
         sku TEXT PRIMARY KEY,
@@ -535,6 +541,19 @@ export class InventoryCore {
     initializeRuntimeLogSchema(this.state);
 
     this.startupPhase = "schema_finalization";
+    // One-time migration: pre-existing Picker contractors become selectable without changing users.
+    const contractorSeed = sql.exec<{ value: string }>(
+      "SELECT value FROM schema_meta WHERE key='d173_contractor_catalog_seed_v1' LIMIT 1",
+    ).toArray()[0];
+    if (!contractorSeed) {
+      this.state.storage.transactionSync(() => {
+        sql.exec(`INSERT OR IGNORE INTO contractor_catalog (name)
+          SELECT DISTINCT trim(contractor_name) FROM users
+          WHERE role = 'PICKER' AND contractor_name IS NOT NULL AND trim(contractor_name) <> ''`);
+        sql.exec(`INSERT OR IGNORE INTO schema_meta (key, value, updated_at)
+          VALUES ('d173_contractor_catalog_seed_v1', '1', CURRENT_TIMESTAMP)`);
+      });
+    }
     sql.exec(
       `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
        VALUES ('root', NULL, 'root', 'Root', 'ROOT', 'ACTIVE')`,
