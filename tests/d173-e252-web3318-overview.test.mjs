@@ -8,6 +8,7 @@ const core = readFileSync("service/src/core.ts", "utf8");
 const worker = readFileSync("service/src/business-api.ts", "utf8");
 const css = readFileSync("web/src/d173-overview.css", "utf8");
 const version = readFileSync("web/src/web-version.ts", "utf8");
+const deploy = readFileSync(".github/workflows/deploy-beta.yml", "utf8");
 
 test("Web3.3.18 includes new compact operational overview and same-day/7-day drilldown", () => {
   assert.match(version, /WEB_VERSION = "3\.3\.18"/);
@@ -52,4 +53,12 @@ test("No invented stock cause, missing SLA is not coerced to zero, and ticket/ba
   assert.match(web, /chưa xác minh nguyên nhân tồn kho/);
   assert.match(web, /lượt Picker; xử lý xong: đợt/);
   assert.match(web, /k\?\.avg_resolution_minutes == null \? "—"/);
+});
+
+test("E253 Production workflow preserves 10-slot Web log and D172 Gateway isolation", () => {
+  const marker = "D173-E253_WEB3318_PRODUCTION_RELEASE:*";
+  assert.equal(deploy.split(marker).length - 1, 3, "Worker, D146, Gateway guards all recognize E253");
+  assert.match(deploy, /D173_E253_EXISTING_GATEWAY_D172_UNCHANGED__READ_ONLY_D173_OVERVIEW/);
+  assert.match(deploy, /d173_e253_web3318_release_gate\.py --component worker/);
+  assert.match(deploy, /D173_E165_WEB_LOG_10_SLOTS_DURABLE_SERVICE_CONTRACT_PASS/);
 });
