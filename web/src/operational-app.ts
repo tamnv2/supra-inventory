@@ -2387,7 +2387,7 @@ function renderDashboard(): string {
     : `<p class="d173-overview-empty">Chưa có kết quả xử lý trong khoảng ngày.</p>`;
   return `<section class="v5-root report-workspace d173-dashboard">
     ${renderReportTabs("dashboard")}
-    <div class="d173-report-content d173-overview-content">
+    <div class="d173-report-content"><div class="d173-overview-content">
       <div class="d173-overview-title"><div><h2>Tổng quan vận hành Inventory</h2><small>${esc(rangeText)} · Dữ liệu phát sinh theo kỳ, tình trạng chờ theo thời gian thực</small></div><span class="d173-overview-connected">Kết nối ${num(realtimePresence?.online_users)} Web/PDA · không phải số người đang thao tác</span></div>
       <div class="d173-overview-section-label">Tình trạng cần ưu tiên <small>Không phụ thuộc khoảng ngày đã chọn</small></div>
       <div class="d173-overview-kpis d173-overview-kpis-live">
@@ -2427,7 +2427,7 @@ function renderDashboard(): string {
         <article class="d173-overview-panel"><header><h3>SKU được báo nhiều</h3><span>Sắp theo lượt báo trong kỳ</span></header><div class="d173-overview-skus">${topMarkup}</div></article>
       </div>
       <article class="d173-overview-panel"><header><h3>5 kết quả gần nhất trong kỳ</h3><span>Người xử lý · kết quả · thời điểm</span></header><div class="d173-overview-events">${recentMarkup}</div></article>
-    </div>
+    </div></div>
   </section>`;
 }
 
