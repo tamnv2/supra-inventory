@@ -10,7 +10,7 @@
     "checkpoint_id": "D173-E257",
     "pr": 972,
     "branch": "fix/d173-e257-overview-live-triage-20261113",
-    "status": "WEB3318_OVERVIEW_OWNER_FIELD_FAIL__PR972_CODE_ONLY_CI_PENDING_RELEASE_HOLD__D172_HOLD",
+    "status": "WEB3318_OVERVIEW_OWNER_FIELD_FAIL__PR972_SCOPED_CI_PASS__FULL_UI_GUARDS_FAIL__NO_RELEASE",
     "owner_merge_approved": false,
     "owner_release_approved": false,
     "source_doc": "docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md",
@@ -25,7 +25,12 @@
     "source_main_sha": "a9dd2eb32896134b2ff00b863dce0f53ea54b126",
     "release_run_id": 43376201506,
     "release_attempt": 1,
-    "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb"
+    "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb",
+    "source_sha": "b202ce8bb203e5c111c434b9f319c6df0b204258",
+    "ci_source_run_id": 43401043590,
+    "code_scoped_pass": true,
+    "ci_scoped_pass": true,
+    "ci_global_pass": false
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
