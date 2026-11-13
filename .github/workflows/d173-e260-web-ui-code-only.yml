@@ -31,6 +31,9 @@ jobs:
       - name: Web TypeScript and Vite build
         working-directory: web
         run: npm install --ignore-scripts --no-audit --no-fund && npm run build
+      - name: Service TypeScript test dependency (no service source change)
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: D172 independence and cross-module isolation
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
