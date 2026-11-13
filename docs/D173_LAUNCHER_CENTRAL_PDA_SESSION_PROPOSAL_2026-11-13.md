@@ -7,6 +7,7 @@
 - Repo canonical: `main:ops/authority-manifest.json`, `ops/project-scope.json`, `docs/specs/AUTH_RBAC.md`, `docs/specs/REALTIME_NOTIFICATIONS.md` và D173 continuity.
 - Repo Launcher khác dự án, **chỉ đọc**: `tamnv2/supra-pda-launcher` (`README.md`, `AndroidManifest.xml`, `MainActivity.java`, `GuardService.java`, `DeviceRegistryClient.java`, `docs/OWNER_RELEASE_SCOPE_POLICY.md`). Repo này **không có trong project-scope.json** của SUPRA Inventory; mọi thay đổi sang repo Launcher phải có quyền/phạm vi riêng được Owner xác định.
 - Đã đối chiếu PR D173 #962 thực tế **MERGED** 12/11/2026; không được coi là PR đang mở. Báo hàng hiện có Firebase Auth, RBAC, quản lý phiên và cutoff Picker 14:00/22:00.
+- **Nguồn hiện tại:** Launcher `DeviceRegistryClient.API_BASE` và `LauncherPasswordClient.API_BASE` còn hard-code `inventory-beta.supra.cc.cd`, trong khi canonical `ops/project-scope.json` ghi hostname này đã tháo binding và Production dùng `inventory.supra.cc.cd`. Đây là **nguy cơ tương thích cần kiểm tra**, không tự khẳng định mọi thiết bị đang lỗi khi chưa có FIELD/log.
 
 ## Yêu cầu Owner — ý tưởng chưa phê duyệt implementation
 
