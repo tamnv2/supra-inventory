@@ -145,6 +145,65 @@ function listUsers(state: DurableObjectState, url: URL): Response {
   });
 }
 
+function listContractors(state: DurableObjectState): Response {
+  const items = state.storage.sql.exec<{ name: string; picker_count: number }>(
+    `SELECT c.name, COUNT(u.user_id) AS picker_count
+       FROM contractor_catalog c
+       LEFT JOIN users u ON u.role = 'PICKER' AND u.contractor_name = c.name COLLATE NOCASE
+      GROUP BY c.name ORDER BY c.name COLLATE NOCASE`,
+  ).toArray().map((row) => ({ name: row.name, picker_count: Number(row.picker_count || 0) }));
+  return response({ items, total: items.length });
+}
+
+async function changeContractor(state: DurableObjectState, request: Request): Promise<Response> {
+  const body = (await request.json()) as { action?: string; name?: unknown; previous_name?: unknown; actor?: Actor };
+  const actor = body.actor;
+  if (!actor?.user_id || !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(actor.role)) return response({ error: "FORBIDDEN" }, 403);
+  const action = String(body.action || "");
+  const name = normalizeName(body.name);
+  const previous = normalizeName(body.previous_name);
+  if (!["CREATE", "RENAME", "DELETE"].includes(action) || !name || name.length > 200 ||
+      (action === "RENAME" && (!previous || previous.length > 200))) {
+    return response({ error: "INVALID_CONTRACTOR" }, 400);
+  }
+  const sql = state.storage.sql;
+  const currentName = action === "RENAME" ? previous : name;
+  const current = first(sql.exec<{ name: string }>(
+    "SELECT name FROM contractor_catalog WHERE name = ? COLLATE NOCASE", currentName,
+  ).toArray());
+  if (action === "CREATE" && current) return response({ error: "CONTRACTOR_EXISTS" }, 409);
+  if (action !== "CREATE" && !current) return response({ error: "CONTRACTOR_NOT_FOUND" }, 404);
+  if (action === "RENAME" && current?.name !== name) {
+    const conflict = first(sql.exec<{ name: string }>(
+      "SELECT name FROM contractor_catalog WHERE name = ? COLLATE NOCASE", name,
+    ).toArray());
+    if (conflict && conflict.name.toLowerCase() !== currentName.toLowerCase()) {
+      return response({ error: "CONTRACTOR_EXISTS" }, 409);
+    }
+  }
+  if (action !== "CREATE") {
+    const used = first(sql.exec<{ n: number }>(
+      "SELECT COUNT(*) AS n FROM users WHERE role = 'PICKER' AND contractor_name = ? COLLATE NOCASE",
+      currentName,
+    ).toArray());
+    // Prevent silent changes to Picker identities; reassign Picker explicitly before edit/delete.
+    if (Number(used?.n || 0) > 0) return response({ error: "CONTRACTOR_IN_USE", picker_count: Number(used?.n) }, 409);
+  }
+  state.storage.transactionSync(() => {
+    if (action === "CREATE") {
+      sql.exec("INSERT INTO contractor_catalog (name) VALUES (?)", name);
+    } else if (action === "RENAME") {
+      sql.exec("UPDATE contractor_catalog SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE name = ? COLLATE NOCASE", name, previous);
+    } else {
+      sql.exec("DELETE FROM contractor_catalog WHERE name = ? COLLATE NOCASE", name);
+    }
+    audit(state, actor, "CONTRACTOR_" + action, "CONTRACTOR", currentName, {
+      action, updated_name: action === "RENAME" ? name : null,
+    });
+  });
+  return response({ status: "ok", action, name });
+}
+
 async function createManagedUser(state: DurableObjectState, request: Request): Promise<Response> {
   const body = (await request.json()) as { actor?: Actor; username?: unknown; display_name?: unknown; role?: AppRole; auth_email?: unknown; request_id?: unknown; password_salt?: unknown; password_hash?: unknown };
   const actor = body.actor;
@@ -532,6 +591,9 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
               password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at, last_login_at, last_login_channel FROM users`,
     ).toArray();
     const pickerByCode = new Map(existing.filter((u) => u.role === "PICKER" && u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
+    for (const contractor of new Set(normalized.employees.map((item) => item.contractor_name))) {
+      state.storage.sql.exec("INSERT OR IGNORE INTO contractor_catalog (name) VALUES (?)", contractor);
+    }
     for (const [code, incomingUser] of incoming) {
       const current = pickerByCode.get(code);
       if (!current) {
@@ -612,6 +674,8 @@ async function rollbackManagedUserCreate(state: DurableObjectState, request: Req
 export async function handleUserManagementCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
   if (request.method === "GET" && url.pathname === "/admin/users") return listUsers(state, url);
+  if (request.method === "GET" && url.pathname === "/admin/contractors") return listContractors(state);
+  if (request.method === "POST" && url.pathname === "/admin/contractors") return changeContractor(state, request);
   if (request.method === "POST" && url.pathname === "/admin/users/create") return createManagedUser(state, request);
   if (request.method === "POST" && url.pathname === "/admin/users/rollback-create") return rollbackManagedUserCreate(state, request);
   if (request.method === "POST" && url.pathname === "/admin/users/update") return updateManagedUser(state, request);
