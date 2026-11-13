@@ -85,6 +85,28 @@ test("E267: browser-computed spacing matches across users, shift and overview on
       ]) {
         await page.setContent(shell(markup), { waitUntil: "domcontentloaded" });
         const g = await geometry(page, selector);
+        if (round(g.paddingLeft) !== 6) {
+          const rules = await page.evaluate(() => {
+            const el = document.querySelector(".d173-page-content");
+            const matched = [];
+            const walk = rs => {
+              for (const rule of rs) {
+                if (rule.selectorText && rule.style?.padding) {
+                  try {
+                    if (el.matches(rule.selectorText)) matched.push({
+                      selector: rule.selectorText.slice(0,140),
+                      padding: rule.style.padding, important: rule.style.getPropertyPriority("padding")
+                    });
+                  } catch {}
+                }
+                if (rule.cssRules) walk(rule.cssRules);
+              }
+            };
+            for (const sheet of document.styleSheets) walk(sheet.cssRules);
+            return matched.slice(-22);
+          });
+          console.log("E267 CSS matched padding cascade:", JSON.stringify(rules));
+        }
         assert.equal(round(g.paddingLeft), 6, name + " main inset @" + width);
         assert.equal(round(g.gap), 6, name + " stack gap @" + width);
         for (const [index, value] of g.between.entries()) {
