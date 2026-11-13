@@ -19,3 +19,5 @@
 
 ## Status
 At documentation creation, E262 PR #975 is a **draft recovery candidate**. No second merge or Production release confirmed.
+
+Checkpoint: PR #975 includes the E262 state/journal + Owner release recovery authority; scoped source and read-only runtime CI must PASS on the final PR head before merge. Exact E261 Production source already independently matched main SHA; this checkpoint is not a new deployment receipt.
