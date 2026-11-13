@@ -2569,7 +2569,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E267_WEB3321_OWNER_FIELD_SPACING_FAIL__PR979_CSS_CODE_ONLY__BROWSER_CI_PENDING_NO_NEW_RELEASE_AUTH__D172_HOLD",
+    "current_change_status": "D173_E267_WEB3321_OWNER_FIELD_FAIL__PR979_CSS_AND_CHROMIUM_CI_SCOPED_PASS__NO_NEW_RELEASE_AUTH__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -14881,11 +14881,11 @@
     "production_web": "3.3.21",
     "production_technical_release_verified": true,
     "source_main_sha": "6f74a954e49da65582946df6bff0b2a29f6e6ab1",
-    "owner_field_result": "FAIL_SPACING_NOT_UNIFORM",
+    "owner_field_result": "FAIL_SPACING_NOT_UNIFORM_IN_PRODUCTION_WEB3321",
     "root_cause": "LEGACY_MARGINS_AND_FORM_INLINE_GAPS_UNTOUCHED_BY_E264_AND_ROLE_INSET_SPECIFICITY",
     "scope": "WEB_UI_CSS_ONLY__NO_WEB_VERSION_OR_API_WORKER_FIRE_D172_AGENT_ANDROID_CHANGE",
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING_BROWSER_COMPUTED_GEOMETRY",
+    "code": "PASS_SCOPED_SOURCE_CSS_BROWSER_FIXTURE_AND_VITE_BUILD",
+    "ci": "PASS_SCOPED_4_OF_4__GLOBAL_LEGACY_CI_FAILED",
     "release": "NO_NEW_OWNER_PERMISSION",
     "field_pass": false,
     "owner_pass": false,
@@ -14893,6 +14893,13 @@
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md",
     "test": "tests/d173-e267-web-field-spacing.test.mjs",
-    "browser_test": "tests/d173-e267-browser-geometry.test.mjs"
+    "browser_test": "tests/d173-e267-browser-geometry.test.mjs",
+    "source_ci_sha": "e0f8c7c248e111db2f38d571bcdc478e569aaca5",
+    "source_ci_run_ids": [
+      43437477996,
+      43437477909,
+      43437477525,
+      43437478058
+    ]
   }
 }

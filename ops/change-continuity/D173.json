@@ -9,13 +9,21 @@
   "last_checkpoint": {
     "id": "D173-E267",
     "date_vn": "2026-11-13",
-    "summary": "Web3.3.21 Owner FIELD FAIL on spacing; verified unmatched legacy margins/role inset and inline Shift gaps. PR979 CSS-only with Chromium geometry CI pending. No new release authorization; D172 HOLD.",
-    "status": "FIELD_FAIL_WEB3321_LAYOUT_SPACING__CSS_CODE_CANDIDATE_PR979__BROWSER_CI_PENDING_NO_RELEASE",
+    "summary": "Web3.3.21 Owner FIELD spacing FAIL reproduced by Chromium Users inset12px; E237 CSS specificity root corrected. E267 scoped code/Chromium/D172 CI4/4 PASS at e0f8c7c248e111db2f38d571bcdc478e569aaca5; PR979 Draft/no new release authorization, D172 HOLD.",
+    "status": "WEB3321_FIELD_FAIL_REPRODUCED_CHROMIUM__E267_CODE_CI_SCOPED_PASS__NO_RELEASE_PERMISSION__D172_HOLD",
     "source": "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md",
     "branch": "fix/d173-e267-web3321-field-spacing-20261113",
     "pr": 979,
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "source_ci_sha": "e0f8c7c248e111db2f38d571bcdc478e569aaca5",
+    "source_ci_run_ids": [
+      43437477996,
+      43437477909,
+      43437477525,
+      43437478058
+    ],
+    "code_pass": true,
+    "ci_scoped_pass": true,
+    "global_ci_pass": false,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false
@@ -5624,28 +5632,38 @@
       "kind": "OWNER_COMMAND",
       "topic": "Owner FIELD FAIL: Web3.3.21 remains inconsistent in page content spacing across screenshots",
       "owner_approval": null,
-      "status": "FIELD_FAIL_WEB3321_LAYOUT_SPACING__CSS_CODE_CANDIDATE_PR979__BROWSER_CI_PENDING_NO_RELEASE",
+      "status": "WEB3321_FIELD_FAIL_REPRODUCED_CHROMIUM__E267_CODE_CI_SCOPED_PASS__NO_RELEASE_PERMISSION__D172_HOLD",
       "facts": [
         "Owner supplied four Web3.3.21 screenshots of Operations, Shift, Overview, Users at 20:24 and explicitly said spacing remains inconsistent. This supersedes any suggested UI FIELD PASS; technical release E266 remains true independently.",
         "Verified CSS: web-unified-ui.css heading margin 14px and panel title margin 12px !important, d167-web-ux-recovery.css Users tabs margin12px and Users grid margin10px !important, d167-web-compact-accounts.css Shift History margin-top12px.",
         "Verified live production markup: Shift two-card inline grid gap14px, meal form gap12px/margin-top14px. E264 had normalized selected nested grid gap/radius but not these margins, panel pads or all root stacks.",
         "Verified E260 page inset selector had lower/equal specificity versus role-based legacy content padding; E267 adds body-rooted desktop selector to normalize page inset.",
         "PR979 scoped CSS-only fix and source regression plus isolated Chromium computed-style geometry tests across 1280/1366/1792/1920, Web build and D172 guard; Production Web3.3.21 unaffected.",
-        "Prior Owner E265 release authorization pinned Web3.3.21 exact source and was fulfilled; the current FIELD failure does NOT authorize new 3.3.22 deployment, merge, data mutation, Agent, Android or D172 changes."
+        "Prior Owner E265 release authorization pinned Web3.3.21 exact source and was fulfilled; the current FIELD failure does NOT authorize new 3.3.22 deployment, merge, data mutation, Agent, Android or D172 changes.",
+        "Chromium RED run43436784898: exact live CSS cascade Users 1280px paddingLeft12 vs required6, traced to E237 :not(:has(.ops-business-workspace)) selector higher specificity than E267 initial body rule.",
+        "E267 final CSS selector outranks E237. Exact source CI e0f8c7c248e111db2f38d571bcdc478e569aaca5: Chromium geometry source+build+D172 run43437477996 SUCCESS; Authority43437477909, Continuity43437477525, E123 SQL/Auth/D17243437478058 SUCCESS; global historical CI still fails outside scoped UI."
       ],
-      "next_action": "Finish scoped CSS/browser CI and repair failures on PR979; retain Draft/no merge. Owner must explicitly authorize a new exact-source Web release if requesting deployment. FIELD authenticated nine-page validation and Owner PASS remain pending.",
+      "next_action": "PR979 Draft holds source candidate only. New Web version, merge and Production deployment require explicit Owner instruction with exact new release gate. Before Owner PASS validate authenticated nine pages/theme/HD/zoom on actual deployment.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/979 ; docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md ; https://github.com/tamnv2/supra-inventory/actions/runs/43430031505",
       "branch": "fix/d173-e267-web3321-field-spacing-20261113",
       "pr": 979,
       "source_main_sha": "6f74a954e49da65582946df6bff0b2a29f6e6ab1",
-      "code_pass": false,
-      "ci_pass": false,
+      "code_pass": true,
+      "ci_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED",
-      "production_web": "3.3.21"
+      "production_web": "3.3.21",
+      "source_ci_sha": "e0f8c7c248e111db2f38d571bcdc478e569aaca5",
+      "source_ci_run_ids": [
+        43437477996,
+        43437477909,
+        43437477525,
+        43437478058
+      ],
+      "global_ci_pass": false
     }
   ],
   "resume": {
