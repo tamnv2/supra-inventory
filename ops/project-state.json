@@ -7636,7 +7636,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 972,
     "active_working_branch": "fix/d173-e257-overview-live-triage-20261113",
-    "working_pr_lifecycle": "PR972_OPEN_DRAFT__OWNER_RELEASE_APPROVED__EXACT_SOURCE_CI_PENDING__D172_HOLD"
+    "working_pr_lifecycle": "PR972_OPEN_OWNER_PRODUCTION_APPROVED__SCOPED_SOURCE_CI_8_8_PASS__PROTECTED_MERGE_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14620,15 +14620,27 @@
     "previous_production_web_version": "3.3.18",
     "target_web_version": "3.3.19",
     "scope": "EXISTING_WORKER_WEB_READONLY_D173_OVERVIEW_ONLY",
-    "code": "RELEASE_CANDIDATE_UNDER_CI",
-    "ci": "PENDING_E258_EXACT_SOURCE",
-    "release": "OWNER_AUTHORIZED_BUT_HOLD_UNTIL_CI_PROTECTED_MERGE",
+    "code": "PASS_EXACT_SCOPED_SOURCE",
+    "ci": "PASS_SCOPED_8_OF_8_RUNS",
+    "release": "PENDING_PROTECTED_PR_MERGE_AND_PRODUCTION_RUN",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "auth": "ops/d173-e258-web3319-release-authorization.json",
     "doc": "docs/D173_E258_WEB3319_RELEASE_AUTHORIZATION_2026-11-13.md",
-    "quota": "3_BOUNDED_DO_SQL_READS_AND_WEBSOCKET_COALESCED_15SEC_EVENT_REFRESH__ROWS_READ_NOT_MEASURED"
+    "quota": "3_BOUNDED_DO_SQL_READS_AND_WEBSOCKET_COALESCED_15SEC_EVENT_REFRESH__ROWS_READ_NOT_MEASURED",
+    "source_ci_sha": "aa2b50323993246e082824d38518b2d2b9cd139d",
+    "required_ci_run_ids": [
+      43406500044,
+      43406500258,
+      43406500349,
+      43406500411,
+      43406500302,
+      43406499981,
+      43406500407,
+      43406500649
+    ],
+    "ci_global_pass": false
   }
 }
