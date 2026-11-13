@@ -5140,7 +5140,7 @@
       "date_vn": "2026-11-13",
       "topic": "Owner approved code and guarded Production Web3.3.18 for intermittently clipped header and redesigned D173 Inventory overview",
       "kind": "OWNER_COMMAND",
-      "owner_approval": "OWNER_20261113_HEADER_DASHBOARD_WEB3318_CODE_RELEASE",
+      "owner_approval": true,
       "status": "OWNER_APPROVED_CODE_AND_RELEASE_CONDITIONED_ON_CI__NO_RELEASE_YET__D172_HOLD",
       "facts": [
         "Production base from PR969 docs MERGED main 4ecb4cf, Web3.3.17 Worker release run43362731384 PASS; Owner screenshot confirms header partially lost, cause hypothesized CSS relative scrolling.",
@@ -5157,7 +5157,8 @@
       "ci_pass": false,
       "release_pass": false,
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "owner_approval_reference": "OWNER_20261113_HEADER_DASHBOARD_WEB3318_CODE_RELEASE"
     }
   ],
   "resume": {
