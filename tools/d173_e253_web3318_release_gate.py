@@ -17,6 +17,7 @@ RUNTIME = {
 }
 ALLOWED = RUNTIME | {
     "tests/d173-e252-web3318-overview.test.mjs",
+    "tests/d167-web-ux-consistency.test.mjs",
     "tests/d173-e247-web3317-contractors-roster.test.mjs",
     "tests/d173-e242-web3316-ui-consistency.test.mjs",
     "tests/d173-e237-web3315-global-layout.test.mjs",
