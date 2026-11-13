@@ -15,7 +15,7 @@
     "branch": "fix/d173-e257-overview-live-triage-20261113",
     "pr": 972,
     "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb",
-    "source_code_sha": "e01f0ca1cb3c4ca00e03fadff6b11d9f1997701e",
+    "source_code_sha": "b462215cda2255864f727cf47c441d103bf568ff",
     "target_web_version": "3.3.19",
     "release_pass": false,
     "field_pass": false,
@@ -5307,7 +5307,8 @@
         "Main accepted base cfe3a7674b85b410f60297c77920408a971413fb, PR972 branch fix/d173-e257-overview-live-triage-20261113 was LIVE OPEN draft, exact app code source after Web3.3.19/version test updates e01f0ca1cb3c4ca00e03fadff6b11d9f1997701e.",
         "Current E257 overview shows pending SKU/site/hour/wait and two trends, WebSocket event coalescing 15s refresh, no independent analytics polling. New /api/admin/overview remains WEB-only authorized one DO call; SQL extra 3 bounded reads.",
         "E258 Owner-gated release marker D173-E258_WEB3319_PRODUCTION_RELEASE:, new exact-source gate tools/d173_e258_web3319_release_gate.py, auth ops/d173-e258-web3319-release-authorization.json. D172 independent PENDING/HOLD, Stable OWNER-GATED.",
-        "CI/usage p95 and post-deploy /health exact-source verification are NOT yet established; do not claim PASS before receipts."
+        "CI/usage p95 and post-deploy /health exact-source verification are NOT yet established; do not claim PASS before receipts.",
+        "Web build CI detected TS2322 on browser window.setTimeout handle; repaired one-line timer declaration in source b462215cda2255864f727cf47c441d103bf568ff. Rerunning exact-source CI, no Production deployment yet."
       ],
       "next_action": "Verify E258 scoped build/Worker/D172/Auth/CI, pin source CI SHA in authorization, confirm scoped required check PASS, protected merge PR972 with exact release marker, run existing Worker/Web deploy and verify production /health + shell; checkpoint distinct CODE CI RELEASE FIELD OWNER statuses.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/972 ; docs/D173_E258_WEB3319_RELEASE_AUTHORIZATION_2026-11-13.md",
@@ -5315,7 +5316,7 @@
       "pr": 972,
       "source_pr": 972,
       "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb",
-      "source_code_sha": "e01f0ca1cb3c4ca00e03fadff6b11d9f1997701e",
+      "source_code_sha": "b462215cda2255864f727cf47c441d103bf568ff",
       "target_web_version": "3.3.19",
       "code_pass": false,
       "ci_pass": false,
