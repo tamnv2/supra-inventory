@@ -30,6 +30,7 @@ ALLOWED = WEB | {
     "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
     "docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md",
     "docs/OWNER_DECISIONS.md",
+    "docs/specs/UI_DESIGN_SYSTEM.md",
     "ops/authority-manifest.json",
     "ops/current-context.json",
     "ops/project-state.json",
