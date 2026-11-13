@@ -2368,7 +2368,7 @@ function renderDashboard(): string{
   }).join("") : `<tr><td colspan="5">${pending ? "Chưa tải được danh sách đợt mở; không suy diễn đã hết tồn đọng." : "Không có đợt đang chờ xử lý."}</td></tr>`;
   const issues: Array<{ tone: string; title: string; detail: string }> = [];
   if (overdue !== null && overdue > 0) issues.push({tone:"danger",title:`${num(overdue)} đợt vượt SLA`,detail:"Theo ngưỡng SLA đang áp dụng; cần kiểm tra các đợt mở."});
-  if (systemSkip > 0) issues.push({tone:"warning",title:`${num(systemSkip)} đợt Skip tự động hôm nay`,detail:`Quá hạn ${num(sourceCount("SYSTEM_TIMEOUT"))} · Cuối ngày ${num(sourceCount("SYSTEM_DAY_END"))}. Đây là nguồn xử lý, chưa phải nguyên nhân thiếu hàng.`});
+  if (systemSkip > 0) issues.push({tone:"warning",title:`${num(systemSkip)} đợt báo hôm nay đã Skip tự động`,detail:`Quá hạn ${num(sourceCount("SYSTEM_TIMEOUT"))} · Cuối ngày ${num(sourceCount("SYSTEM_DAY_END"))}. Đây là nguồn xử lý, chưa phải nguyên nhân thiếu hàng.`});
   if (recurrence.length) {
     const first = recurrence[0];
     issues.push({tone:"warning",title:`SKU ${first.sku} tái phát ${num(first.recurrence_count)} lần`,detail:`Báo lại gần nhất ${fmt(first.latest_first_report_at)}. Cần đối chiếu kết quả các đợt trước.`});
@@ -2399,7 +2399,7 @@ function renderDashboard(): string{
         <div class="d173-overview-kpi critical"><span>Đợt chờ xử lý</span><strong>${num(pending)}</strong><small>Toàn hệ thống, không lọc ngày</small></div>
         <div class="d173-overview-kpi"><span>Ticket Picker đang chờ</span><strong>${num(pickerOpen)}</strong><small>Không phải số Picker duy nhất</small></div>
         <div class="d173-overview-kpi ${oldestMinutes != null && oldestMinutes > 30 ? "critical" : ""}"><span>Chờ lâu nhất</span><strong data-overview-wait-since="${esc(pendingItems[0]?.first_report_at || "")}">${oldestMinutes == null ? (pending ? "—" : "0 phút") : oldestMinutes < 60 ? num(oldestMinutes)+" phút" : `${Math.floor(oldestMinutes/60)}g ${oldestMinutes%60}p`}</strong><small>Từ lúc báo đầu của đợt còn mở</small></div>
-        <div class="d173-overview-kpi"><span>Skip tự động hôm nay</span><strong>${num(systemSkip)}</strong><small>Quá hạn / cuối ngày</small></div>
+        <div class="d173-overview-kpi"><span>Skip tự động*</span><strong>${num(systemSkip)}</strong><small>* Đợt báo hôm nay · quá hạn / cuối ngày</small></div>
         <div class="d173-overview-kpi"><span>SLA cảnh báo / quá hạn</span><strong>${slaConfigured ? `${num(warning || 0)} / ${num(overdue || 0)}` : "—"}</strong><small>${slaConfigured ? "Đợt đang cần giám sát" : "Chưa cấu hình SLA"}</small></div>
       </div>
       <div class="d173-overview-cols d173-overview-priority">
