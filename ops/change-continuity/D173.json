@@ -3,25 +3,25 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
-  "pr": 974,
+  "working_branch": "fix/d173-e262-web3320-postsecret-readback-20261113",
+  "pr": 975,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E261",
+    "id": "D173-E262",
     "date_vn": "2026-11-13",
-    "summary": "Owner approved Web3.3.20; exact-source 6/6 scoped CI + real release preflight PASS at e08a212b; protected merge/release pending. Global legacy UI Guard FAIL; D172 HOLD.",
-    "status": "WEB3320_SCOPED_CODE_CI_AND_RELEASE_PREFLIGHT_PASS__PRODUCTION_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md",
-    "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
-    "pr": 974,
-    "source_code_sha": "22666e168936e57ff9c974e46a33bc0499bb6e02",
+    "summary": "Web3320 postsecret runtime readback exact099d PASS, E262 source + scoped CI 4/4 preflight PASS at 1f57d0a; protected recovery merge pending, FIELD/OWNER pending, D172 HOLD.",
+    "status": "E262_CODE_CI_4_OF_4_PASS__PRODUCTION_RECOVERY_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E262_WEB3320_POSTSECRET_RELEASE_RECOVERY_2026-11-13.md",
+    "branch": "fix/d173-e262-web3320-postsecret-readback-20261113",
+    "pr": 975,
+    "source_code_sha": "4d77795d65b9541aa950d70e41521eac74814b3b",
     "code_pass": true,
     "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
-    "source_ci_sha": "e08a212b77aa0c4393325a4e50a5decbb344b726",
-    "source_ci_run_id": 43420379425
+    "source_ci_sha": "1f57d0a40371d15289b8cabbf510b2d79a569df5",
+    "source_ci_run_id": 43422648020
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5448,6 +5448,44 @@
         43420379367,
         43420379067,
         43420379400
+      ]
+    },
+    {
+      "id": "D173-E262",
+      "date_vn": "2026-11-13",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Web3320 Worker E261 deploy succeeded but D166 post-secret one-shot source check failed transiently; bounded retry recovery",
+      "owner_approval": false,
+      "owner_release_basis": "E261_OWNER_EXPLICIT_FINISH_CODE_AND_RELEASE__TECHNICAL_FAILURE_REPAIR_ONLY",
+      "status": "POSTSECRET_RECOVERY_SOURCE_CI_4_OF_4_PASS__PROTECTED_MERGE_RELEASE_PENDING",
+      "facts": [
+        "E261 PR974 protected merged main099d01571399cf57615f6efbbf34f61c03d265ec. Deploy Beta Worker run43420957297 Web build, Worker TS, exact gates, wrangler deploy and initial health/schema all SUCCESS.",
+        "After existing D166 Cloudflare secret put succeeded, the immediate health check at HTTP200/beta failed exact source_commit; remainder of deploy workflow was skipped and run conclusion FAILURE. Secret value never logged.",
+        "Independent read-only PR975 workflow run43421512675 job131872400995 later verified official health source_commit equal 099d01571399cf57615f6efbbf34f61c03d265ec, status ok, SQLite17/17, operational7/7; public shell HTTP200 and anonymous overview 401/403.",
+        "The observed mismatch is therefore temporary; exact propagation duration and unexecuted remaining tests are still unverified. No broad Worker/API/D172 business source modifications are authorized.",
+        "Source/strict release gate preflight + read-only official Production /health and Web/RBAC PASS run43422648020; Repo Authority 43422647955, Project State/Change Continuity 43422647870, D172 isolation 43422648009 all SUCCESS exact head 1f57d0a40371d15289b8cabbf510b2d79a569df5."
+      ],
+      "inference": [
+        "D166 secret-put makes new Worker version and immediate source read can precede propagation; bounded retry with exact-match requirement is the smallest safe recovery."
+      ],
+      "next_action": "CI E262 preflight + D172/repo guards, Owner-scoped protected recovery merge, inspect full Deploy Beta Worker SUCCESS and readback exact new main SHA.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/43420957297 ; https://github.com/tamnv2/supra-inventory/actions/runs/43421512675 ; docs/D173_E262_WEB3320_POSTSECRET_RELEASE_RECOVERY_2026-11-13.md",
+      "branch": "fix/d173-e262-web3320-postsecret-readback-20261113",
+      "pr": 975,
+      "source_code_sha": "4d77795d65b9541aa950d70e41521eac74814b3b",
+      "code_pass": true,
+      "ci_pass": true,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "1f57d0a40371d15289b8cabbf510b2d79a569df5",
+      "required_ci_run_ids": [
+        43422648020,
+        43422647955,
+        43422647870,
+        43422648009
       ]
     }
   ],

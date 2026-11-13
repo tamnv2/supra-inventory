@@ -86,7 +86,10 @@ jobs:
         run: |
           set -euo pipefail
           subject="$(git log -1 --format=%s)"
-          if [[ "$subject" == D173-E261_WEB3320_PRODUCTION_RELEASE:* ]]; then
+          if [[ "$subject" == D173-E262_WEB3320_RECOVERY_RELEASE:* ]]; then
+            python3 tools/d173_e262_web3320_recovery_gate.py --component worker
+            python3 tools/d173_e262_web3320_recovery_gate.py --component web
+          elif [[ "$subject" == D173-E261_WEB3320_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e261_web3320_release_gate.py --component worker
             python3 tools/d173_e261_web3320_release_gate.py --component web
           elif [[ "$subject" == D173-E258_WEB3319_PRODUCTION_RELEASE:* ]]; then
@@ -195,7 +198,7 @@ jobs:
           # E165/E167 Owner-approved Production changes ONLY the Web log cadence.
           # Validate its precise replacement instead of blocking a correct release
           # with obsolete literal source checks.
-          if [[ "$(git log -1 --format=%s)" == D173-E261_WEB3320_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E258_WEB3319_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E253_WEB3318_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E249_WEB3317_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E244_WEB3316_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E237_WEB3315_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E233_WEB3314_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E230_WEB3313_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E227_WEB3312_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E223_WEB3311_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E217_WEB3310_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E214_WEB339_FIELD_REPAIR_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E210_WEB338_FIELD_REPAIR_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E209_WEB337_RESULTS_WORKER_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E175_UNIFIED_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* || "$(git log -1 --format=%s)" == D172-E059_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E060_WORKER_ONLY:* ]]; then
+          if [[ "$(git log -1 --format=%s)" == D173-E262_WEB3320_RECOVERY_RELEASE:* || "$(git log -1 --format=%s)" == D173-E261_WEB3320_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E258_WEB3319_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E253_WEB3318_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E249_WEB3317_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E244_WEB3316_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E237_WEB3315_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E233_WEB3314_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E230_WEB3313_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E227_WEB3312_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E223_WEB3311_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E217_WEB3310_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E214_WEB339_FIELD_REPAIR_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E210_WEB338_FIELD_REPAIR_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E209_WEB337_RESULTS_WORKER_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E175_UNIFIED_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* || "$(git log -1 --format=%s)" == D172-E059_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E060_WORKER_ONLY:* ]]; then
             grep -Fq 'const minuteOfDay = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);' web/src/runtime-logger.ts
             grep -Fq 'const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];' web/src/runtime-logger.ts
             grep -Fq 'return `${parts.year}${parts.month}${parts.day}-${slot}`;' web/src/runtime-logger.ts
@@ -294,6 +297,14 @@ jobs:
           # cannot reuse Agent158/159 release authority.
           # E140 shares the EXISTING Worker; no Apps Script Gateway or D172
           # mutation, and Worker must deploy before Agent166/Android126.
+          if [[ "$(git log -1 --format=%s)" == D173-E262_WEB3320_RECOVERY_RELEASE:* ]]; then
+            python3 tools/d173_e262_web3320_recovery_gate.py --component worker
+            git diff --quiet "$(jq -r '.base_main_sha' ops/d173-e262-web3320-recovery-authorization.json)" HEAD -- web/ service/ android/ obpp1291/ firebase/ functions/ relay-agent/ pda-management/ ops/apps-script/ || {
+              echo "::error::E262 changed protected Web/Worker/D172/Provider source"; exit 1;
+            }
+            echo "D173_E262_UNCHANGED_WEB_WORKER_D172_GATEWAY_SOURCE_PASS"
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E261_WEB3320_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e261_web3320_release_gate.py --component worker
             git diff --quiet "$(jq -r '.base_main_sha' ops/d173-e261-web3320-release-authorization.json)" HEAD -- service/ android/ obpp1291/ firebase/ functions/ pda-management/ ops/apps-script/ relay-agent/ relay-agent-webview2-host/ || {
@@ -805,15 +816,25 @@ jobs:
           # existing bindings and source commit survive that version transition.
           health="$(mktemp)"
           trap 'rm -f "$tmp" "$health"' EXIT
-          health_code="$(curl -sS --max-time 25 -o "$health" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
+          # Secret put publishes a second Worker version; Cloudflare may take a
+          # short time to expose its updated source stamp. Keep the exact SHA
+          # and environment requirement, but fail only after a bounded retry.
           expected="${GITHUB_SHA}"
-          current="$(jq -r '.source_commit // ""' "$health" 2>/dev/null || true)"
-          environment="$(jq -r '.environment // ""' "$health" 2>/dev/null || true)"
-          [ "$health_code" = "200" ] && [ "$current" = "$expected" ] && [ "$environment" = "beta" ] || {
-            echo "::error::D166 Worker post-secret health/source binding mismatch (http=${health_code:-000}, env=${environment:-none}, commit_match=$([ "$current" = "$expected" ] && echo true || echo false))"
-            exit 1
-          }
-          echo "D166_WORKER_SECRET_VERSION_SOURCE_AND_ENV_PASS"
+          for attempt in $(seq 1 30); do
+            health_code="$(curl -sS --max-time 25 -o "$health" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
+            current="$(jq -r '.source_commit // ""' "$health" 2>/dev/null || true)"
+            environment="$(jq -r '.environment // ""' "$health" 2>/dev/null || true)"
+            if [ "$health_code" = "200" ] && [ "$current" = "$expected" ] && [ "$environment" = "beta" ]; then
+              echo "D166_WORKER_SECRET_VERSION_SOURCE_AND_ENV_PASS attempt=$attempt"
+              break
+            fi
+            echo "D166 post-secret attempt=$attempt http=${health_code:-000} env=${environment:-none} commit_match=$([ "$current" = "$expected" ] && echo true || echo false)"
+            [ "$attempt" -lt 30 ] || {
+              echo "::error::D166 Worker post-secret source mismatch after bounded propagation retry"
+              exit 1
+            }
+            sleep 5
+          done
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
             code="$(curl -sS --max-time 15 -o "$tmp" -w '%{http_code}' \
               -H 'content-type: application/json' \

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173-E262",
+  "date_vn": "2026-11-13",
+  "source_pr": 975,
+  "owner_approval_reference": "OWNER_20261113_E260_FINISH_RELEASE__POSTSECRET_TECHNICAL_RECOVERY",
+  "owner_production_release_approved": true,
+  "base_main_sha": "099d01571399cf57615f6efbbf34f61c03d265ec",
+  "web_target_version": "3.3.20",
+  "approved_components": [
+    "worker",
+    "web"
+  ],
+  "release_marker": "D173-E262_WEB3320_RECOVERY_RELEASE:",
+  "scope": "POSTSECRET_READBACK_BOUNDED_RETRY_ONLY_NO_PRODUCT_MUTATION",
+  "d172_pending_hold": true,
+  "stable_mutation": false,
+  "agent_mutation": false,
+  "android_mutation": false,
+  "firebase_mutation": false,
+  "new_provider_resources": false,
+  "source_code_sha": "4d77795d65b9541aa950d70e41521eac74814b3b",
+  "source_ci_sha": "1f57d0a40371d15289b8cabbf510b2d79a569df5",
+  "ci_scoped_pass": true,
+  "authority_guard_pass": true,
+  "d172_isolation_pass": true,
+  "required_ci_failed": 0,
+  "required_ci_run_ids": [
+    43422648020,
+    43422647955,
+    43422647870,
+    43422648009
+  ],
+  "field_pass": false,
+  "owner_pass": false,
+  "release": "CODE_AND_SCOPED_CI_4_OF_4_PASS__PROTECTED_RECOVERY_MERGE_PENDING"
+}
