@@ -5111,7 +5111,7 @@
       "id": "D173-E252",
       "date_vn": "2026-11-13",
       "topic": "Owner requests source-grounded full Web3.3.17 Inventory overview redesign, real inventory triage, hourly/daily last-seven-days with controlled Cloudflare usage",
-      "kind": "OWNER_REVIEW_REQUEST",
+      "kind": "OWNER_COMMAND",
       "owner_approval": null,
       "status": "REVIEW_ONLY_UNAPPROVED__NO_CODE_NO_RELEASE__D172_HOLD",
       "facts": [
@@ -5139,7 +5139,7 @@
       "id": "D173-E253",
       "date_vn": "2026-11-13",
       "topic": "Owner approved code and guarded Production Web3.3.18 for intermittently clipped header and redesigned D173 Inventory overview",
-      "kind": "OWNER_IMPLEMENT_RELEASE_APPROVAL",
+      "kind": "OWNER_COMMAND",
       "owner_approval": "OWNER_20261113_HEADER_DASHBOARD_WEB3318_CODE_RELEASE",
       "status": "OWNER_APPROVED_CODE_AND_RELEASE_CONDITIONED_ON_CI__NO_RELEASE_YET__D172_HOLD",
       "facts": [
