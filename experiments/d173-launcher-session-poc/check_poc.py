@@ -29,5 +29,5 @@ assert 'vn.supra.identitytest' in (client / 'app/build.gradle').read_text()
 assert 'signInWithCustomToken' not in client_main
 # Never ship a credential as a hidden value inside a public APK.
 assert not any('Supra@123' in p.read_text(errors='ignore')
-               for p in root.rglob('*') if p.is_file() and '.git' not in p.parts)
+               for p in root.rglob('*') if p.is_file() and p.name != 'check_poc.py' and '.git' not in p.parts)
 print("PoC static separation and token-safety checks PASS (not runtime or Firebase FIELD PASS)")
