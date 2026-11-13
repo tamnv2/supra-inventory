@@ -14295,15 +14295,27 @@
     "kind": "ISOLATED_FIREBASE_AUTH_REAL_TEST",
     "branch": "feat/d173-launcher-session-poc-20261113",
     "pr": 964,
-    "source_sha": "49a27c3d16bd49a8cd93f496b64cb15da86f4519",
-    "run_id": 43353330048,
-    "artifact_id": 14004384190,
-    "source_ci": "PASS",
-    "provider_qa": "NOT_PROVISIONED_NOT_DEPLOYED",
+    "source_sha": "0ddb89961a45703fb858aefede879d0475603684",
+    "run_id": 43366094808,
+    "artifact_id": 14010347167,
+    "source_ci": "PASS_QA_DUAL_DEBUG_APK_SOURCE_BUILD_SAME_SIGNER",
+    "provider_qa": "DEDICATED_IDLE_PICKER_QA_ACCOUNT_NOT_VERIFIED",
     "production": "UNCHANGED",
     "field_pass": false,
     "owner_pass": false,
-    "status": "AWAIT_DEDICATED_QA_PROJECT__NO_REAL_AUTH_FIELD_PASS",
-    "previous": "d173_launcher_identity_isolated_poc_20261113"
+    "status": "SOURCE_AND_TEST_APK_BUILD_PASS__QA_CREDENTIAL_CONFIGURATION_AND_PHYSICAL_FIELD_PENDING",
+    "previous": "d173_launcher_identity_isolated_poc_20261113",
+    "owner_instruction": "2026-11-13: continue code to done and release two isolated test APKs for owner PDA trial; Production untouched",
+    "code": "PASS_SCOPED",
+    "ci": "PASS_ISOLATED_QA_BUILD",
+    "qa_artifact": "GITHUB_ACTIONS_ARTIFACT_AVAILABLE",
+    "qa_configuration": "UNSET_BOTH_REPOSITORY_VARIABLES_IN_RUN_LOG__RUNTIME_LOGIN_FAIL_CLOSED",
+    "qa_required_variables": [
+      "D173_POC_TEST_USERNAME",
+      "D173_POC_FIREBASE_API_KEY"
+    ],
+    "release": "NOT_PRODUCTION__NO_LIVE_LAUNCHER_OR_INVENTORY_OTA",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
