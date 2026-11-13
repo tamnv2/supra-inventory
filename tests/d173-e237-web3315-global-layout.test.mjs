@@ -35,6 +35,6 @@ test("E237: Dashboard, Accounts and Logs tabbars remain sticky in both themes", 
 });
 
 test("E237: Web 3.3.17 is candidate only; existing network and RBAC handlers remain untouched", () => {
-  assert.match(version, /WEB_VERSION = "3\.3\.16"/);
+  assert.match(version, /WEB_VERSION = "3\.3\.17"/);
   assert.equal(pkg.version, "3.3.17");
 });
