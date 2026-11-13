@@ -8,7 +8,7 @@
   "owner_production_release_approved": true,
   "source_pr": 970,
   "base_main_sha": "4ecb4cfebbddac1fc90f4aa29f2cd89e17f42a33",
-  "source_code_sha": "252f95f3a326703dfd17dbccc680e76e7f26ec87",
+  "source_code_sha": "587926c7aec7b80c79567b2c8f3190e32e76156a",
   "web_target_version": "3.3.18",
   "approved_components": [
     "worker",
