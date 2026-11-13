@@ -11,7 +11,7 @@ const version = readFileSync("web/src/web-version.ts", "utf8");
 const deploy = readFileSync(".github/workflows/deploy-beta.yml", "utf8");
 
 test("D173-E257 shows live per-SKU triage without a second page or recent-resolution wall", () => {
-  assert.match(version, /WEB_VERSION = "3\.3\.19"/); // Owner-authorized release candidate.
+  assert.match(version, /WEB_VERSION = "3\.3\.20"/); // Owner-authorized release candidate.
   assert.match(web, /function renderDashboard\(\): string/);
   const dashboard = web.slice(web.indexOf("function renderDashboard(): string"), web.indexOf("function reportPickerOutcome"));
   for (const key of [
