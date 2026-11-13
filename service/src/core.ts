@@ -1241,10 +1241,65 @@ export class InventoryCore {
         const areasResponse = await handleD167AreaReportCoreRequest(this.state,
           new Request("https://inventory-core.internal/d167/report/summary?" + areaRange.toString()));
         const areas = areasResponse?.ok ? await areasResponse.json() : null;
+  // A bounded D173-only view inside the already authorized overview DO call.
+  const todayVn = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+  const sevenDayStartVn = new Date(Date.parse(todayVn + "T00:00:00Z") - 6 * 86_400_000).toISOString().slice(0, 10);
+  const startUtc = new Date(Date.parse(sevenDayStartVn + "T00:00:00Z") - 7 * 3600_000).toISOString();
+  const endUtc = new Date(Date.parse(todayVn + "T00:00:00Z") + 17 * 3600_000).toISOString();
+  const pendingItems = this.state.storage.sql.exec(
+    `SELECT p.batch_id,p.sku,p.product_name,p.first_report_at,p.last_report_at,
+            (SELECT COUNT(*) FROM report_tickets t
+              WHERE t.batch_id=p.batch_id AND t.status='OPEN') AS open_picker_count,
+            COALESCE((SELECT h.area FROM d167_sku_area_history h
+              WHERE h.sku=p.sku AND h.effective_from<=p.first_report_at
+                AND (h.effective_to IS NULL OR h.effective_to>p.first_report_at)
+              ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') AS area_at_first_report
+       FROM (SELECT batch_id,sku,product_name,first_report_at,last_report_at
+               FROM report_batches WHERE status='PENDING'
+              ORDER BY first_report_at ASC,batch_id ASC LIMIT 6) p
+      ORDER BY p.first_report_at ASC,p.batch_id ASC`,
+  ).toArray().map(row => ({
+    batch_id: String(row.batch_id || ""),
+    sku: String(row.sku || ""),
+    product_name: String(row.product_name || ""),
+    first_report_at: String(row.first_report_at || ""),
+    last_report_at: String(row.last_report_at || ""),
+    open_picker_count: Number(row.open_picker_count || 0),
+    area_at_first_report: String(row.area_at_first_report || "UNKNOWN"),
+  }));
+  const reportedHours = this.state.storage.sql.exec(
+    `SELECT strftime('%Y-%m-%dT%H:00',reported_at,'+7 hours') AS bucket,COUNT(*) AS count
+       FROM report_tickets WHERE reported_at>=? AND reported_at<?
+      GROUP BY bucket ORDER BY bucket`,
+    startUtc,endUtc,
+  ).toArray();
+  const completedHours = this.state.storage.sql.exec(
+    `SELECT strftime('%Y-%m-%dT%H:00',resolved_at,'+7 hours') AS bucket,COUNT(*) AS count
+       FROM report_batches WHERE resolved_at>=? AND resolved_at<?
+         AND status IN ('HAS_STOCK','SKIP_ALLOWED')
+      GROUP BY bucket ORDER BY bucket`,
+    startUtc,endUtc,
+  ).toArray();
+  const hourly = new Map();
+  for (const row of reportedHours) {
+    const bucket = String(row.bucket || "");
+    if (bucket) hourly.set(bucket,{bucket,reports:Number(row.count || 0),resolved:0});
+  }
+  for (const row of completedHours) {
+    const bucket = String(row.bucket || "");
+    if (!bucket) continue;
+    const item = hourly.get(bucket) || {bucket,reports:0,resolved:0};
+    item.resolved = Number(row.count || 0);
+    hourly.set(bucket,item);
+  }
+  const trend7dHours = [...hourly.values()].sort((a,b) => a.bucket.localeCompare(b.bucket));
         return response({
           dashboard: await dashboardResponse.json(),
           insights: await insightsResponse.json(),
           areas,
+          pending_items: pendingItems,
+          trend_7d_hours: trend7dHours,
+          generated_at: new Date().toISOString(),
         });
       }
       if (operation === "dashboard-preference") target.searchParams.set("user_id", user.user_id);
