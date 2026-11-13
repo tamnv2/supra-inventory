@@ -34,7 +34,7 @@ test("E237: Dashboard, Accounts and Logs tabbars remain sticky in both themes", 
   assert.match(web, /aria-label="Nguồn nhật ký"/);
 });
 
-test("E237: Web 3.3.18 is candidate only; existing network and RBAC handlers remain untouched", () => {
-  assert.match(version, /WEB_VERSION = "3\.3\.18"/);
-  assert.equal(pkg.version, "3.3.18");
+test("E237: Web 3.3.19 is candidate only; existing network and RBAC handlers remain untouched", () => {
+  assert.match(version, /WEB_VERSION = "3\.3\.19"/);
+  assert.equal(pkg.version, "3.3.19");
 });

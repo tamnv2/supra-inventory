@@ -371,6 +371,17 @@ export interface AdminOverview {
   dashboard: AdminDashboard;
   insights: OperationalInsights;
   areas: D167AreaSummary | null;
+  generated_at: string;
+  pending_items: Array<{
+    batch_id: string;
+    sku: string;
+    product_name: string;
+    first_report_at: string;
+    last_report_at: string;
+    open_picker_count: number;
+    area_at_first_report: "LTA" | "SHELVING" | "UNKNOWN";
+  }>;
+  trend_7d_hours: Array<{ bucket: string; reports: number; resolved: number }>;
 }
 
 export interface D167AreaSummary {

@@ -72,7 +72,10 @@ test("Owner NOT PASS: SLA three compact steps and two policy columns", () => {
   const e253 = JSON.parse(readFileSync(new URL("../ops/d173-e253-web3318-release-authorization.json",import.meta.url),"utf8"));
   const authorizedE253 = e253.owner_code_approved && e253.owner_production_release_approved &&
     e253.web_target_version === "3.3.18" && e253.d172_pending_hold && e253.stable_mutation === false;
-  assert.ok(version.includes('WEB_VERSION = "' + (authorizedE253 ? "3.3.18" : webVersion) + '"'));
+  const e258 = JSON.parse(readFileSync(new URL("../ops/d173-e258-web3319-release-authorization.json",import.meta.url),"utf8"));
+  const authorizedE258 = e258.owner_code_approved && e258.owner_production_release_approved &&
+    e258.web_target_version === "3.3.19" && e258.d172_pending_hold && e258.stable_mutation === false;
+  assert.ok(version.includes('WEB_VERSION = "' + (authorizedE258 ? "3.3.19" : authorizedE253 ? "3.3.18" : webVersion) + '"'));
 });
 
 test("All Web screens: no Owner-facing narrative or long non-actionable paragraphs", () => {

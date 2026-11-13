@@ -10,33 +10,48 @@ const css = readFileSync("web/src/d173-overview.css", "utf8");
 const version = readFileSync("web/src/web-version.ts", "utf8");
 const deploy = readFileSync(".github/workflows/deploy-beta.yml", "utf8");
 
-test("Web3.3.18 includes new compact operational overview and same-day/7-day drilldown", () => {
-  assert.match(version, /WEB_VERSION = "3\.3\.18"/);
+test("D173-E257 shows live per-SKU triage without a second page or recent-resolution wall", () => {
+  assert.match(version, /WEB_VERSION = "3\.3\.19"/); // Owner-authorized release candidate.
   assert.match(web, /function renderDashboard\(\): string/);
-  for (const key of ["Tình trạng cần ưu tiên", "Biến động theo", "Vấn đề cần kiểm tra", "LTA \/ Shelving", "SKU tái phát", "SKU được báo nhiều", "5 kết quả gần nhất"]) assert.ok(web.includes(key), key);
+  const dashboard = web.slice(web.indexOf("function renderDashboard(): string"), web.indexOf("function reportPickerOutcome"));
+  for (const key of [
+    "Đợt đang nghẽn", "Dấu hiệu cần kiểm tra", "Xu hướng 7 ngày gần nhất",
+    "Phát sinh theo giờ hôm nay", "Khu vực phát sinh hôm nay", "SKU cần đối chiếu",
+    "first_report_at", "open_picker_count", "area_at_first_report",
+  ]) assert.ok(dashboard.includes(key), key);
+  assert.doesNotMatch(dashboard, /5 kết quả gần nhất|data-dashboard-status|data-dashboard-sku|data-dashboard-day/);
   assert.match(web, /getAdminOverview\(range\.from, range\.to, dashboardFrom, dashboardTo\)/);
-  assert.match(web, /data-dashboard-day/);
-  assert.match(web, /dashboardFrom = day;\s+dashboardTo = day;/);
-  assert.match(web, /data-dashboard-status="PENDING"/);
-  assert.match(web, /d173-overview-connected/);
-  assert.match(web, /Không lấy hiệu làm tồn đọng/);
+  assert.match(web, /dashboardFrom = dateDaysAgo\(0\);\s+dashboardTo = dashboardFrom;/);
+  assert.doesNotMatch(web, /function refreshDashboardPresence/);
+  assert.match(web, /function scheduleDashboardEventRefresh\(\): void/);
+  assert.match(web, /15_000 - \(Date\.now\(\) - dashboardLastLoadedAt\)/);
+  assert.match(web, /scheduleDashboardEventRefresh\(\);/);
+  assert.match(dashboard, /không phải vị trí hiện tại/);
+  assert.match(dashboard, /chưa chứng minh nguyên nhân thiếu hàng/);
 });
 
-test("Single authorized Worker→DO read forwards only existing business data", () => {
+test("One authenticated Web-to-DO overview includes bounded pending evidence and two read-only hourly SQL groups", () => {
   assert.match(api, /export async function getAdminOverview\(/);
-  assert.match(api, /authorizedFetch\(\`\/api\/admin\/overview\?/);
+  assert.match(api, /pending_items: Array/);
+  assert.match(api, /trend_7d_hours: Array/);
+  assert.match(api, /authorizedFetch\(/);
   assert.match(worker, /"GET \/api\/admin\/overview"/);
-  assert.match(worker, /overview: \["from", "to", "day_from", "day_to"\]/);
   assert.match(worker, /env\.APP_ENV !== "beta"/);
   const authorized = core.indexOf('if (request.method === "GET" && url.pathname.startsWith("/authorized/business/admin/"))');
   const permission = core.indexOf("this.authorizeInteractiveIdentity(request, selected.manager", authorized);
   const combined = core.indexOf('if (operation === "overview")', permission);
-  assert.ok(authorized > -1 && authorized < permission && permission < combined, "role and WEB channel gates before combined read");
-  assert.match(core.slice(combined,combined+2600), /handleBusinessRequest\(this\.state/);
-  assert.match(core.slice(combined,combined+2600), /handleOperationalV2CoreRequest\(this\.state/);
-  assert.match(core.slice(combined,combined+2600), /handleD167AreaReportCoreRequest\(this\.state/);
-  assert.match(core.slice(combined,combined+2600), /areasResponse\?\.ok \? await areasResponse\.json\(\) : null/);
-  assert.doesNotMatch(core.slice(combined,combined+2600), /storage\.sql\.exec|INSERT|UPDATE|DELETE/);
+  assert.ok(authorized > -1 && authorized < permission && permission < combined, "RBAC and WEB channel before overview");
+  const region = core.slice(combined,core.indexOf('if (operation === "dashboard-preference")',combined));
+  assert.match(region, /handleBusinessRequest\(this\.state/);
+  assert.match(region, /handleOperationalV2CoreRequest\(this\.state/);
+  assert.match(region, /handleD167AreaReportCoreRequest\(this\.state/);
+  assert.match(region, /status='PENDING'/);
+  assert.match(region, /first_report_at ASC,batch_id ASC LIMIT 6/);
+  assert.match(region, /FROM report_tickets WHERE reported_at>=\?/);
+  assert.match(region, /FROM report_batches WHERE resolved_at>=\?/);
+  assert.match(region, /trend_7d_hours: trend7dHours/);
+  assert.doesNotMatch(region, /\b(INSERT|UPDATE|DELETE)\s+(INTO|FROM|report_)/i);
+  assert.doesNotMatch(region, /obpp1291|obpp_/i);
 });
 
 test("Header is viewport-sticky without clipped overflow; layout scope only affects Web", () => {
@@ -47,12 +62,12 @@ test("Header is viewport-sticky without clipped overflow; layout scope only affe
   assert.doesNotMatch(css, /\.obpp1291/);
 });
 
-test("No invented stock cause, missing SLA is not coerced to zero, and ticket/batch are differentiated", () => {
+test("Missing SLA remains unknown, ticket and batch counts are not mixed", () => {
   assert.match(web, /slaConfigured \? Number\(insights\?\.sla\.warning_count \|\| 0\) : null/);
-  assert.match(web, /warning == null \? "—"/);
-  assert.match(web, /chưa xác minh nguyên nhân tồn kho/);
-  assert.match(web, /lượt Picker; xử lý xong: đợt/);
-  assert.match(web, /k\?\.avg_resolution_minutes == null \? "—"/);
+  assert.match(web, /slaConfigured \? Number\(insights\?\.sla\.escalated_count \|\| 0\) : null/);
+  assert.match(web, /"Chưa cấu hình SLA"/);
+  assert.match(web, /Không phải số Picker duy nhất/);
+  assert.match(web, /Đợt hoàn tất/);
 });
 
 test("E253 Production workflow preserves 10-slot Web log and D172 Gateway isolation", () => {
@@ -61,4 +76,22 @@ test("E253 Production workflow preserves 10-slot Web log and D172 Gateway isolat
   assert.match(deploy, /D173_E253_EXISTING_GATEWAY_D172_UNCHANGED__READ_ONLY_D173_OVERVIEW/);
   assert.match(deploy, /d173_e253_web3318_release_gate\.py --component worker/);
   assert.match(deploy, /D173_E165_WEB_LOG_10_SLOTS_DURABLE_SERVICE_CONTRACT_PASS/);
+});
+
+test("E258 Web3.3.19 release keeps one authorized Worker/DO and the immutable D172 boundary", () => {
+  const gate = readFileSync("tools/d173_e258_web3319_release_gate.py", "utf8");
+  const auth = JSON.parse(readFileSync("ops/d173-e258-web3319-release-authorization.json", "utf8"));
+  assert.equal(auth.owner_production_release_approved, true);
+  assert.equal(auth.web_target_version, "3.3.19");
+  assert.deepEqual(auth.approved_components, ["worker","web"]);
+  assert.equal(auth.d172_pending_hold, true);
+  assert.equal(auth.stable_mutation, false);
+  assert.equal(auth.new_provider_resources, false);
+  assert.equal(deploy.split("D173-E258_WEB3319_PRODUCTION_RELEASE:*").length - 1, 3);
+  assert.match(deploy, /D173_E258_EXISTING_GATEWAY_D172_UNCHANGED__READ_ONLY_D173_OVERVIEW/);
+  assert.match(gate, /SOURCE_DRIFT_AFTER_PIN/);
+  assert.match(gate, /CODE_DRIFT_AFTER_CI/);
+  assert.match(gate, /CROSS_MODULE_OR_PROVIDER_CHANGE/);
+  assert.match(gate, /D173_ONLY_READONLY_ADMIN_OVERVIEW_BOUNDED_TRIAGE/);
+  assert.doesNotMatch(gate, /obpp1291\/src\/.*write/i);
 });
