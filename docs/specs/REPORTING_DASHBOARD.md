@@ -1,3 +1,11 @@
+## D173-E257 — Tổng quan một trang để xử lý, không thay báo cáo chi tiết (13/11/2026)
+- Theo dõi hiện tại: đợt đang chờ, ticket mở, thời gian chờ lâu nhất, SLA cảnh báo/quá hạn nếu có cấu hình; bảng tối đa 6 đợt mở lâu nhất phải thấy ngay SKU, tên hàng, khu vực as-of-first-report, giờ báo đầu, số ticket mở, thời gian chờ. Không lọc tồn đọng theo ngày.
+- Theo dõi hôm nay: tổng lượt Picker báo, đợt xử lý (không cộng lẫn), Skip hệ thống theo nguồn, SKU tái phát, khu vực; 7 ngày VN và 24 giờ hôm nay xem đồng thời, không cần chuyển tab hay nhấn Chi tiết.
+- Bỏ 5 kết quả gần nhất, hai bảng SKU trùng nhau và nút chuyển trang từ Tổng quan. Phần báo cáo theo khoảng ngày thuộc tab Báo cáo chi tiết. SLA chưa cấu hình hiển thị “—”; không suy luận lý do tồn kho khi chỉ có sự kiện và khu vực lịch sử.
+- One GET overview hiện hành, thêm 3 SELECT bounded và bỏ presence polling dashboard; Rows Read/p95 phải đo trước release. CODE-only E257; Owner chưa duyệt phát hành mới. D172 độc lập, Stable owner-gated.
+
+---
+
 ## D173-E253 — Tổng quan Inventory Web 3.3.18 Owner duyệt triển khai (13/11/2026)
 - Ưu tiên tình trạng thực tế đang mở (tồn đọng, ticket Picker mở, SLA cảnh báo/quá hạn có cấu hình), sau đó mới tới khối lượng theo kỳ, biểu đồ, LTA/Shelving, kết quả, SKU tái phát và các kết quả gần đây. Không đưa tồn đọng lịch sử lẫn với bộ lọc ngày kỳ.
 - Phân biệt **lượt Picker báo = ticket** và **đợt hoàn tất = batch**, không lấy chênh lệch làm backlog. Hôm nay chưa đủ cả ngày, không so trực tiếp với toàn ngày trước.
