@@ -30,6 +30,26 @@ jobs:
       - name: Build independent test client (same debug signer)
         working-directory: experiments/d173-launcher-session-poc/test-client
         run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Verify APK package isolation and same debug signing identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools_dir="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          aapt="$tools_dir/aapt"
+          apksigner="$tools_dir/apksigner"
+          launcher="experiments/d173-launcher-session-poc/launcher/app/build/outputs/apk/debug/app-debug.apk"
+          client="experiments/d173-launcher-session-poc/test-client/app/build/outputs/apk/debug/app-debug.apk"
+          "$aapt" dump badging "$launcher" | grep -q "package: name='vn.supra.pdalauncher.identitytest'"
+          "$aapt" dump badging "$client" | grep -q "package: name='vn.supra.identitytest'"
+          "$apksigner" verify "$launcher"
+          "$apksigner" verify "$client"
+          cert_l="$("$apksigner" verify --print-certs "$launcher" | awk '/Signer #1 certificate SHA-256 digest/ {print $NF; exit}')"
+          cert_c="$("$apksigner" verify --print-certs "$client" | awk '/Signer #1 certificate SHA-256 digest/ {print $NF; exit}')"
+          test -n "$cert_l"
+          test "$cert_l" = "$cert_c"
+          ! "$aapt" dump permissions "$launcher" | grep -q "android.permission.INTERNET"
+          ! "$aapt" dump permissions "$client" | grep -q "android.permission.INTERNET"
+          echo "Both isolated APKs are signed with matching debug certificate; package/network guards PASS."
       - name: Upload pair for PDA field test
         uses: actions/upload-artifact@v4
         with:
