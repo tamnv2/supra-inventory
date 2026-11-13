@@ -17,6 +17,9 @@ test("E264: every authenticated Web workspace shares compact spacing and radii",
     ".sla-current-card", ".sla-threshold-card", ".sla-policy-card",
     ".tool-card", ".d167-meal-card", ".ops-panel", ".table-wrap",
     ".log-row", ".workspace-tab", ".workspace-tabs", ".d173-ops-toolbar",
+    ".sku-kpi-grid", ".system-service-grid", ".reset-card-grid",
+    ".system-service-card", ".reset-card", ".reset-security-panel",
+    ".sku-provenance-panel", ".users-create-panel", ".log-list-panel",
     ".d173-report-toolbar", ".users-filter-panel", ".report-filter-panel",
   ]) assert.ok(e264.includes(selector), "Missing workspace coverage " + selector);
 });
