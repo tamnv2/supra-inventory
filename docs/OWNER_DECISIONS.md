@@ -1,3 +1,8 @@
+## D173 — 13/11/2026: nguyên tắc thiết kế phiên PDA Launcher, ưu tiên chất lượng
+Owner đồng ý **usage có thể tăng** khi tích hợp Launcher/Báo hàng/Agent, với điều kiện **không giảm realtime, tốc độ hoặc độ ổn định để tiết kiệm quota**. Owner tiếp tục yêu cầu phân tích phương án logout Launcher kéo Báo hàng logout và dọn trạng thái RAM (không khẳng định có thể dọn RAM toàn PDA), login Launcher tự vào Báo hàng bằng **cùng tài khoản**, dùng **đúng UID/phiên khi xác nhận Picklist**. Quyết định mới chỉ là **ưu tiên thiết kế**; SSO, phạm vi Launcher độc lập, API/Worker, triển khai code và phát hành vẫn **CHƯA ĐƯỢC DUYỆT**. Tham chiếu `docs/D173_LAUNCHER_CENTRAL_PDA_SESSION_PROPOSAL_2026-11-13.md`, PR #963. D172 tách biệt PENDING/HOLD; Stable OWNER-GATED.
+
+---
+
 ## D173-E233 — 12/11/2026: Web 3.3.13 FIELD chưa đạt, review cache và vùng cuộn
 Owner báo ba vấn đề sau phát hành: danh sách SKU tải chậm; muốn xem xét cache trên máy; hai thanh cuộn khiến cả vùng nội dung bên phải cuộn; hàng SKU cuối bị che. Đã kiểm tra source `main`: mỗi tab kết quả load đủ page tối đa 200 nhưng chưa có RAM cache đa tab/ngày, layout cùng lúc bật scroll vùng main và table-wrap với height theo viewport. Chưa đo latency thực tế; ảnh chứng minh che dòng, **không chứng minh dữ liệu bị mất**. Owner mới hỏi phương án/hiểu đúng, **chưa có lệnh phát hành bản sửa mới hoặc cấp phép persistent cache dữ liệu nghiệp vụ**. Review theo `docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md`; Web 3.3.13 Production TECH PASS nhưng FIELD chưa PASS; D172 và Stable không thay đổi.
 
