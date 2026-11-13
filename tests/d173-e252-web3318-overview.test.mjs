@@ -65,7 +65,7 @@ test("Header stays in measured grid row without clipped overflow; layout scope o
 test("Missing SLA remains unknown, ticket and batch counts are not mixed", () => {
   assert.match(web, /slaConfigured \? Number\(insights\?\.sla\.warning_count \|\| 0\) : null/);
   assert.match(web, /slaConfigured \? Number\(insights\?\.sla\.escalated_count \|\| 0\) : null/);
-  assert.match(web, /"Chưa cấu hình SLA"/);
+  assert.match(web, /Chưa cấu hình SLA/);
   assert.match(web, /Ticket Picker đang chờ/);
   assert.match(web, /Đợt hoàn tất/);
 });
