@@ -294,7 +294,7 @@
   font-size: 10px;
 }
 .d173-dashboard-triage .d173-overview-focus-row strong { font-variant-numeric: tabular-nums; }
-.d173-dashboard-triage .d173-overview-focus-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d173-dashboard-triage .d173-overview-focus-row span { overflow-wrap: anywhere; white-space: normal; }
 .d173-dashboard-triage .d173-overview-focus-row b { text-align: right; font-size: 10px; }
 .d173-dashboard-triage .d173-overview-focus-row small {
   grid-column: 2/4;
