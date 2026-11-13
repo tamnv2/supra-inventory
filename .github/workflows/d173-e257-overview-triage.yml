@@ -1,0 +1,46 @@
+name: D173 E257 Inventory Overview Live Triage CI
+on:
+  pull_request:
+    paths:
+      - 'web/src/operational-app.ts'
+      - 'web/src/api.ts'
+      - 'web/src/d173-overview.css'
+      - 'service/src/core.ts'
+      - 'tests/d173-e252-web3318-overview.test.mjs'
+      - '.github/workflows/d173-e257-overview-triage.yml'
+permissions:
+  contents: read
+jobs:
+  d173-e257-overview:
+    if: contains(github.head_ref, 'd173-e257-overview-live-triage')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dashboard and existing Web regression
+        run: |
+          node --test tests/d173-e252-web3318-overview.test.mjs \
+            tests/d173-e247-web3317-contractors-roster.test.mjs \
+            tests/d173-e242-web3316-ui-consistency.test.mjs \
+            tests/d173-e237-web3315-global-layout.test.mjs \
+            tests/d173-e233-web3314-cache-scroll.test.mjs \
+            tests/d173-e230-web3313-field-density.test.mjs \
+            tests/d173-e227-web3312-eight-ui.test.mjs
+      - name: Web TypeScript and build
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run build
+      - name: Existing shared Worker TypeScript
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run typecheck
+      - name: D172 isolation and independent regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
