@@ -186,12 +186,38 @@ export class InventoryCore {
     }
   }
 
+  private seedContractorCatalog(): void {
+    const sql = this.state.storage.sql;
+    // One-time migration: pre-existing Picker contractors become selectable without changing users.
+    const contractorSeed = sql.exec<{ value: string }>(
+      "SELECT value FROM schema_meta WHERE key='d173_contractor_catalog_seed_v1' LIMIT 1",
+    ).toArray()[0];
+    if (!contractorSeed) {
+      this.state.storage.transactionSync(() => {
+        sql.exec(`INSERT OR IGNORE INTO contractor_catalog (name)
+          SELECT DISTINCT trim(contractor_name) FROM users
+          WHERE role = 'PICKER' AND contractor_name IS NOT NULL AND trim(contractor_name) <> ''`);
+        sql.exec(`INSERT OR IGNORE INTO schema_meta (key, value, updated_at)
+          VALUES ('d173_contractor_catalog_seed_v1', '1', CURRENT_TIMESTAMP)`);
+      });
+    }
+  }
+
   private initializeSchema(): void {
     const sql = this.state.storage.sql;
     // Additive, aggregate-only diagnostic table; failures cannot prevent InventoryCore startup.
     try { initializeD173MetricsTable(this.state); } catch { /* optional telemetry, business always wins */ }
+    // D173-only additive table: do not rerun the entire D172/operational migration on existing SQLite.
+    sql.exec(`CREATE TABLE IF NOT EXISTS contractor_catalog (
+      name TEXT PRIMARY KEY COLLATE NOCASE,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`);
     this.startupPhase = "schema_readiness";
-    if (this.isExistingSchemaReady()) return;
+    if (this.isExistingSchemaReady()) {
+      this.seedContractorCatalog();
+      return;
+    }
     this.startupPhase = "base_schema_migration";
     sql.exec(`
       PRAGMA foreign_keys = ON;
@@ -541,19 +567,7 @@ export class InventoryCore {
     initializeRuntimeLogSchema(this.state);
 
     this.startupPhase = "schema_finalization";
-    // One-time migration: pre-existing Picker contractors become selectable without changing users.
-    const contractorSeed = sql.exec<{ value: string }>(
-      "SELECT value FROM schema_meta WHERE key='d173_contractor_catalog_seed_v1' LIMIT 1",
-    ).toArray()[0];
-    if (!contractorSeed) {
-      this.state.storage.transactionSync(() => {
-        sql.exec(`INSERT OR IGNORE INTO contractor_catalog (name)
-          SELECT DISTINCT trim(contractor_name) FROM users
-          WHERE role = 'PICKER' AND contractor_name IS NOT NULL AND trim(contractor_name) <> ''`);
-        sql.exec(`INSERT OR IGNORE INTO schema_meta (key, value, updated_at)
-          VALUES ('d173_contractor_catalog_seed_v1', '1', CURRENT_TIMESTAMP)`);
-      });
-    }
+    this.seedContractorCatalog();
     sql.exec(
       `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
        VALUES ('root', NULL, 'root', 'Root', 'ROOT', 'ACTIVE')`,
