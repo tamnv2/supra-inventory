@@ -13,13 +13,14 @@ MARKER = "D173-E244_WEB3316_PRODUCTION_RELEASE:"
 RUNTIME = {"web/src/operational-app.ts", "web/src/d173-tabler.css", "web/src/web-version.ts", "web/package.json"}
 ALLOWED = RUNTIME | {
     ".github/workflows/deploy-beta.yml",
-    ".github/workflows/d173-e244-web3316-global-layout.yml",
+    ".github/workflows/d173-e242-web3316-ui-consistency.yml",
     "tools/d173_e244_web3316_release_gate.py",
     "ops/d173-e244-web3316-release-authorization.json",
     "tests/d173-e227-web3312-eight-ui.test.mjs",
     "tests/d173-e230-web3313-field-density.test.mjs",
     "tests/d173-e233-web3314-cache-scroll.test.mjs",
-    "tests/d173-e244-web3316-global-layout.test.mjs",
+    "tests/d173-e237-web3315-global-layout.test.mjs",
+    "tests/d173-e242-web3316-ui-consistency.test.mjs",
     "docs/D173_E242_WEB3316_UI_FIELD_CORRECTIONS_2026-11-13.md",
     "docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md",
     "docs/OWNER_DECISIONS.md", "docs/specs/UI_DESIGN_SYSTEM.md",
