@@ -6,6 +6,12 @@ on:
       - 'web/src/d173-tabler.css'
       - 'web/src/d173-overview.css'
       - 'tests/d173-e260-web-ui-layout.test.mjs'
+      - 'tests/d173-e261-web3320-release.test.mjs'
+      - 'web/src/web-version.ts'
+      - 'web/package.json'
+      - 'tools/d173_e261_web3320_release_gate.py'
+      - 'ops/d173-e261-web3320-release-authorization.json'
+      - '.github/workflows/deploy-beta.yml'
       - 'tests/d173-e252-web3318-overview.test.mjs'
       - '.github/workflows/d173-e260-web-ui-code-only.yml'
       - 'ops/change-continuity/D173.json'
@@ -27,13 +33,13 @@ jobs:
           node-version: '22'
       - name: Owner E260 and existing Web UI regression
         run: |
-          node --test tests/d173-e260-web-ui-layout.test.mjs tests/d173-e252-web3318-overview.test.mjs tests/d173-e247-web3317-contractors-roster.test.mjs tests/d173-e242-web3316-ui-consistency.test.mjs tests/d173-e237-web3315-global-layout.test.mjs tests/d173-e233-web3314-cache-scroll.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e227-web3312-eight-ui.test.mjs
+          node --test tests/d173-e261-web3320-release.test.mjs tests/d173-e260-web-ui-layout.test.mjs tests/d173-e252-web3318-overview.test.mjs tests/d173-e247-web3317-contractors-roster.test.mjs tests/d173-e242-web3316-ui-consistency.test.mjs tests/d173-e237-web3315-global-layout.test.mjs tests/d173-e233-web3314-cache-scroll.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e227-web3312-eight-ui.test.mjs
       - name: Web TypeScript and Vite build
         working-directory: web
         run: npm install --ignore-scripts --no-audit --no-fund && npm run build
-      - name: Service TypeScript test dependency (no service source change)
+      - name: Worker TypeScript unchanged-source regression
         working-directory: service
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run typecheck
       - name: D172 independence and cross-module isolation
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
