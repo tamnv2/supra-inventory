@@ -5374,7 +5374,7 @@
     {
       "id": "D173-E260",
       "date_vn": "2026-11-13",
-      "kind": "OWNER_FIELD_NOT_PASS_AND_SCOPED_CODE",
+      "kind": "OWNER_COMMAND",
       "topic": "Five Web3.3.19 UI fixes: header, Quá hạn, dashboard guidance, font zoom reflow and shared insets",
       "owner_approval": true,
       "status": "WEB_UI_SCOPED_CODE_CANDIDATE__CI_PENDING__NO_PRODUCTION_RELEASE__D172_HOLD",
@@ -5403,7 +5403,8 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED",
-      "privacy_safe": true
+      "privacy_safe": true,
+      "next_action": "Run exact-head source-only Web/D172 CI, repair scoped failures; keep PR draft and Production Web3.3.19 untouched until new Owner release command. FIELD retest required."
     }
   ],
   "resume": {
