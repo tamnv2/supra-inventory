@@ -2316,7 +2316,6 @@ function renderDashboard(): string{
   const insights = operationalInsights;
   const recurrence = insights?.recurrence?.top_skus || [];
   const areas = d167DashboardAreas?.areas || [];
-  const outcomes = dashboardData?.outcomes || [];
   const sources = dashboardData?.resolution_sources || [];
   const topSkus = dashboardData?.top_skus || [];
   const pending = Number(k?.pending_batch_count || 0);
