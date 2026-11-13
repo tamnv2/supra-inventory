@@ -367,6 +367,12 @@ export interface AdminDashboard {
   top_skus: Array<{ sku: string; product_name: string; report_count: number; picker_count: number }>;
 }
 
+export interface AdminOverview {
+  dashboard: AdminDashboard;
+  insights: OperationalInsights;
+  areas: D167AreaSummary | null;
+}
+
 export interface D167AreaSummary {
   from_vn: string;
   to_vn: string;
@@ -1293,6 +1299,11 @@ export async function getAdminOperationalInsights(from: string, to: string): Pro
 export async function getD167AreaSummary(fromVn: string, toVn: string): Promise<D167AreaSummary> {
   const params = new URLSearchParams({ from: fromVn, to: toVn });
   return readJson(await authorizedFetch(`/api/admin/d167/report/summary?${params.toString()}`));
+}
+
+export async function getAdminOverview(from: string, to: string, fromVn: string, toVn: string): Promise<AdminOverview> {
+  const params = new URLSearchParams({ from, to, day_from: fromVn, day_to: toVn });
+  return readJson(await authorizedFetch(`/api/admin/overview?${params.toString()}`));
 }
 
 export async function getAdminDashboard(from: string, to: string): Promise<AdminDashboard> {

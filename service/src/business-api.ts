@@ -4,6 +4,7 @@ import { sendFcmNotifications } from "./fcm";
 
 export interface BusinessEnv {
   FIREBASE_PROJECT_ID: string;
+  APP_ENV?: string;
   INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_RUNTIME_SA_JSON?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
@@ -156,6 +157,7 @@ function requiredRolesForBusinessRoute(key: string): AppRole[] | undefined {
   if ([
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
+    "GET /api/admin/overview",
     "GET /api/admin/reporting",
     "GET /api/admin/reporting-detail",
     "GET /api/admin/dashboard-preference",
@@ -468,6 +470,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "POST /api/reporter/batches/correct",
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
+    "GET /api/admin/overview",
     "GET /api/admin/reporting",
     "GET /api/admin/reporting-detail",
     "GET /api/admin/audit-history",
@@ -480,6 +483,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "PUT /api/admin/alert-window",
   ]);
   if (!supported.has(key)) return null;
+  if (key === "GET /api/admin/overview" && env.APP_ENV !== "beta") return json({ error: "D173_BETA_ONLY" }, 404);
 
 
   // D171 E047: verified Firebase identity + DO-authoritative session/role +
@@ -572,6 +576,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     ? url.pathname.slice("/api/admin/".length) : "";
   const adminReadParams: Record<string, string[]> = {
     dashboard: ["from", "to", "status", "query", "limit", "offset", "batch_id"],
+    overview: ["from", "to", "day_from", "day_to"],
     reporting: ["from", "to", "status", "query", "limit", "offset", "batch_id"],
     "reporting-detail": ["from", "to", "status", "query", "limit", "offset", "batch_id"],
     reports: ["limit", "status"], "audit-history": ["role", "query", "limit", "offset"],

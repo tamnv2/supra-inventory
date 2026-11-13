@@ -1201,6 +1201,7 @@ export class InventoryCore {
       const operation = url.pathname.slice("/authorized/business/admin/".length);
       const operations: Record<string, { path: string; manager?: boolean; params: string[] }> = {
         dashboard: { path: "/business/admin/dashboard", params: ["from", "to", "status", "query", "limit", "offset", "batch_id"] },
+        overview: { path: "/business/admin/overview", params: ["from", "to", "day_from", "day_to"] },
         reporting: { path: "/business/admin/reporting", params: ["from", "to", "status", "query", "limit", "offset", "batch_id"] },
         "reporting-detail": { path: "/business/admin/reporting-detail", params: ["from", "to", "status", "query", "limit", "offset", "batch_id"] },
         reports: { path: "/business/admin/reports", params: ["limit", "status"] },
@@ -1217,6 +1218,35 @@ export class InventoryCore {
       if (request.headers.get("x-supra-session-channel")?.toUpperCase() !== "WEB") return response({ error: "MANAGEMENT_WEB_ONLY" }, 403);
       const target = new URL("https://inventory-core.internal" + selected.path);
       for (const key of selected.params) if (url.searchParams.has(key)) target.searchParams.set(key, url.searchParams.get(key) || "");
+      if (operation === "overview") {
+        // D173-E252: one authorized DO invocation for three existing read-only
+        // query contracts; preserve D167 as-of-first-report semantics and role checks.
+        const days = [target.searchParams.get("day_from"), target.searchParams.get("day_to")];
+        if (days.some(day => !day || !/^\d{4}-\d{2}-\d{2}$/.test(day))) {
+          return response({ error: "INVALID_OVERVIEW_DAYS" }, 400);
+        }
+        const fromTo = new URLSearchParams();
+        for (const key of ["from", "to"]) {
+          if (target.searchParams.has(key)) fromTo.set(key, target.searchParams.get(key) || "");
+        }
+        const dashboardResponse = await handleBusinessRequest(this.state,
+          new Request("https://inventory-core.internal/business/admin/dashboard?" + fromTo.toString()));
+        if (!dashboardResponse) return response({ error: "DASHBOARD_UNAVAILABLE" }, 503);
+        if (!dashboardResponse.ok) return dashboardResponse;
+        const insightsResponse = await handleOperationalV2CoreRequest(this.state,
+          new Request("https://inventory-core.internal/operational/admin/insights?" + fromTo.toString()));
+        if (!insightsResponse) return response({ error: "INSIGHTS_UNAVAILABLE" }, 503);
+        if (!insightsResponse.ok) return insightsResponse;
+        const areaRange = new URLSearchParams({ from: days[0]!, to: days[1]! });
+        const areasResponse = await handleD167AreaReportCoreRequest(this.state,
+          new Request("https://inventory-core.internal/d167/report/summary?" + areaRange.toString()));
+        const areas = areasResponse?.ok ? await areasResponse.json() : null;
+        return response({
+          dashboard: await dashboardResponse.json(),
+          insights: await insightsResponse.json(),
+          areas,
+        });
+      }
       if (operation === "dashboard-preference") target.searchParams.set("user_id", user.user_id);
       if (operation === "alert-window") {
         await this.reconcileOperatingScheduleExactIfClosed();

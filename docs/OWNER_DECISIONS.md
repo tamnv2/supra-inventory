@@ -1,3 +1,8 @@
+## D173-E253 — 13/11/2026: Owner duyệt code và phát hành Web 3.3.18
+Owner phản hồi header Web3.3.17 đôi lúc mất nửa trên và duyệt triển khai lại tab Tổng quan theo phương án D173-E252, đồng thời yêu cầu chạy code, phát hành Web mới. Mục số 3 để trống, không cấp thêm nghiệp vụ. Phạm vi Web D173 + một đường GET read-only gom ba read model sẵn có trong Worker/DO hiện hữu; giữ dữ liệu đúng, phân biệt ticket với batch, SLA chưa cấu hình, biểu đồ giờ/ngày 7 ngày, khu vực as-of và cảnh báo có bằng chứng. Header ghim tránh trượt khỏi viewport. Không mở thêm provider hoặc sửa nghiệp vụ D172/Agent/Android/Firebase/Stable. Owner duyệt release **có điều kiện**: source CI, D172 độc lập, protected merge, exact SHA Production; FIELD/OWNER PASS chờ thực tế. Xem docs/D173_E253_WEB3318_RELEASE_AUTHORIZATION_2026-11-13.md, PR970.
+
+---
+
 ## D173-E233 — 12/11/2026: Web 3.3.13 FIELD chưa đạt, review cache và vùng cuộn
 Owner báo ba vấn đề sau phát hành: danh sách SKU tải chậm; muốn xem xét cache trên máy; hai thanh cuộn khiến cả vùng nội dung bên phải cuộn; hàng SKU cuối bị che. Đã kiểm tra source `main`: mỗi tab kết quả load đủ page tối đa 200 nhưng chưa có RAM cache đa tab/ngày, layout cùng lúc bật scroll vùng main và table-wrap với height theo viewport. Chưa đo latency thực tế; ảnh chứng minh che dòng, **không chứng minh dữ liệu bị mất**. Owner mới hỏi phương án/hiểu đúng, **chưa có lệnh phát hành bản sửa mới hoặc cấp phép persistent cache dữ liệu nghiệp vụ**. Review theo `docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md`; Web 3.3.13 Production TECH PASS nhưng FIELD chưa PASS; D172 và Stable không thay đổi.
 

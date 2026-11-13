@@ -1,3 +1,11 @@
+## D173-E253 — Tổng quan Inventory Web 3.3.18 Owner duyệt triển khai (13/11/2026)
+- Ưu tiên tình trạng thực tế đang mở (tồn đọng, ticket Picker mở, SLA cảnh báo/quá hạn có cấu hình), sau đó mới tới khối lượng theo kỳ, biểu đồ, LTA/Shelving, kết quả, SKU tái phát và các kết quả gần đây. Không đưa tồn đọng lịch sử lẫn với bộ lọc ngày kỳ.
+- Phân biệt **lượt Picker báo = ticket** và **đợt hoàn tất = batch**, không lấy chênh lệch làm backlog. Hôm nay chưa đủ cả ngày, không so trực tiếp với toàn ngày trước.
+- 7 ngày VN xem theo ngày, chọn một ngày để chuyển sang biểu đồ giờ của chính ngày đó; không gọi 168 API giờ. Khu vực LTA/Shelving/Unknown theo lịch sử tại first_report_at; không suy ra vị trí vật lý hiện tại. SLA chưa cấu hình hiển thị —, không thành 0. SKU tái phát là tín hiệu phân tích, chưa phải nguyên nhân kho.
+- Một API read-only gom Dashboard, OperationalInsights, D167 area trong một DO invocation cho quyền WEB quản trị đã có; giữ các API cũ cho phần khác. Không schema, resource, mutation, polling riêng mới. D172 regression và đo DO Requests/Rows Read cần chứng cứ trước khi kết luận tối ưu quota. Bản Web 3.3.18 chỉ phát hành khi source-pinned CI + protected gate đạt; FIELD/OWNER nghiệm thu riêng.
+
+---
+
 ## D173-E210 — Web 3.3.7 FIELD NOT PASS và sửa đúng phạm vi (12/11/2026)
 
 Đổi hiển thị 5 tab cùng thanh điều khiển, bỏ tiêu đề và KPI card của 3 tab kết quả. Ngày/preset đặt trước ô SKU ở mép phải; tất cả controls chiều cao bằng nhau và không bị đẩy lên khi chuyển tab. Tìm hậu tố SKU tự động với `>=3` chữ số, chỉ tab hiện tại, không bỏ sự kiện khi UI busy; không thay đổi date filter và không thêm polling/DO request cố định. Thẻ Skip hiện `Tổng xx: Tự động yy - Nhân sự zz` theo batch trong khoảng ngày; lấy `automatic_skipped_total` trong truy vấn COUNTER_RECENT_TOTAL hiện hữu. Tab CLOSED hiện mã người thu hồi + tên từ user_id ở ticket WITHDRAWN mới nhất cùng batch/picker; fallback mã hiện tại khi thiếu. Bỏ cột Picker đã nhận; chi tiết double-click hiển thị mã/tên/thời gian ba cột, không tiêu đề; bảng mở rộng tự khớp colspan. Chi tiết E210 trong tài liệu field-repair; nguồn field ảnh là PRIVATE, không ghi dữ liệu nhân sự lên GitHub. D172 HOLD độc lập, Stable OWNER-GATED. Web3.3.8 source pending CI/release/field.
