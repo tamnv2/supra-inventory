@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-/** Existing Inventory Firebase/Worker only; test account is pinned before any login. */
+/** Existing Inventory Firebase/Worker only; login is authorized by existing Worker. */
 final class PocFirebase {
     static final String WORKER = "https://inventory.supra.cc.cd";
     private static volatile FirebaseApp instance;
@@ -20,8 +20,7 @@ final class PocFirebase {
     static boolean configured() {
         return "supra-inventory-beta".equals(BuildConfig.TEST_FIREBASE_PROJECT_ID)
             && "1:572322098890:android:3e483937876cbcc0400e33".equals(BuildConfig.TEST_FIREBASE_APP_ID)
-            && !BuildConfig.TEST_FIREBASE_API_KEY.isEmpty()
-            && BuildConfig.TEST_QA_USERNAME.matches("[a-z0-9._-]{1,64}");
+            && !BuildConfig.TEST_FIREBASE_API_KEY.isEmpty();
     }
 
     static FirebaseAuth auth(Context context) {

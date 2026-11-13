@@ -41,7 +41,7 @@ public final class MainActivity extends Activity {
         title.setTextColor(0xFF12253B);
         root.addView(title);
         TextView note = new TextView(this);
-        note.setText("Firebase Báo hàng hiện hữu • chỉ Picker QA • không sửa APK Báo hàng.");
+        note.setText("Firebase Báo hàng hiện hữu • tự nhận phiên Launcher, không thay APK thật.");
         note.setTextSize(13f);
         note.setTextColor(0xFF97500D);
         note.setPadding(0, dp(12), 0, dp(18));
@@ -83,7 +83,7 @@ public final class MainActivity extends Activity {
         if (pending) return;
         if (!PocFirebase.configured()) {
             clearLocal();
-            status.setText("Chưa có cấu hình Firebase/tài khoản QA hợp lệ.");
+            status.setText("Chưa có cấu hình Firebase hiện hữu.");
             return;
         }
         if (getPackageManager().checkSignatures(LAUNCHER_PKG, getPackageName())
@@ -116,13 +116,13 @@ public final class MainActivity extends Activity {
         String code = data.getStringExtra("employee_code");
         long expectedGeneration = data.getLongExtra("session_generation", 0L);
         if (custom == null || custom.isEmpty()
-            || !BuildConfig.TEST_QA_USERNAME.equals(code) || expectedGeneration <= 0L) {
+            || code == null || !code.matches("[a-z0-9._-]{1,64}") || expectedGeneration <= 0L) {
             pending = false;
             clearAndSignOut();
             render();
             return;
         }
-        status.setText("Đang xác minh Firebase Auth với phiên Picker QA...");
+        status.setText("Đang tự nhận phiên Firebase từ Launcher...");
         new Thread(() -> {
             boolean success = false;
             try {
@@ -132,13 +132,11 @@ public final class MainActivity extends Activity {
                     20, TimeUnit.SECONDS).getUser().getUid();
                 var token = Tasks.await(auth.getCurrentUser().getIdToken(true),
                     12, TimeUnit.SECONDS);
-                if (!validClaims(token.getClaims(), code, expectedGeneration))
+                if (!validClaims(token.getClaims(), expectedGeneration))
                     throw new IllegalStateException("FIREBASE_CLAIMS_MISMATCH");
-                JSONObject me = PocFirebase.me(token.getToken());
-                JSONObject user = me.getJSONObject("user");
-                if (!"PICKER".equals(user.optString("base_role"))
-                    || !BuildConfig.TEST_QA_USERNAME.equals(user.optString("employee_code")))
-                    throw new IllegalStateException("NOT_APPROVED_TEST_PICKER");
+                JSONObject user = PocFirebase.me(token.getToken()).getJSONObject("user");
+                if (!sameWorkerAccount(user, token.getClaims(), code))
+                    throw new IllegalStateException("IDENTITY_MISMATCH");
                 local.edit().putString("employee_code", code)
                     .putString("firebase_uid", uid)
                     .putLong("generation", expectedGeneration).commit();
@@ -156,12 +154,17 @@ public final class MainActivity extends Activity {
         }, "poc-real-firebase-login").start();
     }
 
-    private static boolean validClaims(Map<String, Object> claims, String code, long generation) {
+    private static boolean validClaims(Map<String, Object> claims, long generation) {
         Object val = claims.get("app_session_generation");
+        String role = String.valueOf(claims.get("app_base_role"));
         return "ANDROID".equals(claims.get("app_session_channel"))
-            && "PICKER".equals(claims.get("app_base_role"))
-            && code.equals(claims.get("employee_code"))
+            && ("PICKER".equals(role) || "REPORTER".equals(role) || "ADMIN".equals(role))
             && val instanceof Number && ((Number) val).longValue() == generation;
+    }
+    private static boolean sameWorkerAccount(JSONObject user, Map<String, Object> claims, String username) {
+        return username.equalsIgnoreCase(user.optString("username"))
+            && user.optString("user_id").equals(String.valueOf(claims.get("app_user_id")))
+            && user.optString("base_role").equals(String.valueOf(claims.get("app_base_role")));
     }
 
     private void verifyExistingSession() {
@@ -177,10 +180,11 @@ public final class MainActivity extends Activity {
                     throw new IllegalStateException("UID_MISMATCH");
                 var token = Tasks.await(auth.getCurrentUser().getIdToken(true),
                     12, TimeUnit.SECONDS);
-                if (!validClaims(token.getClaims(), local.getString("employee_code", ""),
-                    local.getLong("generation", 0L)))
+                if (!validClaims(token.getClaims(), local.getLong("generation", 0L)))
                     throw new IllegalStateException("CLAIMS_MISMATCH");
-                PocFirebase.me(token.getToken()); // Existing Worker validates active generation.
+                JSONObject user = PocFirebase.me(token.getToken()).getJSONObject("user");
+                if (!sameWorkerAccount(user, token.getClaims(), local.getString("employee_code", "")))
+                    throw new IllegalStateException("IDENTITY_MISMATCH");
                 valid = true;
             } catch (Exception ignored) {
                 clearAndSignOut(); // fail closed on reconnect, no silent mock fallback
@@ -219,7 +223,7 @@ public final class MainActivity extends Activity {
         status.setText(active ? "Firebase Auth đã đăng nhập, kiểm tra Worker khi mở"
             : "Chưa có phiên Firebase hợp lệ");
         account.setVisibility(active ? View.VISIBLE : View.GONE);
-        if (active) account.setText("Picker QA: " + local.getString("employee_code", "")
+        if (active) account.setText("Tài khoản Báo hàng: " + local.getString("employee_code", "")
             + "\nFirebase UID: " + local.getString("firebase_uid", "")
             + "\nSession generation: " + local.getLong("generation", 0L));
     }

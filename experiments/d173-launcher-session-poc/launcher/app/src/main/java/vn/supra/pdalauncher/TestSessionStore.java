@@ -27,7 +27,7 @@ final class TestSessionStore {
 
     interface Callback { void completed(boolean success, String reason); }
     static boolean isValidFormat(String code) {
-        return code != null && code.matches("[0-9]{5,12}");
+        return code != null && code.matches("[a-z0-9._-]{1,64}");
     }
 
     private static SharedPreferences prefs(Context context) {
@@ -47,7 +47,7 @@ final class TestSessionStore {
     }
 
     static boolean isUnlocked(Context context) {
-        if (!PocFirebase.configured() || !BuildConfig.TEST_QA_USERNAME.equals(employeeCode(context))
+        if (!PocFirebase.configured() || !isValidFormat(employeeCode(context))
                 || sessionId(context).isEmpty() || workerIdToken == null) return false;
         try {
             return PocFirebase.auth(context).getCurrentUser() != null
@@ -57,27 +57,28 @@ final class TestSessionStore {
     }
 
     static void login(Context context, String username, String password, Callback callback) {
-        if (!PocFirebase.configured() || !BuildConfig.TEST_QA_USERNAME.equals(username)) {
-            complete(callback, false, "Chỉ cho phép tài khoản QA đã đăng ký; không xác thực user Production.");
+        String account = username == null ? "" : username.trim().toLowerCase(java.util.Locale.ROOT);
+        if (!PocFirebase.configured() || !isValidFormat(account)) {
+            complete(callback, false, "Tên đăng nhập Báo hàng không hợp lệ hoặc Firebase chưa cấu hình.");
             return;
         }
         if (TextUtils.isEmpty(password)) {
-            complete(callback, false, "Cần nhập mật khẩu QA, không nhúng mật khẩu cố định.");
+            complete(callback, false, "Nhập mật khẩu vào Launcher một lần; app kiểm thử không cần nhập lại.");
             return;
         }
         new Thread(() -> {
             String issuedToken = null;
             try {
                 JSONObject reply = PocFirebase.post("/api/auth/login", new JSONObject()
-                    .put("username", username).put("password", password)
+                    .put("username", account).put("password", password)
                     .put("client_type", "ANDROID").put("device_id", deviceId(context))
                     .put("force", false), null);
                 issuedToken = reply.getString("id_token");
                 JSONObject user = reply.getJSONObject("user");
-                if (!"PICKER".equals(user.optString("base_role"))
-                    || !username.equalsIgnoreCase(user.optString("username"))
-                    || !username.equals(user.optString("employee_code"))) {
-                    throw new IllegalStateException("TEST_ACCOUNT_NOT_PICKER_OR_NOT_PINNED");
+                String role = user.optString("base_role");
+                if (!("PICKER".equals(role) || "REPORTER".equals(role) || "ADMIN".equals(role))
+                    || !account.equalsIgnoreCase(user.optString("username"))) {
+                    throw new IllegalStateException("INVALID_INVENTORY_ANDROID_ROLE_OR_ACCOUNT");
                 }
                 long gen = reply.optLong("session_generation", 0L);
                 String relay = reply.getString("firebase_custom_token");
@@ -98,10 +99,10 @@ final class TestSessionStore {
                 workerIdToken = issuedToken;
                 relayCustomToken = relay;
                 handoffConsumed = false;
-                prefs(context).edit().putString(CODE, username)
+                prefs(context).edit().putString(CODE, account)
                     .putString(UID, uid).putString(SESSION, "qa:" + gen)
                     .putLong(GENERATION, gen).commit();
-                complete(callback, true, "Đã xác minh Firebase thật. UID và thế hệ phiên hợp lệ.");
+                complete(callback, true, "Launcher đã đăng nhập. Mở app test để tự nhận phiên Firebase.");
             } catch (Exception problem) {
                 if (issuedToken != null) {
                     try { PocFirebase.post("/api/auth/logout",
@@ -109,7 +110,7 @@ final class TestSessionStore {
                     catch (Exception ignored) {}
                 }
                 clear(context);
-                complete(callback, false, "Đăng nhập QA thất bại hoặc tài khoản đang hoạt động trên PDA khác.");
+                complete(callback, false, "Đăng nhập thất bại hoặc tài khoản đã có phiên PDA khác. Không thay phiên đang làm việc.");
             }
         }, "d173-live-qa-login").start();
     }

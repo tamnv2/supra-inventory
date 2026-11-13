@@ -430,7 +430,7 @@ public class MainActivity extends Activity {
         panel.addView(identityLogoutButton);
 
         TextView warning = new TextView(this);
-        warning.setText("FIREBASE hiện hữu • Chỉ tài khoản Picker QA được cấp phép; không thay đổi Báo hàng.");
+        warning.setText("Firebase Báo hàng hiện hữu • Đăng nhập một lần, app test tự nhận phiên.");
         warning.setTextSize(10f);
         warning.setTextColor(0xFF9C4E00);
         panel.addView(warning);
@@ -443,13 +443,13 @@ public class MainActivity extends Activity {
 
     private void showTestIdentityDialog() {
         if (!PocFirebase.configured()) {
-            Toast.makeText(this, "Chưa cấu hình tài khoản Picker QA và Firebase Auth.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Firebase Báo hàng chưa được cấu hình.", Toast.LENGTH_LONG).show();
             return;
         }
         final EditText codeField = new EditText(this);
-        codeField.setHint("Mã nhân viên QA đã được đăng ký");
+        codeField.setHint("Tài khoản Báo hàng hiện có");
         codeField.setSingleLine(true);
-        codeField.setInputType(InputType.TYPE_CLASS_NUMBER);
+        codeField.setInputType(InputType.TYPE_CLASS_TEXT);
 
         final EditText passwordField = new EditText(this);
         passwordField.setHint("Mật khẩu QA (được che, không lưu)");
@@ -462,16 +462,13 @@ public class MainActivity extends Activity {
 
         AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle("Xác nhận định danh")
-            .setMessage("Sử dụng tài khoản Picker chỉ dành cho QA. Không đăng nhập bằng user đang làm việc.")
+            .setMessage("Sử dụng tài khoản Báo hàng hiện hữu. Nếu tài khoản đang hoạt động trên PDA khác, hệ thống sẽ không thay phiên.")
             .setView(body).setNegativeButton("Hủy", null)
             .setPositiveButton("Xác nhận", null).create();
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String code = codeField.getText().toString().trim();
+            String code = codeField.getText().toString().trim().toLowerCase(java.util.Locale.ROOT);
             if (!TestSessionStore.isValidFormat(code)) {
-                codeField.setError("Mã QA phải là MNV hợp lệ."); return;
-            }
-            if (!BuildConfig.TEST_QA_USERNAME.equals(code)) {
-                codeField.setError("Chỉ được dùng tài khoản QA đã đăng ký."); return;
+                codeField.setError("Tài khoản không hợp lệ."); return;
             }
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
             TestSessionStore.login(this, code, passwordField.getText().toString(), (ok, message) -> {
@@ -490,7 +487,7 @@ public class MainActivity extends Activity {
         if (identityStatusText == null) return;
         boolean active = TestSessionStore.isUnlocked(this);
         identityStatusText.setText(active
-                ? "Firebase hiện hữu • Picker QA: " + TestSessionStore.employeeCode(this)
+                ? "Firebase hiện hữu • Tài khoản: " + TestSessionStore.employeeCode(this)
                 : "Chưa xác nhận định danh — ứng dụng bị khóa");
         identityConfirmButton.setVisibility(active ? View.GONE : View.VISIBLE);
         identityLogoutButton.setVisibility(active ? View.VISIBLE : View.GONE);
