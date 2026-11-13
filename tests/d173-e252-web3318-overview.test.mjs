@@ -11,7 +11,7 @@ const version = readFileSync("web/src/web-version.ts", "utf8");
 const deploy = readFileSync(".github/workflows/deploy-beta.yml", "utf8");
 
 test("D173-E257 shows live per-SKU triage without a second page or recent-resolution wall", () => {
-  assert.match(version, /WEB_VERSION = "3\.3\.18"/); // Unreleased CODE-only candidate.
+  assert.match(version, /WEB_VERSION = "3\.3\.19"/); // Owner-authorized release candidate.
   assert.match(web, /function renderDashboard\(\): string/);
   const dashboard = web.slice(web.indexOf("function renderDashboard(): string"), web.indexOf("function reportPickerOutcome"));
   for (const key of [
@@ -23,7 +23,10 @@ test("D173-E257 shows live per-SKU triage without a second page or recent-resolu
   assert.match(web, /getAdminOverview\(range\.from, range\.to, dashboardFrom, dashboardTo\)/);
   assert.match(web, /dashboardFrom = dateDaysAgo\(0\);\s+dashboardTo = dashboardFrom;/);
   assert.doesNotMatch(web, /function refreshDashboardPresence/);
-  assert.match(dashboard, /không phải vị trí tồn kho hiện tại/);
+  assert.match(web, /function scheduleDashboardEventRefresh\(\): void/);
+  assert.match(web, /15_000 - \(Date\.now\(\) - dashboardLastLoadedAt\)/);
+  assert.match(web, /scheduleDashboardEventRefresh\(\);/);
+  assert.match(dashboard, /không phải vị trí hiện tại/);
   assert.match(dashboard, /chưa chứng minh nguyên nhân thiếu hàng/);
 });
 
