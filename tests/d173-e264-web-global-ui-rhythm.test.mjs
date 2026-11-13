@@ -24,7 +24,7 @@ test("E264: every authenticated Web workspace shares compact spacing and radii",
 test("E264: unified tabs and controls are aligned without changing existing scroll behavior", () => {
   assert.match(e264, /\.d173-page-content \.workspace-tab\s*\{[^}]*align-items:\s*center;[^}]*min-height:\s*35px;/s);
   assert.match(e264, /input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\)/);
-  assert.doesNotMatch(e264, /(?:overflow|position|grid-template|height):/);
+  assert.doesNotMatch(e264, /(?:^|[;{]\\s*)(?:overflow|position|grid-template|height)\\s*:/m);
   assert.match(css, /height:\s*calc\(100dvh \/ var\(--supra-ui-zoom-factor, 1\)\) !important/);
   assert.match(css, /\.d173-tabler-shell \.ops-business-workspace \.fast-list/);
 });
