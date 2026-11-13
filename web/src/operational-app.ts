@@ -29,6 +29,7 @@ import {
   createManagedUser,
   deleteManagedUsers,
   getAdminDashboard,
+  getAdminOverview,
   getD167AreaSummary,
   getAdminOperationalInsights,
   getAdminReporting,
@@ -4319,15 +4320,11 @@ async function loadDashboard(): Promise<void> {
     dashboardPreferenceLoadedUserId = userId;
   }
   const range = apiRange(dashboardFrom, dashboardTo);
-  const [nextDashboard, nextInsights, nextAreas] = await Promise.all([
-    getAdminDashboard(range.from, range.to),
-    getAdminOperationalInsights(range.from, range.to),
-    getD167AreaSummary(dashboardFrom, dashboardTo).catch(() => null),
-  ]);
+  const next = await getAdminOverview(range.from, range.to, dashboardFrom, dashboardTo);
   if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-  dashboardData = nextDashboard;
-  operationalInsights = nextInsights;
-  d167DashboardAreas = nextAreas;
+  dashboardData = next.dashboard;
+  operationalInsights = next.insights;
+  d167DashboardAreas = next.areas;
   markWebUpdateReceived();
   if (document.visibilityState === "visible") void getRealtimePresence().then((nextPresence) => {
     if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
