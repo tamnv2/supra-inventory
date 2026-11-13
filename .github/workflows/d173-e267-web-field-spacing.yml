@@ -4,6 +4,7 @@ on:
     paths:
       - 'web/src/d173-tabler.css'
       - 'tests/d173-e267-web-field-spacing.test.mjs'
+      - 'tests/d173-e267-browser-geometry.test.mjs'
       - 'docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md'
       - 'ops/change-continuity/D173.json'
       - 'ops/project-state.json'
@@ -29,6 +30,13 @@ jobs:
       - name: Web TypeScript and production asset build
         working-directory: web
         run: npm install --ignore-scripts --no-audit --no-fund && npm run build
+      - name: Install isolated headless Chromium for computed CSS geometry
+        working-directory: web
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          npx playwright install chromium
+      - name: Measure Web layout in Chromium (1280 / 1366 / 1792 / 1920)
+        run: node --test tests/d173-e267-browser-geometry.test.mjs
       - name: Existing service TypeScript for isolated D172 regressions
         working-directory: service
         run: npm install --ignore-scripts --no-audit --no-fund
