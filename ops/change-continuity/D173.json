@@ -7,14 +7,14 @@
   "pr": 968,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E247",
+    "id": "D173-E248",
     "date_vn": "2026-11-13",
-    "summary": "Owner requested six Web3316 field UI/account fixes; Web3317 candidate on PR968. Contractor directory isolated D173; full roster RAM only; CI/Release/FIELD/Owner pending.",
-    "status": "OWNER_APPROVED_SOURCE_IMPLEMENTATION__PR968_DRAFT_CODE_CANDIDATE__CI_PENDING__RELEASE_HOLD",
-    "source": "Web3.3.16 field screenshot evidence (2026-11-13) and PR968 source",
+    "summary": "PR968 Web3.3.17 SOURCE 1d537ad: Web+Worker+RBAC+isolation CI PASS; longterm local account storage not implemented; no Production release/FIELD/OWNER PASS.",
+    "status": "PASS_SCOPED_CODE_CI_WEB_WORKER_D172_RBAC_AUTHORITY__PRODUCTION_NOT_RELEASED__FIELD_OWNER_PENDING",
+    "source": "https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257730 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257667 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257471 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257589 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257741 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257861",
     "branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
     "pr": 968,
-    "source_head_sha": "64e95591fd7a070537dddbd1c9920cae759b258c"
+    "source_ci_sha": "1d537ad178dd3deb42d84d832248fe78c4c52fe9"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4994,6 +4994,31 @@
       ],
       "next_action": "Complete scoped Web3317 source CI, Web/Worker TypeScript builds, contractor CRUD and D172 shared-schema regressions; NO production release before separate Owner command.",
       "evidence": "Owner Web3.3.16 screenshots 2026-11-13 ; https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/pull/965 ; https://github.com/tamnv2/supra-inventory/actions/runs/43353567258"
+    },
+    {
+      "id": "D173-E248",
+      "date_vn": "2026-11-13",
+      "topic": "Web3.3.17 PR968 exact source build/type/UI tests and D172 boundary receipts",
+      "kind": "TEST",
+      "owner_approval": null,
+      "status": "PASS_SCOPED_CODE_CI_WEB_WORKER_D172_RBAC_AUTHORITY__PRODUCTION_NOT_RELEASED__FIELD_OWNER_PENDING",
+      "facts": [
+        "PR968 code source HEAD 1d537ad178dd3deb42d84d832248fe78c4c52fe9, Draft, no merge or provider deployment.",
+        "D173 E247 Web3317 Accounts Contractor Source CI run 43360257730 SUCCESS: Web UI tests, Web TypeScript+Vite build, Worker typecheck, D172 regression and isolation guard.",
+        "D169 Picker RBAC run 43360257667 SUCCESS; Project State Guard run 43360257471 SUCCESS; D173 D172 Business Isolation Guard run 43360257589 SUCCESS; D172 backend isolated CI run 43360257741 SUCCESS; D173 E123 Source SQL/Auth/D172 run 43360257861 SUCCESS.",
+        "Owner item 5 long-term persistent machine cache not implemented due unverified shared-device data-at-rest isolation; full roster in-memory cache only.",
+        "Production release, Web real-browser FIELD, Owner PASS unverified; no release command authorized in this Owner field-fix turn."
+      ],
+      "next_action": "Keep PR968 Draft code-only until Owner explicitly authorizes protected merge/Production release and verifies on real Web; if persistence is essential, establish security architecture first. Preserve D172 HOLD.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257730 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257667 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257471 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257589 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257741 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257861",
+      "source_ci_sha": "1d537ad178dd3deb42d84d832248fe78c4c52fe9",
+      "pr": 968,
+      "source_ci_run_id": 43360257730,
+      "code_pass": true,
+      "ci_pass": true,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
@@ -5064,7 +5089,8 @@
       "D173-E161 Agent173 source PR863 exact pin 7347087 CI 34 PASS 1 SKIPPED, native and D172 regression pass; signed OTA not yet published.",
       "D173-E162 Agent173 signed OTA release 42386456621 TECH PASS, tag/channel EXE digest match and Host13 unchanged.",
       "D173-E169 diagnostics source candidate PR873: DO route buckets, SQL ACK shape first/isolate-hour, Firestore PermissionDenied context, RTDB/lease timing and Node contract tests; unmerged, unshipped.",
-      "E171 Owner-approved technical recovery PR874 CODE: explicit UTF-8 Windows Agent175 release gate, source contract; Worker e3958d3 technical deployed; Agent run42481347446 failed before build."
+      "E171 Owner-approved technical recovery PR874 CODE: explicit UTF-8 Windows Agent175 release gate, source contract; Worker e3958d3 technical deployed; Agent run42481347446 failed before build.",
+      "D173-E248: Web3317 PR968 scoped code/source CI PASS at 1d537ad; Worker shared DO/D172 tests PASS; no Production release."
     ],
     "in_progress": [
       "D173-E186 governance-only PR910 Owner merge-approved; resolve live PR state/check runs before concluding OPEN/MERGED, do not redeploy applications.",
@@ -5132,8 +5158,7 @@
       "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes.",
       "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending.",
       "D173-E216 Owner Web339 search returns all, date-right, selected tab visibility; PR950 Web-only source candidate CI pending, Production unchanged.",
-      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization.",
-      "D173-E247 Web3317 PR968 CODE ONLY candidate: report density, SKU import position, contractor catalog, roster RAM cache; require scoped CI/D172 regression."
+      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -5160,7 +5185,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
-      "D173-E247 PR968: CI+types+cross-module isolation guard before proposing gated release.",
+      "D173-E248 PR968 code CI PASS: hold Production release until explicit Owner command; FIELD/OWNER independent.",
       "E168: filter PASS/cancelled backlog from any current D173 report.",
       "D173-E167 owner-approved four components, PR868 source updated; require CI/release/field receipts; 05:30 full Drive-log correlation unverified.",
       "E165 latest log proposal: 2h from 05:00 VN (05/07/09/11/13/15/17/19/21/23/01/03), not the earlier 06:00 anchor. Pending Owner approval, no log code.",
