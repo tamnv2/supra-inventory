@@ -5415,6 +5415,7 @@ function bindSection(): void {
     const rows = hrWebRows, preview = hrWebPreview;
     await applyHrWebInput(rows, preview, changed > 0);
     const applied = rows.length;
+    contractorsLoaded = false;
     if (seq === hrWebRequestSeq) {
       hrWebRows = []; hrWebPreview = null; hrWebFilename = "";
     }
@@ -5503,7 +5504,8 @@ function bindSection(): void {
     const next = button.dataset.usersMode;
     if (!["list", "create", "import", "contractors"].includes(next || "")) return;
     if (next === "create" && !["ADMIN", "ROOT"].includes(profile?.role || "")) return;
-    if (["import", "contractors"].includes(next || "") && !rolePickPackManage()) return;
+    if (next === "import" && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "")) return;
+    if (next === "contractors" && !rolePickPackManage()) return;
     if (next === usersView) return;
     usersView = next as typeof usersView;
     if (next === "import" || next === "contractors") void run(async () => { await loadContractors(); patchActiveSection(false); });
