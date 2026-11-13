@@ -399,3 +399,34 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
   .d173-tabler-shell .users-workspace .users-filter-form { grid-template-columns:1fr; }
   .d173-tabler-shell .users-workspace .users-filter-form .span { grid-column:auto; }
 }
+
+/* D173-E260: match the compact dashboard inset on every desktop workspace. */
+@media (min-width: 781px) {
+  .d173-tabler-shell > .d173-page-content,
+  .d173-tabler-shell > .d173-page-content:has(.ops-business-workspace),
+  .d173-tabler-shell > .d173-page-content:has(.report-workspace) {
+    padding: 4px 6px 24px !important;
+    scroll-padding-bottom: 24px;
+  }
+}
+/* The Web font control zooms the body, so compensate the fixed-height shell.
+   The measured header is a separate grid row; each workspace keeps its own scrollbar. */
+@media (min-width: 901px) {
+  .d173-tabler-shell {
+    height: calc(100dvh / var(--supra-ui-zoom-factor, 1)) !important;
+    min-height: 0 !important;
+    overflow: hidden;
+  }
+}
+/* Keep the overdue count badge and label centered like the other tabs. */
+.d173-tabler-shell .d173-ops-toolbar .workspace-tab {
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+.d173-tabler-shell .d173-ops-toolbar .workspace-tab > b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}

@@ -201,6 +201,7 @@ let uiZoom = loadUiZoom();
 
 function applyUiZoom(): void {
   const effectiveScale = WEB_TEXT_BASE_SCALE * (uiZoom / 100);
+  document.body.style.setProperty("--supra-ui-zoom-factor", effectiveScale.toFixed(3));
   document.body.style.setProperty("zoom", effectiveScale.toFixed(3));
   document.body.dataset.logicalUiZoom = String(uiZoom);
   const label = document.querySelector<HTMLElement>("#ui-zoom-value");
@@ -2289,7 +2290,7 @@ function renderReportTabs(current: "dashboard" | "reports"): string {
     <button type="button" class="workspace-tab ${current === "dashboard" ? "active" : ""}" data-workspace-section="dashboard">Tổng quan</button>
     <button type="button" class="workspace-tab ${current === "reports" ? "active" : ""}" data-workspace-section="reports">Báo cáo chi tiết</button>
   </div>
-    ${current === "reports" ? `<form id="report-date-filter" class="d173-report-date" aria-label="Chọn ngày báo cáo">${renderCompactDateRange("reports", from, to)}</form>` : `<span class="d173-overview-mode">Giám sát hôm nay · Đối chiếu 7 ngày</span>`}
+    ${current === "reports" ? `<form id="report-date-filter" class="d173-report-date" aria-label="Chọn ngày báo cáo">${renderCompactDateRange("reports", from, to)}</form>` : `<span class="d173-overview-updated">Dữ liệu lúc ${dashboardGeneratedAt ? esc(fmt(dashboardGeneratedAt)) : "chưa đồng bộ"}</span>`}
   </div>`;
 }
 
@@ -2315,16 +2316,13 @@ function renderDashboard(): string{
   const insights = operationalInsights;
   const recurrence = insights?.recurrence?.top_skus || [];
   const areas = d167DashboardAreas?.areas || [];
-  const outcomes = dashboardData?.outcomes || [];
   const sources = dashboardData?.resolution_sources || [];
   const topSkus = dashboardData?.top_skus || [];
   const pending = Number(k?.pending_batch_count || 0);
   const pickerOpen = Number(k?.pending_picker_count || 0);
   const num = (n = 0) => Number(n || 0).toLocaleString("vi-VN");
-  const count = (status = "") => Number(outcomes.find(row => row.status === status)?.count || 0);
   const sourceCount = (source = "") => Number(sources.find(row => row.status === "SKIP_ALLOWED" && row.resolution_source === source)?.count || 0);
   const systemSkip = sourceCount("SYSTEM_TIMEOUT") + sourceCount("SYSTEM_DAY_END");
-  const humanSkip = Math.max(0, count("SKIP_ALLOWED") - systemSkip);
   const slaConfigured = insights?.sla?.configured === true;
   const warning = slaConfigured ? Number(insights?.sla.warning_count || 0) : null;
   const overdue = slaConfigured ? Number(insights?.sla.escalated_count || 0) : null;
@@ -2367,18 +2365,18 @@ function renderDashboard(): string{
       <td>${esc(fmt(item.first_report_at))}</td>
       <td class="d173-overview-elapsed" data-overview-wait-since="${esc(item.first_report_at)}">${esc(label)}</td>
       <td class="d173-overview-number">${num(item.open_picker_count)}</td></tr>`;
-  }).join("") : `<tr><td colspan="5">${pending ? "Chưa tải được danh sách đợt mở; không suy diễn đã hết tồn đọng." : "Không có đợt đang chờ xử lý."}</td></tr>`;
+  }).join("") : `<tr><td colspan="5">${pending ? "Chưa tải được danh sách đợt đang mở." : "Không có đợt đang chờ xử lý."}</td></tr>`;
   const issues: Array<{ tone: string; title: string; detail: string }> = [];
-  if (overdue !== null && overdue > 0) issues.push({tone:"danger",title:`${num(overdue)} đợt vượt SLA`,detail:"Theo ngưỡng SLA đang áp dụng; cần kiểm tra các đợt mở."});
-  if (systemSkip > 0) issues.push({tone:"warning",title:`${num(systemSkip)} đợt báo hôm nay đã Skip tự động`,detail:`Quá hạn ${num(sourceCount("SYSTEM_TIMEOUT"))} · Cuối ngày ${num(sourceCount("SYSTEM_DAY_END"))}. Đây là nguồn xử lý, chưa phải nguyên nhân thiếu hàng.`});
+  if (overdue !== null && overdue > 0) issues.push({tone:"danger",title:`${num(overdue)} đợt vượt SLA`,detail:"Đã vượt mốc SLA hiện hành."});
+  if (systemSkip > 0) issues.push({tone:"warning",title:`${num(systemSkip)} đợt Skip tự động hôm nay`,detail:`Quá hạn ${num(sourceCount("SYSTEM_TIMEOUT"))} · Cuối ngày ${num(sourceCount("SYSTEM_DAY_END"))}`});
   if (recurrence.length) {
     const first = recurrence[0];
-    issues.push({tone:"warning",title:`SKU ${first.sku} tái phát ${num(first.recurrence_count)} lần`,detail:`Báo lại gần nhất ${fmt(first.latest_first_report_at)}. Cần đối chiếu kết quả các đợt trước.`});
+    issues.push({tone:"warning",title:`SKU ${first.sku} tái phát ${num(first.recurrence_count)} lần`,detail:`Báo lại gần nhất ${fmt(first.latest_first_report_at)}`});
   }
   const unknown = areas.find(row => row.area === "UNKNOWN");
-  if (unknown && Number(unknown.batches || 0) > 0) issues.push({tone:"notice",title:`${num(Number(unknown.batches))} đợt thiếu chứng cứ khu vực`,detail:"Chưa xác định LTA/Shelving tại lần báo đầu; không suy ra khu vực hiện tại."});
-  if (!slaConfigured) issues.push({tone:"notice",title:"SLA chưa cấu hình",detail:"Không thể kết luận số đợt gần hạn/quá hạn bằng 0."});
-  const issueMarkup = issues.length ? issues.slice(0,4).map(item => `<div class="d173-overview-alert ${item.tone}"><span class="d173-overview-alert-dot"></span><div><b>${esc(item.title)}</b><small>${esc(item.detail)}</small></div></div>`).join("") : `<p class="d173-overview-empty">Chưa ghi nhận dấu hiệu ưu tiên; cần đối chiếu tồn kho thực tế.</p>`;
+  if (unknown && Number(unknown.batches || 0) > 0) issues.push({tone:"notice",title:`${num(Number(unknown.batches))} đợt thiếu chứng cứ khu vực`,detail:"Chưa xác định LTA/Shelving tại lần báo đầu."});
+  if (!slaConfigured) issues.push({tone:"notice",title:"SLA chưa cấu hình",detail:"Chưa có mốc SLA để tính cảnh báo/quá hạn."});
+  const issueMarkup = issues.length ? issues.slice(0,4).map(item => `<div class="d173-overview-alert ${item.tone}"><span class="d173-overview-alert-dot"></span><div><b>${esc(item.title)}</b><small>${esc(item.detail)}</small></div></div>`).join("") : `<p class="d173-overview-empty">Chưa có dấu hiệu cần kiểm tra.</p>`;
   const areaMarkup = ["LTA","SHELVING","UNKNOWN"].map(key => {
     const row = areas.find(item => item.area === key);
     return `<tr><td><strong>${esc(d167AreaLabel(key))}</strong></td><td>${num(row?.batches)}</td><td>${num(row?.picker_reports)}</td><td>${num(row?.pending)}</td><td>${num(row?.has_stock)}</td><td>${num(row?.skip_allowed)}</td></tr>`;
@@ -2395,25 +2393,22 @@ function renderDashboard(): string{
   return `<section class="v5-root report-workspace d173-dashboard d173-dashboard-triage">
     ${renderReportTabs("dashboard")}
     <div class="d173-report-content"><div class="d173-overview-content">
-      <header class="d173-overview-title"><div><h2>Giám sát báo hàng Inventory</h2><small>Đang mở: toàn hệ thống · Thống kê: hôm nay ${esc(today.split("-").reverse().join("/"))} · Xu hướng: 7 ngày Việt Nam</small></div>
-      <span class="d173-overview-updated">Dữ liệu lúc ${dashboardGeneratedAt ? esc(fmt(dashboardGeneratedAt)) : "chưa đồng bộ"}</span></header>
       <div class="d173-overview-kpis d173-overview-kpis-triage">
-        <div class="d173-overview-kpi critical"><span>Đợt chờ xử lý</span><strong>${num(pending)}</strong><small>Toàn hệ thống, không lọc ngày</small></div>
-        <div class="d173-overview-kpi"><span>Ticket Picker đang chờ</span><strong>${num(pickerOpen)}</strong><small>Không phải số Picker duy nhất</small></div>
-        <div class="d173-overview-kpi ${oldestMinutes != null && oldestMinutes > 30 ? "critical" : ""}"><span>Chờ lâu nhất</span><strong data-overview-wait-since="${esc(pendingItems[0]?.first_report_at || "")}">${oldestMinutes == null ? (pending ? "—" : "0 phút") : oldestMinutes < 60 ? num(oldestMinutes)+" phút" : `${Math.floor(oldestMinutes/60)}g ${oldestMinutes%60}p`}</strong><small>Từ lúc báo đầu của đợt còn mở</small></div>
-        <div class="d173-overview-kpi"><span>Skip tự động*</span><strong>${num(systemSkip)}</strong><small>* Đợt báo hôm nay · quá hạn / cuối ngày</small></div>
-        <div class="d173-overview-kpi"><span>SLA cảnh báo / quá hạn</span><strong>${slaConfigured ? `${num(warning || 0)} / ${num(overdue || 0)}` : "—"}</strong><small>${slaConfigured ? "Đợt đang cần giám sát" : "Chưa cấu hình SLA"}</small></div>
+        <div class="d173-overview-kpi critical"><span>Đợt chờ xử lý</span><strong>${num(pending)}</strong></div>
+        <div class="d173-overview-kpi"><span>Ticket Picker đang chờ</span><strong>${num(pickerOpen)}</strong></div>
+        <div class="d173-overview-kpi ${oldestMinutes != null && oldestMinutes > 30 ? "critical" : ""}"><span>Chờ lâu nhất</span><strong data-overview-wait-since="${esc(pendingItems[0]?.first_report_at || "")}">${oldestMinutes == null ? (pending ? "—" : "0 phút") : oldestMinutes < 60 ? num(oldestMinutes)+" phút" : `${Math.floor(oldestMinutes/60)}g ${oldestMinutes%60}p`}</strong></div>
+        <div class="d173-overview-kpi"><span>Skip tự động hôm nay</span><strong>${num(systemSkip)}</strong></div>
+        <div class="d173-overview-kpi"><span>SLA cảnh báo / quá hạn</span><strong>${slaConfigured ? `${num(warning || 0)} / ${num(overdue || 0)}` : "—"}</strong>${slaConfigured ? "" : "<small>Chưa cấu hình SLA</small>"}</div>
       </div>
       <div class="d173-overview-cols d173-overview-priority">
-        <article class="d173-overview-panel"><header><h3>Đợt đang nghẽn · chi tiết trực tiếp</h3><span>${num(pendingItems.length)} / ${num(pending)} đợt, ưu tiên chờ lâu nhất</span></header>
+        <article class="d173-overview-panel"><header><h3>Đợt đang nghẽn</h3><span>${num(pendingItems.length)} / ${num(pending)} đợt</span></header>
           <div class="d173-overview-table-wrap"><table class="d173-overview-pending-table"><thead><tr><th>SKU / Tên hàng</th><th>Khu vực lúc báo</th><th>Báo đầu lúc</th><th>Đã chờ</th><th>Ticket mở</th></tr></thead><tbody>${pendingMarkup}</tbody></table></div>
-          <p class="d173-overview-note">Khu vực được xác định tại thời điểm báo đầu, không phải vị trí hiện tại.</p>
         </article>
-        <article class="d173-overview-panel"><header><h3>Dấu hiệu cần kiểm tra</h3><span>Không tự kết luận nguyên nhân tồn kho</span></header>
+        <article class="d173-overview-panel"><header><h3>Dấu hiệu cần kiểm tra</h3></header>
           <div class="d173-overview-alerts">${issueMarkup}</div></article>
       </div>
       <div class="d173-overview-cols d173-overview-trends">
-        <article class="d173-overview-panel"><header><h3>Xu hướng 7 ngày gần nhất</h3><span>Hôm nay chưa đủ 24 giờ</span></header>
+        <article class="d173-overview-panel"><header><h3>Xu hướng 7 ngày gần nhất</h3></header>
           <div class="d173-overview-legend"><span><i class="d173-overview-reports"></i> Lượt Picker báo</span><span><i class="d173-overview-resolved"></i> Đợt hoàn tất</span></div>
           <div class="d173-overview-chart d173-overview-chart-daily">${dailyMarkup}</div>
         </article>
@@ -2423,13 +2418,11 @@ function renderDashboard(): string{
         </article>
       </div>
       <div class="d173-overview-cols d173-overview-bottom">
-        <article class="d173-overview-panel"><header><h3>Khu vực phát sinh hôm nay</h3><span>LTA / Shelving theo lịch sử lúc báo đầu</span></header>
-          ${d167DashboardAreas ? `<div class="d173-overview-table-wrap"><table class="d173-overview-area-table"><thead><tr><th>Khu vực</th><th>Đợt</th><th>Lượt báo</th><th>Còn chờ*</th><th>Có hàng</th><th>Skip</th></tr></thead><tbody>${areaMarkup}</tbody></table></div>` : `<p class="d173-overview-empty">Chưa có dữ liệu phân loại khu vực.</p>`}
-          <p class="d173-overview-note">* Còn chờ trong nhóm đợt phát sinh hôm nay; khác tổng tồn đọng hiện tại. Kết quả: có hàng ${num(count("HAS_STOCK"))} · Skip người xử lý ${num(humanSkip)} · Skip hệ thống ${num(systemSkip)} · Thu hồi ${num(count("CLOSED"))}.</p>
+        <article class="d173-overview-panel"><header><h3>Khu vực phát sinh hôm nay</h3></header>
+          ${d167DashboardAreas ? `<div class="d173-overview-table-wrap"><table class="d173-overview-area-table"><thead><tr><th>Khu vực</th><th>Đợt</th><th>Lượt báo</th><th>Còn chờ</th><th>Có hàng</th><th>Skip</th></tr></thead><tbody>${areaMarkup}</tbody></table></div>` : `<p class="d173-overview-empty">Chưa có dữ liệu phân loại khu vực.</p>`}
         </article>
-        <article class="d173-overview-panel"><header><h3>SKU cần đối chiếu</h3><span>Tái phát / nhiều Picker báo</span></header>
+        <article class="d173-overview-panel"><header><h3>SKU cần đối chiếu</h3></header>
           <div class="d173-overview-focus">${skuMarkup}</div>
-          <p class="d173-overview-note">Tái phát là dấu hiệu nghiệp vụ, chưa chứng minh nguyên nhân thiếu hàng.</p>
         </article>
       </div>
     </div></div>

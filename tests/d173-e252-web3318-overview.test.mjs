@@ -11,7 +11,7 @@ const version = readFileSync("web/src/web-version.ts", "utf8");
 const deploy = readFileSync(".github/workflows/deploy-beta.yml", "utf8");
 
 test("D173-E257 shows live per-SKU triage without a second page or recent-resolution wall", () => {
-  assert.match(version, /WEB_VERSION = "3\.3\.19"/); // Owner-authorized release candidate.
+  assert.match(version, /WEB_VERSION = "3\.3\.20"/); // Owner-authorized release candidate.
   assert.match(web, /function renderDashboard\(\): string/);
   const dashboard = web.slice(web.indexOf("function renderDashboard(): string"), web.indexOf("function reportPickerOutcome"));
   for (const key of [
@@ -26,8 +26,8 @@ test("D173-E257 shows live per-SKU triage without a second page or recent-resolu
   assert.match(web, /function scheduleDashboardEventRefresh\(\): void/);
   assert.match(web, /15_000 - \(Date\.now\(\) - dashboardLastLoadedAt\)/);
   assert.match(web, /scheduleDashboardEventRefresh\(\);/);
-  assert.match(dashboard, /không phải vị trí hiện tại/);
-  assert.match(dashboard, /chưa chứng minh nguyên nhân thiếu hàng/);
+  assert.match(dashboard, /Khu vực lúc báo/);
+  assert.doesNotMatch(dashboard, /Không tự kết luận nguyên nhân tồn kho/);
 });
 
 test("One authenticated Web-to-DO overview includes bounded pending evidence and two read-only hourly SQL groups", () => {
@@ -54,9 +54,9 @@ test("One authenticated Web-to-DO overview includes bounded pending evidence and
   assert.doesNotMatch(region, /obpp1291|obpp_/i);
 });
 
-test("Header is viewport-sticky without clipped overflow; layout scope only affects Web", () => {
+test("Header stays in measured grid row without clipped overflow; layout scope only affects Web", () => {
   assert.match(web, /import "\.\/d173-overview\.css"/);
-  assert.match(css, /\.d173-tabler-shell > \.d173-tabler-navbar\s*\{[^}]*position:\s*sticky !important;[^}]*top:\s*0 !important;[^}]*height:\s*auto !important;[^}]*overflow:\s*visible !important;/s);
+  assert.match(css, /\.d173-tabler-shell > \.d173-tabler-navbar\s*\{[^}]*position:\s*relative !important;[^}]*top:\s*auto !important;[^}]*height:\s*auto !important;[^}]*overflow:\s*visible !important;/s);
   assert.match(css, /@media \(max-width: 1120px\)/);
   assert.match(css, /@media \(max-width: 650px\)/);
   assert.doesNotMatch(css, /\.obpp1291/);
@@ -65,8 +65,8 @@ test("Header is viewport-sticky without clipped overflow; layout scope only affe
 test("Missing SLA remains unknown, ticket and batch counts are not mixed", () => {
   assert.match(web, /slaConfigured \? Number\(insights\?\.sla\.warning_count \|\| 0\) : null/);
   assert.match(web, /slaConfigured \? Number\(insights\?\.sla\.escalated_count \|\| 0\) : null/);
-  assert.match(web, /"Chưa cấu hình SLA"/);
-  assert.match(web, /Không phải số Picker duy nhất/);
+  assert.match(web, /Chưa cấu hình SLA/);
+  assert.match(web, /Ticket Picker đang chờ/);
   assert.match(web, /Đợt hoàn tất/);
 });
 
