@@ -7,15 +7,15 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E245",
-    "pr": 965,
-    "branch": "fix/d173-e242-web3316-ui-consistency-20261113",
-    "status": "WEB3316_SOURCE_CI_5_5_PASS_OWNER_RELEASE_APPROVED_MERGE_PENDING",
+    "checkpoint_id": "D173-E246",
+    "pr": 966,
+    "branch": "docs/d173-e246-web3316-production-receipt-20261113",
+    "status": "WEB3316_PRODUCTION_TECHNICAL_RELEASE_PASS__PR966_DOCS_ONLY__FIELD_OWNER_PENDING",
     "owner_merge_approved": true,
     "owner_release_approved": true,
-    "source_doc": "docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md",
-    "production_web_version": "3.3.15",
-    "source_main_sha": "bbd922e2f5873586aaa7264038b464b16be0c597",
+    "source_doc": "docs/D173_E246_WEB3316_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
+    "production_web_version": "3.3.16",
+    "source_main_sha": "f4df26dd28f753f4f4456254124d821ce88d0077",
     "target_web_version": "3.3.16",
     "field_pass": false,
     "owner_pass": false,
@@ -26,8 +26,8 @@
     "state_ci_run_id": 43353158675,
     "release_marker": "D173-E244_WEB3316_PRODUCTION_RELEASE:",
     "source_code_pin": "af8b951727f09622c3c2ed6412bb30cd23fcd69d",
-    "release_run_id": null,
-    "release_attempt": null
+    "release_run_id": 43353567258,
+    "release_attempt": 1
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -54,13 +54,13 @@
       "host_build": 14
     },
     "web": {
-      "version": "3.3.15",
-      "worker_web_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43259764849",
-      "source_change_id": "D173-E241",
-      "source_main_sha": "8cfd4b2427a02ba59cca68e0e0dc277b8a58d62f",
-      "worker_version_id_at_deploy": "ef27d5d0-4902-4ee9-a710-06cd12c686a8",
+      "version": "3.3.16",
+      "worker_web_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43353567258",
+      "source_change_id": "D173-E246",
+      "source_main_sha": "f4df26dd28f753f4f4456254124d821ce88d0077",
+      "worker_version_id_at_deploy": "7af05af0-4946-4124-ac44-ab8eae8b1cb5",
       "ci_release": "PASS_PRODUCTION_TECHNICAL_EXACT_SOURCE__ATTEMPT1",
-      "field": "WEB3315_AUTHENTICATED_BROWSER_VISUAL_PENDING",
+      "field": "WEB3316_AUTHENTICATED_BROWSER_VISUAL_PENDING",
       "owner_pass": "PENDING"
     },
     "android": {
@@ -102,7 +102,7 @@
     "AGENT193_OWNER_APPROVED_MERGE",
     "AGENT193_RELEASE_PASS_BEFORE_TAG_CHANNEL_READBACK"
   ],
-  "main_source_at_reconciliation": "8cfd4b2427a02ba59cca68e0e0dc277b8a58d62f",
+  "main_source_at_reconciliation": "f4df26dd28f753f4f4456254124d821ce88d0077",
   "active_implementation": {
     "id": "D173-E208",
     "source_main_sha": "7cb0037af96d57e650bdad371d9b7ffa663f185e",
