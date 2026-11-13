@@ -1542,6 +1542,22 @@ export async function getSystemStatus(fresh = false): Promise<SystemStatusSnapsh
   return readJson(await authorizedFetch(`/api/admin/system-status${suffix}`));
 }
 
+export type ContractorItem = { name: string; picker_count: number };
+export async function listContractors(): Promise<{ items: ContractorItem[]; total: number }> {
+  return readJson(await authorizedFetch("/api/admin/contractors"));
+}
+export async function changeContractor(
+  action: "CREATE" | "RENAME" | "DELETE",
+  name: string,
+  previousName = "",
+): Promise<{ status: string }> {
+  return readJson(await authorizedFetch("/api/admin/contractors", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action, name, previous_name: previousName }),
+  }));
+}
+
 export async function listManagedUsers(options: {
   query?: string;
   role?: string;
