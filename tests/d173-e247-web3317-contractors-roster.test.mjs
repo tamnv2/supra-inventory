@@ -60,7 +60,7 @@ test("E247 Picker manual input uses live contractor select; import retains exist
   assert.match(api, /authorizedFetch\("\/api\/admin\/contractors"/);
 });
 
-test("E247 Web 3.3.18 remains candidate until gated release", () => {
-  assert.match(version, /WEB_VERSION = "3\.3\.18"/);
-  assert.equal(pkg.version, "3.3.18");
+test("E247 Web 3.3.19 remains candidate until gated release", () => {
+  assert.match(version, /WEB_VERSION = "3\.3\.19"/);
+  assert.equal(pkg.version, "3.3.19");
 });
