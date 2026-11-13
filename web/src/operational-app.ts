@@ -504,6 +504,8 @@ let dashboardData: AdminDashboard | null = null;
 let dashboardPendingItems: AdminOverview["pending_items"] = [];
 let dashboardTrendHours: AdminOverview["trend_7d_hours"] = [];
 let dashboardGeneratedAt = "";
+let dashboardLastLoadedAt = 0;
+let dashboardEventRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 let d167DashboardAreas: Awaited<ReturnType<typeof getD167AreaSummary>> | null = null;
 let d167ReportAreas: Awaited<ReturnType<typeof getD167AreaSummary>> | null = null;
 let reportRows: AdminReportingRow[] = [];
@@ -2376,7 +2378,7 @@ function renderDashboard(): string{
   const unknown = areas.find(row => row.area === "UNKNOWN");
   if (unknown && Number(unknown.batches || 0) > 0) issues.push({tone:"notice",title:`${num(Number(unknown.batches))} đợt thiếu chứng cứ khu vực`,detail:"Chưa xác định LTA/Shelving tại lần báo đầu; không suy ra khu vực hiện tại."});
   if (!slaConfigured) issues.push({tone:"notice",title:"SLA chưa cấu hình",detail:"Không thể kết luận số đợt gần hạn/quá hạn bằng 0."});
-  const issueMarkup = issues.length ? issues.slice(0,4).map(item => `<div class="d173-overview-alert ${item.tone}"><span class="d173-overview-alert-dot"></span><div><b>${esc(item.title)}</b><small>${esc(item.detail)}</small></div></div>`).join("") : `<p class="d173-overview-empty">Chưa có dấu hiệu bất thường từ các chỉ số hiện có. Đây không phải xác nhận tồn kho chính xác.</p>`;
+  const issueMarkup = issues.length ? issues.slice(0,4).map(item => `<div class="d173-overview-alert ${item.tone}"><span class="d173-overview-alert-dot"></span><div><b>${esc(item.title)}</b><small>${esc(item.detail)}</small></div></div>`).join("") : `<p class="d173-overview-empty">Chưa ghi nhận dấu hiệu ưu tiên; cần đối chiếu tồn kho thực tế.</p>`;
   const areaMarkup = ["LTA","SHELVING","UNKNOWN"].map(key => {
     const row = areas.find(item => item.area === key);
     return `<tr><td><strong>${esc(d167AreaLabel(key))}</strong></td><td>${num(row?.batches)}</td><td>${num(row?.picker_reports)}</td><td>${num(row?.pending)}</td><td>${num(row?.has_stock)}</td><td>${num(row?.skip_allowed)}</td></tr>`;
@@ -2405,7 +2407,7 @@ function renderDashboard(): string{
       <div class="d173-overview-cols d173-overview-priority">
         <article class="d173-overview-panel"><header><h3>Đợt đang nghẽn · chi tiết trực tiếp</h3><span>${num(pendingItems.length)} / ${num(pending)} đợt, ưu tiên chờ lâu nhất</span></header>
           <div class="d173-overview-table-wrap"><table class="d173-overview-pending-table"><thead><tr><th>SKU / Tên hàng</th><th>Khu vực lúc báo</th><th>Báo đầu lúc</th><th>Đã chờ</th><th>Ticket mở</th></tr></thead><tbody>${pendingMarkup}</tbody></table></div>
-          <p class="d173-overview-note">Khu vực lấy theo lịch sử lúc báo đầu, không phải vị trí tồn kho hiện tại. Không cần mở trang chi tiết để biết các đợt ưu tiên.</p>
+          <p class="d173-overview-note">Khu vực được xác định tại thời điểm báo đầu, không phải vị trí hiện tại.</p>
         </article>
         <article class="d173-overview-panel"><header><h3>Dấu hiệu cần kiểm tra</h3><span>Không tự kết luận nguyên nhân tồn kho</span></header>
           <div class="d173-overview-alerts">${issueMarkup}</div></article>
@@ -4304,6 +4306,21 @@ async function loadSla(): Promise<void> {
   }
 }
 
+// One coalesced read per visible dashboard on relevant WebSocket activity.
+// No fixed analytics polling and no extra Web→DO route.
+function scheduleDashboardEventRefresh(): void {
+  if (activeSection !== "dashboard" || document.visibilityState !== "visible" || !profile || !rolePickPackManage()) return;
+  if (dashboardEventRefreshTimer !== null) return;
+  const delay = Math.max(500, 15_000 - (Date.now() - dashboardLastLoadedAt));
+  dashboardEventRefreshTimer = window.setTimeout(() => {
+    dashboardEventRefreshTimer = null;
+    if (activeSection !== "dashboard" || document.visibilityState !== "visible" || !profile || !rolePickPackManage()) return;
+    void loadDashboard().then(() => {
+      if (activeSection === "dashboard") patchActiveSection(true);
+    }).catch((error) => runtimeLogEvent(`Không cập nhật được Tổng quan sau sự kiện: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
+  }, delay);
+}
+
 async function loadDashboard(): Promise<void> {
   const generation = ++dashboardLoadGeneration;
   const sessionGeneration = sessionViewGeneration;
@@ -4320,6 +4337,7 @@ async function loadDashboard(): Promise<void> {
   dashboardPendingItems = next.pending_items;
   dashboardTrendHours = next.trend_7d_hours;
   dashboardGeneratedAt = next.generated_at;
+  dashboardLastLoadedAt = Date.now();
   markWebUpdateReceived();
 
 }
@@ -5989,6 +6007,9 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   }
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
+  if (["reporter_queue","reporter_overdue","reporter_recent","picker_reports","sla_settings"].some((scope) => scopes.has(scope))) {
+    scheduleDashboardEventRefresh();
+  }
   if (scopes.has("sku_catalog") && profile) {
     // Recheck server-owned VN-day FULL state on an existing realtime event.
     // Never infer a valid daily roster from a partial Web PATCH.
@@ -6200,6 +6221,8 @@ initWebRuntimeLogging(() => ({
 
 function updateDashboardWaitingClocks(): void {
   if (activeSection !== "dashboard") return;
+  // One day rollover read if the monitoring page remains open overnight.
+  if (dashboardFrom !== dateDaysAgo(0)) { scheduleDashboardEventRefresh(); return; }
   document.querySelectorAll<HTMLElement>("[data-overview-wait-since]").forEach((node) => {
     const since = Date.parse(node.dataset.overviewWaitSince || "");
     if (!Number.isFinite(since)) return;
