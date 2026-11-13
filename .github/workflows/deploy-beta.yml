@@ -86,7 +86,10 @@ jobs:
         run: |
           set -euo pipefail
           subject="$(git log -1 --format=%s)"
-          if [[ "$subject" == D173-E249_WEB3317_PRODUCTION_RELEASE:* ]]; then
+          if [[ "$subject" == D173-E253_WEB3318_PRODUCTION_RELEASE:* ]]; then
+            python3 tools/d173_e253_web3318_release_gate.py --component worker
+            python3 tools/d173_e253_web3318_release_gate.py --component web
+          elif [[ "$subject" == D173-E249_WEB3317_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e249_web3317_release_gate.py --component worker
             python3 tools/d173_e249_web3317_release_gate.py --component web
           elif [[ "$subject" == D173-E244_WEB3316_PRODUCTION_RELEASE:* ]]; then
