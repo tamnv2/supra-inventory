@@ -28,19 +28,19 @@
   "worker_typecheck_pass": true,
   "d172_isolation_pass": true,
   "authority_guard_pass": true,
-  "source_ci_sha": "fb2cacf8117c8ee2f62eb43c415b1164ef46c39d",
+  "source_ci_sha": "e08a212b77aa0c4393325a4e50a5decbb344b726",
   "required_ci_failed": 0,
   "required_ci_success": 6,
   "required_ci_run_ids": [
-    43420065825,
-    43420065766,
-    43420065609,
-    43420065063,
-    43420065511,
-    43420065601
+    43420379425,
+    43420379344,
+    43420379073,
+    43420379367,
+    43420379067,
+    43420379400
   ],
   "field_pass": false,
   "owner_pass": false,
-  "release": "PASS_SCOPED_CI_6_OF_6_EXACT_HEAD__PROTECTED_MERGE_AND_PRODUCTION_DEPLOY_PENDING__FIELD_OWNER_PENDING",
+  "release": "PASS_SCOPED_6_6_EXACT_SOURCE_PREFLIGHT_PASS__PROTECTED_MERGE_PRODUCTION_PENDING",
   "global_ci_note": "Global legacy UI Design Guard has eight historical Agent/Web invariants failing before E261, not counted as scoped release CI PASS. Do not claim global PASS."
 }
