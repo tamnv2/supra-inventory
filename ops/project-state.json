@@ -14266,5 +14266,24 @@
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E241_WEB3315_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
     "scope": "DOCS_OPS_RECEIPT_ONLY__NO_RUNTIME_MUTATION"
+  },
+  "d173_launcher_identity_isolated_poc_20261113": {
+    "date_vn": "2026-11-13",
+    "change_id": "D173",
+    "mode": "ISOLATED_CODE_TEST_ONLY",
+    "branch": "feat/d173-launcher-session-poc-20261113",
+    "latest_candidate_commit": "896c58c028367d031067265ece0fc5b9c2f916b0",
+    "source_latest_launcher_tag": "v0.3.26",
+    "result": "LOCAL_MOCK_SSO_SOURCE_ONLY__BUILD_FIELD_AUTH_NOT_VERIFIED",
+    "scope": "EXPERIMENT_DIRECTORY_AND_PR_CI_ONLY__NO_PROVIDER_PRODUCTION_MUTATION",
+    "security": "DEFAULT_CREDENTIAL_NOT_EMBEDDED__NO_REAL_USER_ACCOUNT_VERIFICATION",
+    "code": "CANDIDATE_UNVERIFIED",
+    "ci": "PENDING",
+    "release": "NOT_RELEASED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "journal": "d173_launcher_identity_isolated_poc_20261113"
   }
 }

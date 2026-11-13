@@ -6186,5 +6186,52 @@
     "owner_pass": false,
     "doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md",
     "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0"
+  },
+  "d173_launcher_identity_isolated_poc_20261113": {
+    "date_vn": "2026-11-13",
+    "change_id": "D173",
+    "kind": "OWNER_REQUEST_CODE_TEST_ISOLATED",
+    "intent": "Import latest Launcher signed-release corresponding source, show dimmed apps until confirm identity, and build separate Android client for login/logout SSO feasibility without Báo hàng modifications",
+    "proven_source": {
+      "launcher_repo": "tamnv2/supra-pda-launcher",
+      "latest_signed_tag": "v0.3.26",
+      "tag_commit": "c33a8262669f7ff33e698be86ce6d9c657686988",
+      "latest_release_asset_digest": "sha256:d27cc0a7e0bb318820aeb80a9c256b02bd02512adc72385082a4dca1bce58ba2",
+      "inventory_base_main": "bbd922e2f5873586aaa7264038b464b16be0c597"
+    },
+    "branch": "feat/d173-launcher-session-poc-20261113",
+    "source_commit": "896c58c028367d031067265ece0fc5b9c2f916b0",
+    "owner_request": [
+      "Launcher copy v0.3.26 into Inventory isolated experiment",
+      "Tile dim/unlock via button 'Xác nhận định danh', numeric employee code, hidden default password",
+      "Independent client test for Launcher login/logout, no production Báo hàng change"
+    ],
+    "safety_deviation": "NO_REAL_AUTH_IN_POC: Default shared password cannot be silently embedded in public APK or used as proof of worker identity. Current backend requires password plus user; local numeric-format-only test validates Android IPC but NOT employee account. Production auth and Firebase token flow unimplemented until secure server enrollment/Owner approval.",
+    "implementation": [
+      "29 baseline source files imported in isolated launcher test Gradle project",
+      "New APK launcher identitytest appId, no Internet, no HOME/boot/accessibility automation, original Production untouched",
+      "UI dims app tile, button confirmation gates launcher tile interactions; accepts only 5-12 numeric format for mock",
+      "Separate test client APK auto-receives local session via same-signature explicit Activity call; signature-permission logout broadcast in both directions",
+      "Both APKs can build together from one GitHub Actions PR job with isolated debug signer; not production release"
+    ],
+    "tests": [
+      "Python static isolation guard defined",
+      "GitHub Actions dual APK debug build pending",
+      "No PDA hardware field test or true Firebase SSO proof"
+    ],
+    "code": "CANDIDATE_UNVERIFIED",
+    "ci": "PENDING",
+    "release": "NO_PRODUCTION_RELEASE",
+    "field_pass": false,
+    "owner_pass": false,
+    "out_of_scope": [
+      "supra-pda-launcher repo mutation",
+      "Production inventory Android/Agent/Web/Worker or Firebase changes",
+      "D172",
+      "Stable",
+      "real account authentication without secure server proof"
+    ],
+    "related_review_pr": 963,
+    "provenance_doc": "experiments/d173-launcher-session-poc/README.md"
   }
 }
