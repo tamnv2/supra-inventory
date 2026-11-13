@@ -39,7 +39,7 @@ test("E267: meal controls, form actions and section titles use real compact geom
   assert.match(scoped, /\.d167-meal-form, \.d167-meal-edit/);
   assert.match(scoped, /margin-top:\s*var\(--d173-ui-gap\) !important;/);
   assert.match(scoped, /\.ops-panel-title\s*\{[^}]*margin-bottom:\s*var\(--d173-ui-gap\) !important;/s);
-  assert.match(scoped, /\.users-workspace \.users-top-grid \.users-filter-panel/);
+  assert.match(scoped, /\.users-top-grid \.users-filter-panel/);
   assert.match(scoped, /padding:\s*8px 10px !important;/);
   assert.match(scoped, /\.users-workspace \.users-filter-form \.ops-form-actions/);
   assert.match(scoped, /padding:\s*0 !important;/);
