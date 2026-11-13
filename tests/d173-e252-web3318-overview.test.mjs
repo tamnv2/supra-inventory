@@ -18,7 +18,7 @@ test("Web3.3.18 includes new compact operational overview and same-day/7-day dri
   assert.match(web, /dashboardFrom = day;\s+dashboardTo = day;/);
   assert.match(web, /data-dashboard-status="PENDING"/);
   assert.match(web, /d173-overview-connected/);
-  assert.match(web, /không lấy hiệu hai cột làm số tồn đọng/);
+  assert.match(web, /Không lấy hiệu làm tồn đọng/);
 });
 
 test("Single authorized Worker→DO read forwards only existing business data", () => {
@@ -50,6 +50,6 @@ test("No invented stock cause, missing SLA is not coerced to zero, and ticket/ba
   assert.match(web, /slaConfigured \? Number\(insights\?\.sla\.warning_count \|\| 0\) : null/);
   assert.match(web, /warning == null \? "—"/);
   assert.match(web, /chưa xác minh nguyên nhân tồn kho/);
-  assert.match(web, /ticket và đợt/);
+  assert.match(web, /lượt Picker; xử lý xong: đợt/);
   assert.match(web, /k\?\.avg_resolution_minutes == null \? "—"/);
 });
