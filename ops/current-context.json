@@ -7,22 +7,22 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E262",
-    "pr": 975,
-    "branch": "fix/d173-e262-web3320-postsecret-readback-20261113",
-    "status": "WEB3320_EXACT_RUNTIME_SOURCE_MATCH_099D0157_BUT_DEPLOY_POSTSECRET_GUARD_FAIL__RECOVERY_DRAFT_PR975__D172_HOLD",
+    "checkpoint_id": "D173-E263",
+    "pr": 976,
+    "branch": "docs/d173-e263-web3320-production-release-receipt-20261113",
+    "status": "WEB3320_TECH_PRODUCTION_RELEASE_SUCCESS_MAIN_A2EF3F40_RUN43422924760__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_merge_approved": true,
     "owner_release_approved": true,
-    "source_doc": "docs/D173_E262_WEB3320_POSTSECRET_RELEASE_RECOVERY_2026-11-13.md",
+    "source_doc": "docs/D173_E263_WEB3320_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
     "production_web_version": "3.3.20",
     "target_web_version": "3.3.20",
     "field_pass": false,
     "owner_pass": false,
-    "source_main_sha": "099d01571399cf57615f6efbbf34f61c03d265ec",
+    "source_main_sha": "a2ef3f4013760a457cc4ede58b084616c08ab029",
     "technical_production_readback_run_id": 43408214463,
     "code_scoped_pass": true,
     "ci_scoped_pass": true,
-    "release_technical_pass": false,
+    "release_technical_pass": true,
     "source_ci_sha": null,
     "source_ci_run_id": 43415335127,
     "ci_global_pass": false,
@@ -30,7 +30,7 @@
     "source_sha": "4d77795d65b9541aa950d70e41521eac74814b3b",
     "source_code_pin": "22666e168936e57ff9c974e46a33bc0499bb6e02",
     "release_marker": "D173-E261_WEB3320_PRODUCTION_RELEASE:",
-    "release_run_id": null,
+    "release_run_id": 43422924760,
     "production_readback_run_id": 43421512675
   },
   "web3311_release_candidate": {
@@ -58,16 +58,16 @@
       "host_build": 14
     },
     "web": {
-      "version": "3.3.19",
-      "worker_web_run": null,
-      "source_change_id": "D173-E258",
-      "source_main_sha": "4350481de726cd33746fc634b41ff053a4d557bd",
-      "ci_release": "PASS_PRODUCTION_EXACT_SOURCE_BY_READBACK_RUN43408214463__DEPLOY_PUSH_WORKFLOW_RUN_UNVERIFIED",
-      "field": "WEB3319_AUTHENTICATED_HD_HDPLUS_LIGHT_DARK_FIELD_PENDING",
+      "version": "3.3.20",
+      "worker_web_run": 43422924760,
+      "source_change_id": "D173-E262",
+      "source_main_sha": "a2ef3f4013760a457cc4ede58b084616c08ab029",
+      "ci_release": "PASS_PRODUCTION_WORKER_WEB_ALL_SMOKE_RUN43422924760__FIELD_OWNER_PENDING",
+      "field": "HD_HDPLUS_FONT_ZOOM_HEADER_OVERDUE_FIELD_PENDING",
       "owner_pass": "PENDING",
       "local_user_cache": "AUTHENTICATED_RAM_ONLY_TTL120SEC__NOT_ON_DISK",
       "runtime_readback_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43408214463",
-      "deploy_push_workflow_run": "UNVERIFIED"
+      "deploy_push_workflow_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43422924760"
     },
     "android": {
       "tag": "beta-vc128",
@@ -76,7 +76,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E259_WEB3319_PRODUCTION_READBACK_2026-11-13.md"
+    "receipt": "docs/D173_E263_WEB3320_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md"
   },
   "d172": {
     "change_id": "D172",
@@ -182,9 +182,11 @@
     "working_branch": "fix/d173-e262-web3320-postsecret-readback-20261113",
     "source_code_sha": "4d77795d65b9541aa950d70e41521eac74814b3b",
     "ci": "PENDING",
-    "release": "PENDING_POSTSECRET_READBACK_REPAIR",
+    "release": "PASS_TECHNICAL_PRODUCTION",
     "live_exact_sha_readback": "099d01571399cf57615f6efbbf34f61c03d265ec",
     "field_pass": false,
-    "owner_pass": false
+    "owner_pass": false,
+    "release_main_sha": "a2ef3f4013760a457cc4ede58b084616c08ab029",
+    "release_run_id": 43422924760
   }
 }
