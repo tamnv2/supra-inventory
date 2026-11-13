@@ -68,25 +68,29 @@ final class TestSessionStore {
         }
         new Thread(() -> {
             String issuedToken = null;
+            String stage = "WORKER_LOGIN";
             try {
                 JSONObject reply = PocFirebase.post("/api/auth/login", new JSONObject()
                     .put("username", account).put("password", password)
                     .put("client_type", "ANDROID").put("device_id", deviceId(context))
                     .put("force", false), null);
+                stage = "WORKER_USER";
                 issuedToken = reply.getString("id_token");
                 JSONObject user = reply.getJSONObject("user");
                 String role = user.optString("base_role");
                 if (!("PICKER".equals(role) || "REPORTER".equals(role) || "ADMIN".equals(role))
-                    || !account.equalsIgnoreCase(user.optString("username"))) {
+                    || user.optString("user_id").isEmpty()) {
                     throw new IllegalStateException("INVALID_INVENTORY_ANDROID_ROLE_OR_ACCOUNT");
                 }
                 long gen = reply.optLong("session_generation", 0L);
                 String relay = reply.getString("firebase_custom_token");
                 if (gen <= 0 || relay.isEmpty()) throw new IllegalStateException("MISSING_RELAY_TOKEN");
+                stage = "FIREBASE_SIGN_IN";
                 FirebaseAuth auth = PocFirebase.auth(context);
                 auth.signOut();
                 String uid = Tasks.await(auth.signInWithCustomToken(relay),
                     20, TimeUnit.SECONDS).getUser().getUid();
+                stage = "FIREBASE_CLAIMS";
                 var claims = Tasks.await(auth.getCurrentUser().getIdToken(true),
                     12, TimeUnit.SECONDS).getClaims();
                 if (!"ANDROID".equals(claims.get("app_session_channel"))
@@ -95,7 +99,11 @@ final class TestSessionStore {
                     || ((Number) claims.get("app_session_generation")).longValue() != gen) {
                     throw new IllegalStateException("FIREBASE_CLAIM_MISMATCH");
                 }
-                PocFirebase.me(issuedToken); // server validates active session generation
+                stage = "WORKER_SESSION";
+                JSONObject current = PocFirebase.me(issuedToken).getJSONObject("user");
+                if (!user.getString("user_id").equals(current.optString("user_id"))
+                    || !user.getString("base_role").equals(current.optString("base_role")))
+                    throw new IllegalStateException("WORKER_ACCOUNT_MISMATCH");
                 workerIdToken = issuedToken;
                 relayCustomToken = relay;
                 handoffConsumed = false;
@@ -110,7 +118,14 @@ final class TestSessionStore {
                     catch (Exception ignored) {}
                 }
                 clear(context);
-                complete(callback, false, "Đăng nhập thất bại hoặc tài khoản đã có phiên PDA khác. Không thay phiên đang làm việc.");
+                String detail = problem.getMessage();
+                if (detail != null && detail.startsWith("WORKER_HTTP_")) {
+                    complete(callback, false, "Worker từ chối đăng nhập (" + detail + ").");
+                } else if ("SESSION_ACTIVE_OTHER_DEVICE".equals(detail)) {
+                    complete(callback, false, "Worker báo phiên PDA khác đang hoạt động (409); không thay thế phiên.");
+                } else {
+                    complete(callback, false, "Lỗi kiểm thử tại bước " + stage + ". Không kết luận sai mật khẩu.");
+                }
             }
         }, "d173-live-qa-login").start();
     }

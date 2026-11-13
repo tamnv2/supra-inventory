@@ -33,6 +33,19 @@ assert 'PocFirebase.post("/api/auth/login"' in session
 assert 'PocFirebase.post("/api/auth/logout"' in session
 assert 'PocFirebase.me(issuedToken)' in session
 assert 'signInWithCustomToken' in session and 'signInWithCustomToken' in client_main
+# Regression D173-E256: publicUser() exposes user_id, NOT username.
+worker = (root.parent.parent / "service/src/index.ts").read_text()
+internal_user = worker.split("interface InternalUser {", 1)[1].split("}", 1)[0]
+public_user = worker.split("function publicUser(", 1)[1].split("\\n}", 1)[0]
+assert "username:" not in internal_user
+assert "username:" not in public_user
+assert 'user.optString("username")' not in session
+assert 'user.optString("username")' not in client_main
+assert 'user.optString("user_id").isEmpty()' in session
+assert 'userId.equals(String.valueOf(claims.get("app_user_id")))' in client_main
+assert 'sameWorkerAccount(user, token.getClaims(), uid)' in client_main
+assert 'sameWorkerAccount(user, token.getClaims(), local.getString("firebase_uid", ""))' in client_main
+assert 'String stage = "WORKER_LOGIN";' in session
 assert 'sameWorkerAccount' in client_main and 'app_user_id' in client_main
 assert 'app_session_generation' in session and 'app_session_generation' in client_main
 assert 'getCallingPackage()' in handoff

@@ -135,7 +135,7 @@ public final class MainActivity extends Activity {
                 if (!validClaims(token.getClaims(), expectedGeneration))
                     throw new IllegalStateException("FIREBASE_CLAIMS_MISMATCH");
                 JSONObject user = PocFirebase.me(token.getToken()).getJSONObject("user");
-                if (!sameWorkerAccount(user, token.getClaims(), code))
+                if (!sameWorkerAccount(user, token.getClaims(), uid))
                     throw new IllegalStateException("IDENTITY_MISMATCH");
                 local.edit().putString("employee_code", code)
                     .putString("firebase_uid", uid)
@@ -161,10 +161,13 @@ public final class MainActivity extends Activity {
             && ("PICKER".equals(role) || "REPORTER".equals(role) || "ADMIN".equals(role))
             && val instanceof Number && ((Number) val).longValue() == generation;
     }
-    private static boolean sameWorkerAccount(JSONObject user, Map<String, Object> claims, String username) {
-        return username.equalsIgnoreCase(user.optString("username"))
-            && user.optString("user_id").equals(String.valueOf(claims.get("app_user_id")))
-            && user.optString("base_role").equals(String.valueOf(claims.get("app_base_role")));
+    private static boolean sameWorkerAccount(JSONObject user, Map<String, Object> claims, String firebaseUid) {
+        String userId = user.optString("user_id");
+        String serverUid = user.optString("firebase_uid");
+        return !userId.isEmpty()
+            && userId.equals(String.valueOf(claims.get("app_user_id")))
+            && user.optString("base_role").equals(String.valueOf(claims.get("app_base_role")))
+            && (serverUid.isEmpty() || serverUid.equals(firebaseUid));
     }
 
     private void verifyExistingSession() {
@@ -183,7 +186,7 @@ public final class MainActivity extends Activity {
                 if (!validClaims(token.getClaims(), local.getLong("generation", 0L)))
                     throw new IllegalStateException("CLAIMS_MISMATCH");
                 JSONObject user = PocFirebase.me(token.getToken()).getJSONObject("user");
-                if (!sameWorkerAccount(user, token.getClaims(), local.getString("employee_code", "")))
+                if (!sameWorkerAccount(user, token.getClaims(), local.getString("firebase_uid", "")))
                     throw new IllegalStateException("IDENTITY_MISMATCH");
                 valid = true;
             } catch (Exception ignored) {

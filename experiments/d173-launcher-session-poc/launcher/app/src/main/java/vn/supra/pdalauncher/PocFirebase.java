@@ -85,9 +85,9 @@ final class PocFirebase {
                 ? new JSONObject(buffer.toString(StandardCharsets.UTF_8.name()))
                 : new JSONObject();
             if (status == 409 && "SESSION_ACTIVE_OTHER_DEVICE".equals(result.optString("error")))
-                throw new IllegalStateException("Tài khoản QA đang có phiên PDA khác. Không thay thế phiên.");
+                throw new IllegalStateException("SESSION_ACTIVE_OTHER_DEVICE");
             if (status < 200 || status >= 300)
-                throw new IllegalStateException("Xác thực QA thất bại (HTTP " + status + ").");
+                throw new IllegalStateException("WORKER_HTTP_" + status);
             return result;
         } finally { conn.disconnect(); }
     }

@@ -452,7 +452,7 @@ public class MainActivity extends Activity {
         codeField.setInputType(InputType.TYPE_CLASS_TEXT);
 
         final EditText passwordField = new EditText(this);
-        passwordField.setHint("Mật khẩu QA (được che, không lưu)");
+        passwordField.setHint("Mật khẩu Báo hàng (không lưu)");
         passwordField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         LinearLayout body = new LinearLayout(this);
         body.setPadding(dp(16), dp(4), dp(16), dp(2));
