@@ -20,7 +20,7 @@ test("E267 RED reproduction: legacy margin and padding values survived the E264 
 
 test("E267: outer page inset overrides the legacy role-scoped important padding", () => {
   assert.ok(scoped.startsWith("/* D173-E267:"), "FIELD layout override missing");
-  assert.match(scoped, /body \.d173-tabler-shell > \.d173-page-content\s*\{[^}]*padding:\s*4px 6px 24px !important;/s);
+  assert.match(scoped, /body \.d173-tabler-shell > \.d173-page-content:not\(:has\(\.ops-business-workspace\)\)\s*\{[^}]*padding:\s*4px 6px 24px !important;/s);
 });
 
 test("E267: actual workspace roots normalize vertical rhythm, not just nested grid gaps", () => {
