@@ -259,3 +259,43 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
   background:#17243a !important;
   color:#9ed4ff !important;
 }
+
+/* D173-E242: one-line Picker detail and vertically centered resolution rows. */
+.d173-tabler-shell .picker-detail-row { grid-template-columns:minmax(70px,100px) minmax(130px,1fr) max-content max-content; align-items:center; min-width:610px; }
+.d173-tabler-shell .picker-detail-list { overflow-x:auto; }
+.d173-tabler-shell .picker-detail-row .picker-display-name,
+.d173-tabler-shell .picker-detail-row time strong { font-weight:700; color:var(--pro-text,#142033); }
+.d173-tabler-shell .picker-detail-row .picker-timeout-state { white-space:nowrap; }
+.d173-tabler-shell .result-audit-table tbody tr[data-ops-sku-primary] > td { vertical-align:middle !important; }
+.d173-tabler-shell .result-audit-table tbody tr[data-ops-sku-primary] .user-row-actions { display:flex; align-items:center; }
+.d173-tabler-shell #recent-day { width:125px; min-width:125px; }
+.d173-tabler-navbar .header-controls :is(select,button) { box-sizing:border-box; height:36px !important; min-height:36px !important; }
+/* D173-E242: report tabs/date toolbar above one independent scrolling content pane. */
+.d173-tabler-shell .report-workspace .d173-report-toolbar { display:flex; align-items:center; gap:8px; position:sticky; top:0; z-index:10; padding:4px 7px; background:var(--pro-bg,#f4f7fa); }
+.d173-tabler-shell .report-workspace .d173-report-toolbar > .workspace-tabs { display:flex; align-items:center; flex:0 0 auto; margin:0 !important; border:0 !important; border-radius:4px !important; padding:0 !important; }
+.d173-tabler-shell .report-workspace .d173-report-date { margin-left:auto; min-width:0; }
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-range { display:flex; align-items:center; flex-wrap:wrap; gap:5px; border:0; border-radius:0; background:transparent; padding:0; }
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-range > label { padding:0; background:transparent; border-radius:0; }
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-range input[type="date"] { box-sizing:border-box; width:125px !important; min-width:125px !important; height:35px !important; min-height:35px !important; padding:4px 5px !important; border-radius:4px !important; box-shadow:none !important; }
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-separator { margin-top:0; }
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-presets { margin:0 !important; }
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-presets .btn { height:35px !important; min-height:35px !important; border-radius:4px !important; }
+.d173-tabler-shell .report-workspace .report-filter-panel { margin:0 0 7px; border:0; padding:6px 0 !important; }
+.d173-tabler-shell .report-workspace .report-filter-detail { grid-template-columns:minmax(145px,190px) minmax(145px,190px) minmax(220px,1fr) !important; }
+@media (min-width:781px) {
+  .d173-tabler-shell > .d173-page-content:has(.report-workspace) { display:flex; flex-direction:column; min-height:0 !important; overflow:hidden !important; padding-bottom:28px !important; }
+  .d173-tabler-shell .report-workspace { display:flex; flex:1 1 auto; flex-direction:column; min-height:0; overflow:hidden; border:1px solid var(--pro-border,#dce4eb); border-radius:4px; background:var(--pro-surface,#fff); }
+  .d173-tabler-shell .report-workspace > .d173-report-toolbar { flex:0 0 auto; }
+  .d173-tabler-shell .report-workspace > .d173-report-content { flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; padding:7px 9px 24px; }
+}
+@media (max-width:1300px) {
+  .d173-tabler-shell .report-workspace .d173-report-toolbar { flex-wrap:wrap; }
+  .d173-tabler-shell .report-workspace .d173-report-date { margin-left:auto; }
+}
+@media (max-width:780px) {
+  .d173-tabler-shell .report-workspace { overflow:visible; }
+  .d173-tabler-shell .report-workspace .d173-report-toolbar { position:static; }
+  .d173-tabler-shell .report-workspace .d173-report-date { width:100%; }
+  .d173-tabler-shell .report-workspace .d173-report-date .compact-date-range { flex-wrap:wrap; }
+  .d173-tabler-shell .report-workspace .report-filter-detail { grid-template-columns:1fr !important; }
+}

@@ -1,0 +1,51 @@
+name: D173 E242 Web3316 UI Consistency Source CI
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'tests/d173-e242-web3316-ui-consistency.test.mjs'
+      - 'tests/d173-e237-web3315-global-layout.test.mjs'
+      - 'tests/d173-e233-web3314-cache-scroll.test.mjs'
+      - 'tests/d173-e230-web3313-field-density.test.mjs'
+      - 'tests/d173-e227-web3312-eight-ui.test.mjs'
+      - '.github/workflows/d173-e242-web3316-ui-consistency.yml'
+      - 'ops/project-state.json'
+      - 'ops/change-continuity/D173.json'
+permissions:
+  contents: read
+jobs:
+  web3316-source:
+    if: contains(github.head_ref, 'd173-e242-web3316-ui-consistency')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: E242 and accepted Web layout regression
+        run: |
+          node --test tests/d173-e242-web3316-ui-consistency.test.mjs tests/d173-e237-web3315-global-layout.test.mjs tests/d173-e233-web3314-cache-scroll.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e227-web3312-eight-ui.test.mjs
+      - name: Web typecheck and Vite build (no deploy)
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Install existing service test dependencies (no deployment)
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: D172 isolation and source guard
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: Web3316 exact-source Owner production release preflight (no deploy)
+        run: |
+          python3 tools/d173_e244_web3316_release_gate.py --component worker --preflight
+          python3 tools/d173_e244_web3316_release_gate.py --component web --preflight
+      - name: Code-only boundary
+        run: echo "D173_E242_WEB3316_SOURCE_ONLY__NO_MERGE_DEPLOY__D172_HOLD"

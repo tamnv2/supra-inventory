@@ -673,12 +673,12 @@ function realtimeStatusLabel(): string {
 function patchHeaderRuntime(): void {
   const service = document.querySelector<HTMLElement>("#service-state");
   if (service) {
-    service.textContent = `Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}`;
+    service.textContent = `Dịch vụ API: ${serviceReachable ? "Sẵn sàng" : "Không truy cập được"}`;
     service.dataset.state = serviceReachable ? "on" : "off";
   }
   const realtime = document.querySelector<HTMLElement>("#realtime-state");
   if (realtime) {
-    realtime.textContent = `Đồng bộ: ${realtimeStatusLabel()}`;
+    realtime.textContent = `Dữ liệu trực tiếp: ${realtimeStatusLabel()}`;
     realtime.dataset.state = realtimeState === "connected" ? "on" : realtimeState === "offline" ? "off" : "pending";
   }
   const update = document.querySelector<HTMLElement>("#last-web-update");
@@ -1031,7 +1031,7 @@ function renderCompactDateRange(target: "dashboard" | "reports", from: string, t
 
 function syncVisibleDateRange(target: "dashboard" | "reports" | "recent", from: string, to: string): void {
   const form = document.querySelector<HTMLFormElement>(
-    target === "dashboard" ? "#dashboard-filter" : target === "reports" ? "#report-filter" : "#recent-range-form",
+    target === "dashboard" ? "#dashboard-filter" : target === "reports" ? "#report-date-filter" : "#recent-range-form",
   );
   const fromInput = form?.querySelector<HTMLInputElement>('input[name="from"]');
   const toInput = form?.querySelector<HTMLInputElement>('input[name="to"]');
@@ -1508,9 +1508,9 @@ function renderShell(content: string): void {
         <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
         <h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1>
         <div class="header-runtime">
-          <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}</span>
+          <span id="service-state" title="Tình trạng kết nối Web đến API xử lý báo hàng" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ API: ${serviceReachable ? "Sẵn sàng" : "Không truy cập được"}</span>
           <span class="header-runtime-separator">|</span>
-          <span id="realtime-state" data-state="${realtimeState === "connected" ? "on" : realtimeState === "offline" ? "off" : "pending"}">Đồng bộ: ${realtimeStatusLabel()}</span>
+          <span id="realtime-state" title="Kết nối WebSocket để nhận thay đổi báo hàng ngay khi phát sinh" data-state="${realtimeState === "connected" ? "on" : realtimeState === "offline" ? "off" : "pending"}">Dữ liệu trực tiếp: ${realtimeStatusLabel()}</span>
           <span class="header-runtime-separator">|</span>
           <span id="last-web-update">Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}</span>
         </div>
@@ -1691,8 +1691,8 @@ function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | unde
   return `<div class="detail picker-detail-panel"><div class="picker-detail-title"><strong>Picker ảnh hưởng</strong><span>${details.length.toLocaleString("vi-VN")} người</span></div><div class="picker-detail-list">${details.map((item) => `
     <div class="picker-detail-row">
       <strong>${esc(item.picker_employee_code)}</strong>
-      <span>${esc(item.picker_display_name || "—")}</span>
-      <time>${esc(fmt(item.reported_at))}</time>
+      <strong class="picker-display-name">${esc(item.picker_display_name || "—")}</strong>
+      <time><strong>${esc(fmt(item.reported_at))}</strong></time>
       <span class="picker-timeout-state">${item.auto_skip_allowed_at ? "Đã được hệ thống cho phép bỏ qua" : item.auto_skip_deadline_at ? `Tự động bỏ qua lúc ${esc(fmt(item.auto_skip_deadline_at))}` : ""}</span>
     </div>`).join("") || `<div class="picker-detail-loading">Không có Picker đang bị ảnh hưởng.</div>`}</div></div>`;
 }
@@ -2256,9 +2256,13 @@ function renderSla(): string {
 }
 
 function renderReportTabs(current: "dashboard" | "reports"): string {
-  return `<div class="workspace-tabs" role="tablist" aria-label="Tổng quan và báo cáo">
+  const from = current === "dashboard" ? dashboardFrom : reportFrom;
+  const to = current === "dashboard" ? dashboardTo : reportTo;
+  return `<div class="d173-report-toolbar"><div class="workspace-tabs" role="tablist" aria-label="Tổng quan và báo cáo">
     <button type="button" class="workspace-tab ${current === "dashboard" ? "active" : ""}" data-workspace-section="dashboard">Tổng quan</button>
     <button type="button" class="workspace-tab ${current === "reports" ? "active" : ""}" data-workspace-section="reports">Báo cáo chi tiết</button>
+  </div>
+    <form id="${current === "dashboard" ? "dashboard-filter" : "report-date-filter"}" class="d173-report-date" aria-label="Chọn ngày hiển thị">${renderCompactDateRange(current, from, to)}</form>
   </div>`;
 }
 
@@ -2307,13 +2311,7 @@ function renderDashboard(): string {
   const recurrenceSkuCount = recurrence.length;
   return `<section class="v5-root report-workspace">
     ${renderReportTabs("dashboard")}
-    <article class="ops-panel report-filter-panel">
-      <form id="dashboard-filter" class="report-filter-row report-filter-compact">
-        ${renderCompactDateRange("dashboard", dashboardFrom, dashboardTo)}
-        <button class="primary report-filter-submit">Xem</button>
-      </form>
-    </article>
-
+    <div class="d173-report-content">
     ${d167AreaSummaryMarkup(d167DashboardAreas)}
     <div class="report-section-title"><h3>Tình trạng hiện tại</h3><span>Dữ liệu trực tiếp từ hệ thống</span></div>
     <section class="business-summary-grid business-summary-grid-5 pro-kpi-grid">
@@ -2375,6 +2373,7 @@ function renderDashboard(): string {
     <div class="report-layout-two">
       <article class="ops-panel pro-trend-panel"><div class="ops-panel-title"><div><h3>Nhịp vận hành theo thời gian</h3></div><div class="pro-chart-legend"><span><i class="reports"></i>Lượt báo</span><span><i class="resolved"></i>Đã xử lý</span></div></div>${trendRows.length ? `<div class="pro-trend-chart">${trendRows.map((row,index) => { const reports = Number(row.reports || 0); const resolved = Number(row.resolved || 0); const label = dashboardData?.period.bucket === "hour" ? String(row.bucket).slice(11,16) : String(row.bucket).slice(5,10); const step = Math.max(1, Math.ceil(trendRows.length / 8)); return `<div class="pro-trend-column" title="${esc(label)} · ${reports} lượt báo · ${resolved} đã xử lý"><div class="pro-trend-bars"><i class="reports" style="height:${Math.max(reports ? 5 : 1, reports / trendMax * 100)}%"></i><i class="resolved" style="height:${Math.max(resolved ? 5 : 1, resolved / trendMax * 100)}%"></i></div><span>${index % step === 0 || index === trendRows.length - 1 ? esc(label) : ""}</span></div>`; }).join("")}</div>` : `<div class="v5-empty">Chưa có dữ liệu theo thời gian trong kỳ.</div>`}</article>
       <article class="ops-panel"><div class="ops-panel-title"><div><h3>SKU phát sinh nhiều</h3></div></div>${dashboardData?.top_skus?.length ? `<div class="v5-rank-list pro-rank-list">${dashboardData.top_skus.slice(0,8).map((row,index) => `<button type="button" class="v5-rank-row pro-rank-action" data-dashboard-sku="${esc(row.sku)}"><b>${index+1}</b><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><em>${Number(row.report_count).toLocaleString("vi-VN")} báo · ${Number(row.picker_count).toLocaleString("vi-VN")} Picker</em></button>`).join("")}</div>` : `<div class="v5-empty">Chưa có dữ liệu.</div>`}</article>
+    </div>
     </div>
   </section>`;
 }
@@ -2477,15 +2476,14 @@ function renderReports(): string {
   const pageFrom = reportTotal ? reportOffset + 1 : 0;
   const pageTo = Math.min(reportTotal, reportOffset + reportRows.length);
   return `<section class="ops-route report-workspace">
-    <div class="business-page-head page-top-actions"><button class="secondary" id="export-reports">Xuất Excel</button></div>
     ${renderReportTabs("reports")}
+    <div class="d173-report-content">
+    <div class="business-page-head page-top-actions"><button class="secondary" id="export-reports">Xuất Excel</button></div>
     <article class="ops-panel report-filter-panel">
       <form id="report-filter" class="report-filter-grid report-filter-compact report-filter-detail">
-        ${renderCompactDateRange("reports", reportFrom, reportTo)}
         <label>Kết quả<select name="status"><option value="">Tất cả kết quả</option>${["PENDING","HAS_STOCK","SKIP_ALLOWED","CLOSED"].map((state) => `<option value="${state}" ${reportStatus === state ? "selected" : ""}>${esc(statusLabel(state))}</option>`).join("")}</select></label>
         <label>Khu vực lúc báo<select name="area"><option value="">Tất cả khu vực</option>${(["LTA","SHELVING","UNKNOWN"] as const).map(area => `<option value="${area}" ${reportArea === area ? "selected" : ""}>${esc(d167AreaLabel(area))}</option>`).join("")}</select></label>
         <label class="report-query-field">SKU / tên sản phẩm<input name="query" value="${esc(reportQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" /></label>
-        <button class="primary report-filter-submit">Xem báo cáo</button>
       </form>
     </article>
     ${d167AreaSummaryMarkup(d167ReportAreas)}
@@ -2507,6 +2505,7 @@ function renderReports(): string {
       <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
       <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Khu vực lúc báo</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(d167AreaLabel(row.area_at_first_report))}</td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="12">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="12" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
     </article>
+    </div>
   </section>`;
 }
 
@@ -3119,7 +3118,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
      (profile.role === "REPORTER" && profile.user_id === record.confirmed_by)) &&
     Date.now() < cutoff);
   return `<article class="ops-panel d167-meal-card">
-    <div class="ops-panel-title"><div><h3>${title}</h3><p>${period === "LUNCH" ? "Nhắc Reporter lúc 10:55" : "Nhắc Reporter lúc 17:55"} (giờ Việt Nam)</p></div>
+    <div class="ops-panel-title"><div><h3>${title}</h3></div>
       <span class="badge ${record ? "good" : "warning"}">${record ? "Đã xác nhận" : "Chưa xác nhận"}</span></div>
     ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · Người xác nhận ban đầu: ${esc(record.confirmed_name || "Reporter")} · Cập nhật gần nhất: ${esc(fmt(record.confirmed_at))}</div>` :
       `<div class="ops-note">Chưa xác nhận: tự động Skip tạm dừng trong ${period === "LUNCH" ? "11:00–12:00" : "18:00–19:00"}; xử lý thủ công vẫn hoạt động.</div>`}
@@ -3213,24 +3212,12 @@ function renderShiftOperations(): string {
   const sharedUntil = state?.projection_open_until_ms
     ? new Date(state.projection_open_until_ms).toLocaleString("vi-VN", { hour12: false })
     : "Không có gia hạn";
-  const decision = state?.decision === "EARLY_START"
-    ? "Bật sớm"
-    : state?.decision === "MANUAL_ADJUST"
-      ? "Điều chỉnh tăng ca"
-      : state?.decision === "CONTINUE"
-        ? "Gia hạn +1 giờ"
-        : state?.decision === "STOP"
-          ? "Đúng giờ về"
-          : state?.decision === "CANCEL_OVERTIME"
-            ? "Đã huỷ tăng ca"
-            : "Theo lịch mặc định";
   return `<section class="ops-route tools-workspace">
     <section class="business-summary-grid">
-      <article class="business-summary-card primary"><span>Ca bình thường</span><strong>06:00–22:00</strong><small>Cửa sổ kỹ thuật Replay · 05:45–22:15</small></article>
-      <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Cùng trạng thái với App/PDA</small></article>
-      <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>State chia sẻ đến</span><strong>${esc(sharedUntil)}</strong><small>${esc(decision)}</small></article>
+      <article class="business-summary-card primary"><span>Ca bình thường</span><strong>06:00–22:00</strong></article>
+      <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong></article>
+      <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>Thời hạn vận hành</span><strong>${esc(sharedUntil)}</strong></article>
     </section>
-    <details class="ops-panel d167-technical"><summary>Thông tin kỹ thuật ca</summary><p>Replay: 05:45–22:15 · Gia hạn tại Agent · Bật sớm trước 05:45.</p></details>
     <div class="business-page-head"><div><h2>Giờ nghỉ · tạm dừng tự động Skip</h2></div></div>
     <div class="ops-grid-two" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">
       ${renderMealStatusCard("LUNCH")}
@@ -5652,8 +5639,10 @@ function bindSection(): void {
   document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
-    reportFrom = String(data.get("from"));
-    reportTo = String(data.get("to"));
+    const dateForm = document.querySelector<HTMLFormElement>("#report-date-filter");
+    const dateData = dateForm ? new FormData(dateForm) : null;
+    reportFrom = String(dateData?.get("from") || reportFrom);
+    reportTo = String(dateData?.get("to") || reportTo);
     reportStatus = String(data.get("status") || "");
     const areaCandidate = String(data.get("area") || "");
     reportArea = areaCandidate === "LTA" || areaCandidate === "SHELVING" || areaCandidate === "UNKNOWN" ? areaCandidate : "";
@@ -5663,6 +5652,19 @@ function bindSection(): void {
     expandedReportBatches.clear();
     reportDetailLoads.clear();
     void run(loadReports);
+  });
+  document.querySelectorAll<HTMLFormElement>("#dashboard-filter, #report-date-filter").forEach((form) => {
+    let pendingDateApply: ReturnType<typeof setTimeout> | undefined;
+    form.addEventListener("change", () => {
+      if (pendingDateApply) clearTimeout(pendingDateApply);
+      pendingDateApply = setTimeout(() => {
+        if (form.id === "dashboard-filter") form.requestSubmit();
+        else document.querySelector<HTMLFormElement>("#report-filter")?.requestSubmit();
+      }, 400);
+    });
+  });
+  document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("change", (event) => {
+    (event.currentTarget as HTMLFormElement).requestSubmit();
   });
   document.querySelectorAll<HTMLButtonElement>("[data-date-target][data-date-days]").forEach((button) => button.addEventListener("click", () => {
     const days = Math.max(0, Math.min(59, Number(button.dataset.dateDays || 0)));
