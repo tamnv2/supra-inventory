@@ -56,7 +56,7 @@ test("E247 Picker manual input uses live contractor select; import retains exist
   assert.match(web, /data-users-mode="contractors"/);
   assert.match(web, /id="contractor-create-form"/);
   assert.match(web, /id="contractor-edit-form"/);
-  assert.match(web, /id="hr-apply-web"/);
+  assert.match(hr, /id="hr-apply-web"/);
   assert.match(api, /authorizedFetch\("\/api\/admin\/contractors"/);
 });
 
