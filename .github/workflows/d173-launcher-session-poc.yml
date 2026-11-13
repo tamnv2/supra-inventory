@@ -43,10 +43,11 @@ jobs:
           "$aapt" dump badging "$client" | grep -q "package: name='vn.supra.identitytest'"
           "$apksigner" verify "$launcher"
           "$apksigner" verify "$client"
-          cert_l="$("$apksigner" verify --print-certs "$launcher" | awk '/Signer #1 certificate SHA-256 digest/ {print $NF; exit}')"
-          cert_c="$("$apksigner" verify --print-certs "$client" | awk '/Signer #1 certificate SHA-256 digest/ {print $NF; exit}')"
-          test -n "$cert_l"
-          test "$cert_l" = "$cert_c"
+          cert_l="$("$apksigner" verify --print-certs "$launcher" | awk '/Signer #1 certificate SHA-256 digest/ {print $NF}')"
+          cert_c="$("$apksigner" verify --print-certs "$client" | awk '/Signer #1 certificate SHA-256 digest/ {print $NF}')"
+          test -n "$cert_l" || { echo "::error::Launcher certificate fingerprint missing"; exit 1; }
+          test -n "$cert_c" || { echo "::error::Client certificate fingerprint missing"; exit 1; }
+          test "$cert_l" = "$cert_c" || { echo "::error::Debug signing certificates differ"; exit 1; }
           ! "$aapt" dump permissions "$launcher" | grep -q "android.permission.INTERNET"
           ! "$aapt" dump permissions "$client" | grep -q "android.permission.INTERNET"
           echo "Both isolated APKs are signed with matching debug certificate; package/network guards PASS."
