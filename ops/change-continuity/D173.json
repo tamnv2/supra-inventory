@@ -7,14 +7,14 @@
   "pr": 970,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E254",
+    "id": "D173-E255",
     "date_vn": "2026-11-13",
-    "summary": "Web3318 exact PR970 source CI 8/8 PASS @6041dc6b; Owner release approved; protected merge/deploy pending.",
-    "status": "PASS_SOURCE_CI_8_OF_8__PROTECTED_MERGE_PENDING__NO_PRODUCTION_RELEASE_YET",
+    "summary": "Web3318 exact source b03621f CI 8/8 PASS after deploy-gate 10-slot/Gateway repair; merge/deploy pending.",
+    "status": "PASS_SOURCE_CI_8_OF_8__MERGE_DEPLOY_PENDING",
     "source": "ops/d173-e253-web3318-release-authorization.json",
     "branch": "docs/d173-e252-dashboard-review-20261113",
     "pr": 970,
-    "source_ci_sha": "6041dc6b87fdd1438dffc331a06a80a1b53c1afa"
+    "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5186,6 +5186,40 @@
         43374808067,
         43374808121,
         43374808085
+      ],
+      "pr": 970,
+      "branch": "docs/d173-e252-dashboard-review-20261113",
+      "code_pass": true,
+      "ci_pass": true,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E255",
+      "date_vn": "2026-11-13",
+      "topic": "Web3.3.18 corrected existing deploy workflow 10-slot Web log and D172 gateway pass guards; exact CI rerun 8/8",
+      "kind": "TEST",
+      "owner_approval": true,
+      "status": "SOURCE_CI_8_8_PASS_EXACT_WORKFLOW_UPDATED_SHA__MERGE_DEPLOY_PENDING__FIELD_OWNER_PENDING",
+      "facts": [
+        "After prior 8/8 source CI, inspection of release workflow found D173-E253 omitted from inherited current 10-slot Web log guard and shared Gateway invariant branch, which would have blocked correct Production deploy. Fixed narrowly in .github/workflows/deploy-beta.yml and added D173-E252 automated assertion; no provider resources or D172 source changed.",
+        "New exact source/head b03621fd68f591754a32b718fae5c92ff82442e0 has 8/8 SUCCESS: Web+Worker+D172 43375507520; Authority 43375507508; Continuity 43375507547; D173/D172 isolation 43375507459; D172 independent backend 43375507403; RBAC 43375507481; E123 SQL/auth/D172 43375507405; D167 predeploy UI 43375507318.",
+        "Release authorization ops/d173-e253-web3318-release-authorization.json repinned to b03621f; only ops continuity/state/auth changes may follow before protected merge. Source source_code_sha f214a2fb unchanged for Web/service.",
+        "Production still Web3.3.17 and no verified Web3.3.18 deployment; Owner explicitly directs code and release, technical PASS not FIELD/Owner PASS."
+      ],
+      "next_action": "Wait for protected PR mandatory HEAD checks on docs auth change; merge PR970 with exact E253 marker and two parents; verify production Worker GitHub Actions and public /health exact SHA; save receipt.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/970 ; https://github.com/tamnv2/supra-inventory/actions/runs/43375507520 ; https://github.com/tamnv2/supra-inventory/actions/runs/43375507547 ; https://github.com/tamnv2/supra-inventory/actions/runs/43375507403",
+      "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0",
+      "source_ci_run_ids": [
+        43375507520,
+        43375507508,
+        43375507547,
+        43375507459,
+        43375507403,
+        43375507481,
+        43375507405,
+        43375507318
       ],
       "pr": 970,
       "branch": "docs/d173-e252-dashboard-review-20261113",
