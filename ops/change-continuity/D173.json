@@ -6186,5 +6186,54 @@
     "owner_pass": false,
     "doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md",
     "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0"
+  },
+  "d173_launcher_central_session_owner_idea_20261113": {
+    "date_vn": "2026-11-13",
+    "change_id": "D173",
+    "kind": "OWNER_IDEA_REVIEW_NOT_IMPLEMENTATION_APPROVAL",
+    "status": "REVIEW_ONLY_NO_CODE_NO_RELEASE",
+    "repo_source": "tamnv2/supra-inventory",
+    "external_launcher_repo_read_only": "tamnv2/supra-pda-launcher",
+    "external_launcher_resource_scope": "NOT_REGISTERED_IN_PROJECT_SCOPE_NO_CROSS_REPO_MUTATION_AUTHORIZED",
+    "owner_idea": [
+      "Launcher signup admin approval on Web; login unlocks allowed apps and SSO Báo hàng same user",
+      "Agent identifies authenticated Picker and PDA from Launcher authoritative backend session, even Báo hàng unopened",
+      "Move CV call/chat UI to Launcher; kick invalidates Launcher and Báo hàng",
+      "Extend shift cutoff to Launcher, warn before expiry, server-controlled overtime extension"
+    ],
+    "verified_evidence": [
+      "main:ops/authority-manifest.json bootstrap",
+      "Launcher Java MainActivity/GuardService/DeviceRegistryClient",
+      "docs/specs/AUTH_RBAC.md D173-E123 picker cutoff 14:00/22:00",
+      "GitHub PR962 MERGED"
+    ],
+    "architectural_proposal": [
+      "Backend authoritative Firebase UID + device_key + session generation, not plaintext client identity",
+      "Pending registration without privilege until authorized approval",
+      "Short-lived one-time SSO handoff without password/refresh-token transfer",
+      "Preserve existing realtime/ACK and avoid new fast polling",
+      "Server-controlled limited overtime extension",
+      "Accessibility-only launcher cannot guarantee kiosk anti-bypass without DPC/Device Owner or app backend enforcement"
+    ],
+    "pending_owner_approval": [
+      "scope/authority for cross-repo Launcher change",
+      "registration role eligibility and HR validation",
+      "managed device lock behavior vs best-effort Accessibility",
+      "overtime approval policy",
+      "code and release authorization per repo"
+    ],
+    "risks": [
+      "shared Firebase Auth/Worker impact D172 require both-module regression",
+      "OTA Launcher separate ALL/MODEL/DEVICE owner release gate",
+      "Cloudflare DO Request/Rows Read and Firebase quota guard"
+    ],
+    "checkpoint_doc": "docs/D173_LAUNCHER_CENTRAL_PDA_SESSION_PROPOSAL_2026-11-13.md",
+    "code": "NOT_STARTED",
+    "ci": "NOT_RUN",
+    "release": "NOT_RELEASED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
