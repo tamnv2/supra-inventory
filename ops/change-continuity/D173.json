@@ -7,14 +7,14 @@
   "pr": 970,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E253",
+    "id": "D173-E254",
     "date_vn": "2026-11-13",
-    "summary": "Owner approves Web3318 code+conditional release for dashboard and header; scoped source PR970 CI pending, D172 holds.",
-    "status": "OWNER_APPROVED_SOURCE_STAGED_CI_PENDING_RELEASE_PENDING",
-    "source": "docs/D173_E253_WEB3318_RELEASE_AUTHORIZATION_2026-11-13.md",
+    "summary": "Web3318 exact PR970 source CI 8/8 PASS @6041dc6b; Owner release approved; protected merge/deploy pending.",
+    "status": "PASS_SOURCE_CI_8_OF_8__PROTECTED_MERGE_PENDING__NO_PRODUCTION_RELEASE_YET",
+    "source": "ops/d173-e253-web3318-release-authorization.json",
     "branch": "docs/d173-e252-dashboard-review-20261113",
     "pr": 970,
-    "source_main_sha": "4ecb4cfebbddac1fc90f4aa29f2cd89e17f42a33"
+    "source_ci_sha": "6041dc6b87fdd1438dffc331a06a80a1b53c1afa"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5159,6 +5159,41 @@
       "field_pass": false,
       "owner_pass": false,
       "owner_approval_reference": "OWNER_20261113_HEADER_DASHBOARD_WEB3318_CODE_RELEASE"
+    },
+    {
+      "id": "D173-E254",
+      "date_vn": "2026-11-13",
+      "topic": "Web3.3.18 PR970 exact-source eight scoped CI checks verified and Owner-approved release pinned",
+      "kind": "TEST",
+      "owner_approval": true,
+      "status": "PASS_SOURCE_CI_8_OF_8__PROTECTED_MERGE_DEPLOY_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Source exact CI SHA 6041dc6b87fdd1438dffc331a06a80a1b53c1afa, Web3.3.18, PR970 base 4ecb4cfe and same registered Worker/Core.",
+        "Required 8/8 GitHub Actions SUCCESS: D173-E252 Web+Worker+prior UI+D172 run43374808090; Repo Authority 43374808042; Project State/Continuity 43374808210; D173/D172 isolation 43374808157; D172 backend 43374807975; D169 RBAC 43374808067; E123 SQL/auth/D172 43374808121; D167 predeploy UI 43374808085.",
+        "Known unrelated legacy workflows E086/E126/E019 have historical gate assertions; not used to assert scope PASS. They were inspected but not silently retagged.",
+        "Latest user instruction explicitly continue until code done and Production release, preserving protected two-parent merge, same-source authorization and postdeploy health verification.",
+        "Owner code/release approved D173-E253. No FIELD or Owner PASS inferred. DO Request/Rows Read actual savings unmeasured; no data/schema D172 change."
+      ],
+      "next_action": "Protected merge PR970 with D173-E253_WEB3318_PRODUCTION_RELEASE marker after source CI; verify Deploy Beta Worker same SHA on inventory.supra.cc.cd, /health HTTP200 and version, then append release checkpoint.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/970 ; https://github.com/tamnv2/supra-inventory/actions/runs/43374808090 ; https://github.com/tamnv2/supra-inventory/actions/runs/43374808210 ; https://github.com/tamnv2/supra-inventory/actions/runs/43374808157 ; https://github.com/tamnv2/supra-inventory/actions/runs/43374807975",
+      "source_ci_sha": "6041dc6b87fdd1438dffc331a06a80a1b53c1afa",
+      "source_ci_run_ids": [
+        43374808090,
+        43374808042,
+        43374808210,
+        43374808157,
+        43374807975,
+        43374808067,
+        43374808121,
+        43374808085
+      ],
+      "pr": 970,
+      "branch": "docs/d173-e252-dashboard-review-20261113",
+      "code_pass": true,
+      "ci_pass": true,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
