@@ -33,7 +33,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.text.InputType;
-import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -69,7 +68,6 @@ public class MainActivity extends Activity {
     private boolean batteryReceiverRegistered;
     private boolean timeReceiverRegistered;
     private String lastAllowedKey;
-    private ListenerRegistration identityObserver;
 
     private final Runnable clockTick = new Runnable() {
         @Override public void run() {
@@ -112,7 +110,6 @@ public class MainActivity extends Activity {
         Prefs.clearTimeFixSession(this);
         refreshIdentityUi();
         loadAllowedApps();
-        identityObserver = TestSessionStore.observe(this, () -> { refreshIdentityUi(); loadAllowedApps(); });
         refreshTimeState();
         updateDeviceIdentityUi();
         updateGuardPauseUi();
@@ -144,7 +141,6 @@ public class MainActivity extends Activity {
     }
 
     @Override protected void onPause() {
-        if (identityObserver != null) { identityObserver.remove(); identityObserver = null; }
         super.onPause();
         handler.removeCallbacks(clockTick);
         if (timeReceiverRegistered) {
@@ -434,7 +430,7 @@ public class MainActivity extends Activity {
         panel.addView(identityLogoutButton);
 
         TextView warning = new TextView(this);
-        warning.setText("FIREBASE QA RIÊNG • Không dùng tài khoản và dữ liệu Production.");
+        warning.setText("FIREBASE hiện hữu • Chỉ tài khoản Picker QA được cấp phép; không thay đổi Báo hàng.");
         warning.setTextSize(10f);
         warning.setTextColor(0xFF9C4E00);
         panel.addView(warning);
@@ -447,58 +443,45 @@ public class MainActivity extends Activity {
 
     private void showTestIdentityDialog() {
         if (!PocFirebase.configured()) {
-            Toast.makeText(this, "Chưa thiết lập Firebase kiểm thử riêng.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Chưa cấu hình tài khoản Picker QA và Firebase Auth.", Toast.LENGTH_LONG).show();
             return;
         }
         final EditText codeField = new EditText(this);
-        codeField.setHint("Mã nhân viên QA");
+        codeField.setHint("Mã nhân viên QA đã được đăng ký");
         codeField.setSingleLine(true);
         codeField.setInputType(InputType.TYPE_CLASS_NUMBER);
 
-        final EditText emailField = new EditText(this);
-        emailField.setHint("Email QA (chỉ cần thiết lập lần đầu)");
-        emailField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         final EditText passwordField = new EditText(this);
-        passwordField.setHint("Mật khẩu QA (nhập một lần, không lưu)");
+        passwordField.setHint("Mật khẩu QA (được che, không lưu)");
         passwordField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        boolean paired = PocFirebase.auth(this).getCurrentUser() != null;
-        emailField.setVisibility(paired ? View.GONE : View.VISIBLE);
-        passwordField.setVisibility(paired ? View.GONE : View.VISIBLE);
         LinearLayout body = new LinearLayout(this);
         body.setPadding(dp(16), dp(4), dp(16), dp(2));
         body.setOrientation(LinearLayout.VERTICAL);
         body.addView(codeField);
-        body.addView(emailField);
         body.addView(passwordField);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Xác nhận định danh")
-                .setMessage(paired ? "Tài khoản QA đã liên kết Firebase test."
-                        : "Liên kết tài khoản Firebase QA một lần trước khi thử chỉ nhập mã nhân viên.")
-                .setView(body).setNegativeButton("Hủy", null)
-                .setPositiveButton("Xác nhận", null).create();
+            .setTitle("Xác nhận định danh")
+            .setMessage("Sử dụng tài khoản Picker chỉ dành cho QA. Không đăng nhập bằng user đang làm việc.")
+            .setView(body).setNegativeButton("Hủy", null)
+            .setPositiveButton("Xác nhận", null).create();
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String code = codeField.getText().toString().trim();
             if (!TestSessionStore.isValidFormat(code)) {
-                codeField.setError("Mã QA phải gồm 5–12 chữ số."); return;
+                codeField.setError("Mã QA phải là MNV hợp lệ."); return;
+            }
+            if (!BuildConfig.TEST_QA_USERNAME.equals(code)) {
+                codeField.setError("Chỉ được dùng tài khoản QA đã đăng ký."); return;
             }
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-            TestSessionStore.login(this, code,
-                    emailField.getText().toString().trim(),
-                    passwordField.getText().toString(), (ok, message) -> {
-                        passwordField.setText("");
-                        if (ok) {
-                            dialog.dismiss();
-                            if (identityObserver != null) identityObserver.remove();
-                            identityObserver = TestSessionStore.observe(this,
-                                    () -> { refreshIdentityUi(); loadAllowedApps(); });
-                        } else {
-                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                        }
-                        refreshIdentityUi();
-                        loadAllowedApps();
-                        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-                    });
+            TestSessionStore.login(this, code, passwordField.getText().toString(), (ok, message) -> {
+                passwordField.setText("");
+                if (ok) dialog.dismiss();
+                else dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                refreshIdentityUi();
+                loadAllowedApps();
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            });
         }));
         dialog.show();
     }
@@ -507,7 +490,7 @@ public class MainActivity extends Activity {
         if (identityStatusText == null) return;
         boolean active = TestSessionStore.isUnlocked(this);
         identityStatusText.setText(active
-                ? "Firebase test • Mã NV: " + TestSessionStore.employeeCode(this)
+                ? "Firebase hiện hữu • Picker QA: " + TestSessionStore.employeeCode(this)
                 : "Chưa xác nhận định danh — ứng dụng bị khóa");
         identityConfirmButton.setVisibility(active ? View.GONE : View.VISIBLE);
         identityLogoutButton.setVisibility(active ? View.VISIBLE : View.GONE);

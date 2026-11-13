@@ -1,41 +1,28 @@
-# D173 — Firebase Auth integration test (isolation gate)
+# D173 — Firebase Auth thật trên project Báo hàng hiện hữu (Owner 13/11/2026)
 
-**Owner clarification 13/11/2026:** The earlier offline mock pair is not sufficient. This code path must use a **REAL Firebase Authentication project dedicated to QA**, perform a real custom-token exchange on a separate backend, and prove linked login/logout between the two isolated APKs. **This source is not deployed or field-tested.**
+**Owner decision supersedes separate-Firebase-project proposal.** Use the existing registered Firebase `supra-inventory-beta` + official Worker `https://inventory.supra.cc.cd` **only with a dedicated idle Picker QA identity**, not an operational Picker, Reporter, Root/Admin, OBPP or Agent user.
 
-## Source / isolation
+## Facts, scope and risks
 
-- Launcher base: `tamnv2/supra-pda-launcher` signed release v0.3.26 tag commit `c33a8262669f7ff33e698be86ce6d9c657686988`. Copied into `launcher/`, with independent package `vn.supra.pdalauncher.identitytest`.
-- Second test APK: `vn.supra.identitytest`, does not use any Báo hàng package, database, user or endpoint.
-- Firebase guard accepts **only** a NEW project whose ID matches `supra-d173-poc-[a-z0-9-]{3,45}`. Rejects `supra-inventory-beta`, existing Production, and Stable. There is no fallback.
-- Original Launcher admin, OTA updates, background logging, HOME, Accessibility Guard, boot and job components are disabled in test APK to prevent unrelated network/provider traffic.
-- No default user password or Google service-account key is committed, printed or embedded. Never try to extract/repurpose Production refresh tokens.
-- Test backend uses Firebase Admin to mint a one-use custom token from a short-lived **server-issued 256-bit grant**, never passes a refresh token or account password through Android IPC. Grant only accessible via same-signed Launcher/Client Activity.
-- Backend preserves `uid`, `session_id`, `generation`, records revocations; both test APKs subscribe to `poc_sessions/{sessionId}` for revocation using Firebase Firestore.
-- Account QA is approved server-side via `poc_test_users/{uid}` mapping to a **synthetic test employee code**, preventing selecting an arbitrary real Picker merely by knowing their code.
+- Source Launcher baseline: `tamnv2/supra-pda-launcher` release `v0.3.26` commit `c33a8262669f7ff33e698be86ce6d9c657686988`; copied under this isolated `experiments/` directory.
+- Existing D173 Worker `POST /api/auth/login` is not read-only: it validates Firebase credentials and calls `/auth/activate-session`, modifying **that QA user's Android `session_generation`**, login audit and realtime presence; an existing active session on a *different PDA* triggers `409 SESSION_ACTIVE_OTHER_DEVICE`. The test **always sets `force=false`** and does not replace another device's session.
+- The Worker emits an Android Firebase custom token carrying `uid`, `app_session_channel=ANDROID`, `app_session_generation`. The Launcher test signs in using this same server-issued token.
+- The independent client (`vn.supra.identitytest`) receives the *existing* Firebase relay custom token via same-debug-signature Android explicit Activity. No password or refresh token is sent across. Its SDK calls `signInWithCustomToken`, checks UID/claims and validates current server authority through read-only `GET /api/auth/me`.
+- Logout Launcher calls existing `POST /api/auth/logout` on the pinned QA account and immediately signs out/unlocks neither test app; a signature-protected broadcast causes the client to sign out. Client logout sends the same-signature command to Launcher which owns the server logout.
+- This is a **test** of same-UID handoff and coupled logout, not implementation in the Production Báo hàng APK. In-memory custom token handoff is one-time locally, but no backend-issued single-use grant exists here. No new Worker/DO/Firebase schema, Firebase Rules, collections, Firebase projects, app registries, Production APK or D172 resources are deployed.
+- Remaining FIELD limitations: if Launcher process dies, in-memory Worker ID token and relay token are lost and the test fails closed; transient network failure can leave server-side QA session until its existing TTL or a later valid login. Actual Android Firebase SDK compatibility with the reused registered app ID must be verified on supported PDA; **no FIELD PASS yet**.
+- A shared default password hidden inside an APK is still extractable; the test intentionally requires a masked QA password at Launcher login, clears the input, and never commits it.
 
-## Required out-of-repo QA provisioning (NOT DONE)
+## Prerequisites (not verified/provisioned)
 
-No dedicated Firebase test project is registered in the repo's `ops/project-scope.json`. No Firebase provider connection is available in this chat. **Fail-closed: do not deploy to any existing project.**
+1. A dedicated **existing-project Picker QA account** must be registered/approved through the existing account rules, with a unique numeric MNV (5–12 digits), status ACTIVE, and **not logged in on a live PDA**. Its creation/mutation is not authorized merely by this PR.
+2. GitHub Actions repository variables `D173_POC_TEST_USERNAME` (that QA MNV) and `D173_POC_FIREBASE_API_KEY` (Firebase public client API key of `supra-inventory-beta`) must be set by authorized owner. **Never provide or commit any password or service-account credential.**
+3. Build the pair in one CI run; both debug APKs use the same debug certificate. With unset variables, APKs compile but **refuse to authenticate** by design.
+4. Install only on an approved test PDA; open Launcher test and press **Xác nhận định danh** → enter pinned QA MNV and masked QA password; do not enter an operational account.
+5. Open the independent test client: it must silently obtain the same UID and generation, show Firebase login, and survive a Worker `GET /api/auth/me` authority check. Then logout in both directions and verify old UID/generation no longer works.
+6. Check network evidence: allow only `inventory.supra.cc.cd` auth endpoints and Firebase Identity Toolkit, no other Worker business API calls or D172. Must verify timing and behavior on MT90 and DT50 before FIELD PASS.
 
-Owner must first authorize/register a **new separate QA Firebase project**, and a human with Firebase project permissions must provision it using Firebase Console / CLI:
+## Acceptance status
 
-1. Create Firebase project with ID `supra-d173-poc-...` (new, dedicated), verify it is not `supra-inventory-beta` or Stable.
-2. Register two Android app IDs `vn.supra.pdalauncher.identitytest` and `vn.supra.identitytest`. Obtain project ID, API key and two test Firebase App IDs.
-3. Enable Email/Password sign-in on **QA-only Firebase Auth**; create synthetic user and record UID. Create Firestore database in test project and `poc_test_users/{uid}`: `{"employee_code":"<synthetic 5–12 digits>", "active":true}`.
-4. Authorize deployment of only the source under `firebase-test-backend/` to that exact project. Cloud Functions v2 may require Blaze billing; do **not** enable paid billing or deploy without explicit Owner authorization and spending caps. Deploy `firestore.rules` only after confirming project ID.
-5. Provide build envs from the QA project **without publishing credentials**: `D173_POC_FIREBASE_PROJECT_ID`, `D173_POC_FIREBASE_API_KEY`, `D173_POC_LAUNCHER_APP_ID`, `D173_POC_CLIENT_APP_ID`. CI can inject these as scoped repository variables on a protected QA build; debug APKs currently built with missing values fail closed.
-6. Install the **two APKs from the same build** on a test PDA. Launcher first-time QA enrollment accepts email+password **once and masks it**; later launches use only synthetic code and the persisted Firebase SDK session. A single default password hidden in a public APK is not real authentication.
-
-## Acceptance criteria (NOT YET FIELD PASS)
-
-1. On the test PDA, before identity confirmation all Launcher tiles are dimmed and cannot launch user apps.
-2. An approved QA user enters synthetic code and receives a real Firebase ID token with the expected UID; unapproved code fails even when it has the right format.
-3. Opening standalone test client silently calls the one-use grant redeem API, signs in with Firebase custom token, and displays **same UID** and session generation.
-4. Client cannot reuse an expired or already-redeemed grant; no plaintext password or refresh token in Intent, log or APK.
-5. Logout Launcher, client sees revocation immediately (foreground/background), clears local session; reverse logout from client also closes Launcher.
-6. Reconnect, launch from background and subsequent user switch cannot revive stale session; any missing network/credentials must fail closed, not substitute mock login.
-7. No HTTPS calls or writes to `inventory.supra.cc.cd`, `inventory-beta.supra.cc.cd`, `supra-inventory-beta`, D172 or Stable. Separate QA telemetry must prove it.
-8. CI: Android build for both packages, matching debug signatures, Firebase SDK implementation, backend unit tests, Repo Authority/State/D172 guards.
-9. Field: verify on actual supported MT90 and DT50 before calling PASS. Production Báo hàng/Launcher remain unchanged.
-
-**Note:** A code/build PASS does NOT prove live Firebase Auth or field behavior. Without QA provisioning the installed APK intentionally refuses authentication.
+- Source code implements Worker-backed Firebase Auth handoff on the **existing** project, no provider changes in this PR.
+- New CI build, QA configuration, runtime Firebase login, PDA tests and Owner PASS must all be independently verified. Old separate-project QA backend and old mock results are superseded.

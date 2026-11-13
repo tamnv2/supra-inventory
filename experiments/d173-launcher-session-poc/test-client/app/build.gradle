@@ -11,9 +11,10 @@ android {
     compileSdk 35
     defaultConfig {
         applicationId 'vn.supra.identitytest'
-        buildConfigField 'String', 'TEST_FIREBASE_PROJECT_ID', pocQuote(pocCfg('D173_POC_FIREBASE_PROJECT_ID'))
+        buildConfigField 'String', 'TEST_FIREBASE_PROJECT_ID', pocQuote('supra-inventory-beta')
         buildConfigField 'String', 'TEST_FIREBASE_API_KEY', pocQuote(pocCfg('D173_POC_FIREBASE_API_KEY'))
-        buildConfigField 'String', 'TEST_FIREBASE_APP_ID', pocQuote(pocCfg('D173_POC_CLIENT_APP_ID'))
+        buildConfigField 'String', 'TEST_FIREBASE_APP_ID', pocQuote('1:572322098890:android:3e483937876cbcc0400e33')
+        buildConfigField 'String', 'TEST_QA_USERNAME', pocQuote(pocCfg('D173_POC_TEST_USERNAME'))
         minSdk 23
         targetSdk 35
         versionCode 1

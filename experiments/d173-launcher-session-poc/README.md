@@ -1,17 +1,9 @@
-# D173 — Launcher v0.3.26 + Firebase Auth SSO PoC (CURRENT)
+# D173 Launcher v0.3.26 → existing Firebase QA test
 
-**Source Firebase Auth thật, chưa cấu hình hoặc triển khai Firebase QA, chưa FIELD PASS.**
+This is the current design, per Owner's 13/11/2026 correction: **real Firebase Auth on the existing Báo hàng project `supra-inventory-beta`**, using only a dedicated idle Picker QA account and the existing Worker API. No Firebase project provisioning, Cloud Functions, Firebase Rules or Báo hàng Production APK changes.
 
-Đọc [FIREBASE_REAL_TEST_SCOPE.md](FIREBASE_REAL_TEST_SCOPE.md) để biết kiến trúc, giới hạn an toàn, phần bắt buộc cần cấp QA project và ma trận kiểm thử.
+Two independent debug APKs: `vn.supra.pdalauncher.identitytest` and `vn.supra.identitytest`. See [FIREBASE_REAL_TEST_SCOPE.md](FIREBASE_REAL_TEST_SCOPE.md) for exact operational effect of login, QA allowlist and FIELD test matrix.
 
-- Source Launcher gốc tag `v0.3.26`, commit `c33a8262669f7ff33e698be86ce6d9c657686988`, sao chép chỉ trong `experiments/d173-launcher-session-poc/launcher/`.
-- Hai APK thử nghiệm độc lập: `vn.supra.pdalauncher.identitytest`, `vn.supra.identitytest`; không sửa bản Production.
-- Firebase SDK, backend QA open/grant/redeem/logout, cùng Firebase UID/session generation và thông báo thu hồi realtime đã có source. Test không dùng username format giả làm kết quả xác thực thật.
-- CI: [run #43353330048](https://github.com/tamnv2/supra-inventory/actions/runs/43353330048) **SUCCESS** exact SHA `49a27c3d16bd49a8cd93f496b64cb15da86f4519`. Artifact `d173-firebase-identity-session-poc-debug-pair` ID `14004384190` (hết hạn 20/11/2026 02:39 UTC).
-- **Build hiện thiếu Firebase QA project/SDK config**, kết nối được khóa bởi strict project guard, nên **không thể login thật** khi cài. Chỉ mở khóa runtime sau khi QA project độc lập được đăng ký và cấu hình, backend QA đã được triển khai trên đúng project.
-- Không sử dụng Firebase hiện đang phục vụ Production; không sử dụng mật khẩu mặc định hardcode trong APK. QA enrollment lần đầu yêu cầu thông tin test account có mật khẩu được che và không log; không truyền mật khẩu qua Android Intent.
-- Chưa triển khai hay tác động Firebase/Auth/Firestore/Worker/Agent/Android Production, D172, Stable.
+**Fail-closed:** no QA MNV / Firebase public client API key in GitHub Actions variables → build compiles but login blocked; no embedded default password, no production user session replacement (`force=false`).
 
-## Historical mock
-
-Bản mock local chạy thử IPC trước đó đạt build tại [run #43348954640](https://github.com/tamnv2/supra-inventory/actions/runs/43348954640), nhưng **không đạt** yêu cầu Firebase thật của Owner và đã được thay bằng code Firebase QA. Không sử dụng bộ mock để kết luận SSO.
+CI and FIELD receipts must be recorded only after verified source-pinned build and actual PDA tests. Earlier offline-only and dedicated-project demos do not prove this integration.
