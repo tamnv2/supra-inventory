@@ -6225,7 +6225,8 @@
     "risks": [
       "shared Firebase Auth/Worker impact D172 require both-module regression",
       "OTA Launcher separate ALL/MODEL/DEVICE owner release gate",
-      "Cloudflare DO Request/Rows Read and Firebase quota guard"
+      "Cloudflare DO Request/Rows Read and Firebase quota guard",
+      "Launcher DeviceRegistryClient and LauncherPasswordClient still hardcode retired inventory-beta.supra.cc.cd vs official inventory.supra.cc.cd; field impact unverified"
     ],
     "checkpoint_doc": "docs/D173_LAUNCHER_CENTRAL_PDA_SESSION_PROPOSAL_2026-11-13.md",
     "code": "NOT_STARTED",
