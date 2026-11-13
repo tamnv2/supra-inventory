@@ -1,3 +1,9 @@
+## D173-E261 — 13/11/2026: Owner chốt hoàn thiện và phát hành Web3.3.20
+
+Owner yêu cầu rõ "Tiếp tục hoàn thiện done code và phát hành" năm mục UI Web3.3.19 FIELD chưa đạt theo E260. Chấp thuận hoàn thiện CODE/CI/merge PR #974 và Production Web3.3.20 trên Worker hiện hữu, chỉ thay Web presentation/CSS/phiên bản/kiểm thử/nguồn release gate, không đổi Worker nghiệp vụ/API, D172, Agent, Android, Firebase, Stable hoặc tài nguyên provider. Yêu cầu exact-source gate, CI nguồn Web + Worker typecheck + D172 isolation và readback Production trước khi báo RELEASE PASS. Global UI Design Guard lịch sử lỗi 8 invariant không thuộc E260 không được báo Global PASS hoặc sửa lan rộng; bảo vệ theo gate scoped. Không suy luận FIELD/OWNER PASS từ code hoặc release. Xem docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md.
+
+---
+
 ## D173-E260 — 13/11/2026: Owner yêu cầu sửa 5 lỗi UI Web3.3.19 sau phát hành
 
 Owner phản hồi Web3.3.19 có FIELD NOT PASS về: header bị cắt một phần, tab **Quá hạn** lệch căn giữa dọc, Tổng quan thừa lời hướng dẫn/tiêu đề và cần đưa thời điểm dữ liệu vào cùng hàng tab căn phải, Cỡ chữ phóng to làm mất nội dung phía dưới, khoảng cách ghim trên/trái giữa các trang không đồng nhất. Cho phép sửa CODE Web D173 theo 5 mục, giữ nguyên nghiệp vụ/số liệu/API/quota và bản phát hành hiện tại; **chưa có lệnh merge hoặc phát hành Production mới**. Bắt buộc kiểm tra responsive/zoom, hồi quy Web và bảo vệ độc lập D172 trước khi xem xét phát hành. FIELD/Owner PASS chưa xác nhận. Xem `docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md`, Draft PR #974.

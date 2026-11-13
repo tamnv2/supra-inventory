@@ -7,29 +7,19 @@
   "pr": 974,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E260",
+    "id": "D173-E261",
     "date_vn": "2026-11-13",
-    "summary": "Owner Web3.3.19 FIELD 5 UI defects; PR974 source code-only PASS E260/D172 at SHA5FB02BE4 run43415335127; global UI guard FAIL; release/FIELD/OWNER pending.",
-    "status": "WEB3319_FIELD_NOT_PASS__E260_SCOPED_CODE_CI_PASS__GLOBAL_UI_GUARD_FAIL__NO_NEW_RELEASE__D172_HOLD",
-    "source": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
+    "summary": "Owner ordered complete E260 and release Web3.3.20 UI-only via PR974, source CI/Production pending, D172 HOLD.",
+    "status": "WEB3320_OWNER_PRODUCTION_APPROVED__CODE_CI_PENDING__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md",
     "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
     "pr": 974,
-    "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
-    "production_web_version": "3.3.19",
-    "owner_code_approved": true,
-    "owner_release_approved": false,
-    "code_pass": true,
-    "ci_scoped_pass": true,
+    "source_code_sha": "22666e168936e57ff9c974e46a33bc0499bb6e02",
+    "code_pass": false,
+    "ci_scoped_pass": false,
     "release_pass": false,
     "field_pass": false,
-    "owner_pass": false,
-    "ci_global_pass": false,
-    "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
-    "source_ci_run_id": 43415335127,
-    "repo_authority_run_id": 43415335037,
-    "project_state_run_id": 43415334786,
-    "d172_isolation_run_id": 43415335354,
-    "global_ui_design_run_id": 43415335385
+    "owner_pass": false
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5416,6 +5406,37 @@
       "next_action": "Keep PR974 Draft/Production unchanged. Resolve remaining global UI legacy guard separately if Owner approves; physical Web field test cross zoom/resolutions, then explicit Owner release gate.",
       "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
       "source_ci_run_id": 43415335127
+    },
+    {
+      "id": "D173-E261",
+      "date_vn": "2026-11-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves finish code and Production release of five E260 Web UI fixes as Web3.3.20",
+      "owner_approval": true,
+      "status": "OWNER_CODE_PRODUCTION_APPROVED__SCOPED_CI_PENDING__NO_NEW_RELEASE__D172_HOLD",
+      "facts": [
+        "PR974 remains OPEN Draft as read on 2026-11-13; source E260 exact scoped CI previously passed on Web3.3.19, while legacy Global UI Guard reports eight unrelated Agent/Web historical invariant failures.",
+        "Owner explicitly orders to finish code and release the existing E260 UI scope. Version target Web3.3.20; no request/API/DO/schema/Worker business source, D172, Agent, Android, Firebase, Gateway or Stable mutation.",
+        "Source version/tests are updated; scoped release gate D173-E261 requires source/CI pins, protected two-parent merge marker and immutable D172/Provider checks. Production Web3.3.19 remains until exact deploy and runtime readback."
+      ],
+      "decision": [
+        "Allow code/CI repair and gated merge/Production Worker/Web repack on registered hostname only for E260 presentation.",
+        "Do not treat historical Global UI Design Guard as PASS; verify required current source/Worker/D172/authority CI and report the unrelated guard separately.",
+        "FIELD and OWNER acceptance remain false until observed; preserve D172 independent pending hold and Stable owner-gated."
+      ],
+      "evidence": "docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md; https://github.com/tamnv2/supra-inventory/pull/974",
+      "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
+      "pr": 974,
+      "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
+      "source_code_sha": "22666e168936e57ff9c974e46a33bc0499bb6e02",
+      "code_pass": false,
+      "ci_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "next_action": "Complete scoped exact CI; pin auth, verify protected merge and official Production runtime before claiming technical release."
     }
   ],
   "resume": {

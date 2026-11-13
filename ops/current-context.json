@@ -7,15 +7,15 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E260",
+    "checkpoint_id": "D173-E261",
     "pr": 974,
     "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
-    "status": "WEB3319_FIELD_NOT_PASS__E260_SCOPED_CODE_CI_PASS__GLOBAL_UI_GUARD_FAIL__RELEASE_UNCHANGED__D172_HOLD",
-    "owner_merge_approved": false,
-    "owner_release_approved": false,
-    "source_doc": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
+    "status": "WEB3320_OWNER_RELEASE_APPROVED_SOURCE_CI_PENDING__WEB3319_LIVE__D172_HOLD",
+    "owner_merge_approved": true,
+    "owner_release_approved": true,
+    "source_doc": "docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md",
     "production_web_version": "3.3.19",
-    "target_web_version": null,
+    "target_web_version": "3.3.20",
     "field_pass": false,
     "owner_pass": false,
     "source_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
@@ -23,9 +23,14 @@
     "code_scoped_pass": true,
     "ci_scoped_pass": true,
     "release_technical_pass": false,
-    "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
+    "source_ci_sha": null,
     "source_ci_run_id": 43415335127,
-    "ci_global_pass": false
+    "ci_global_pass": false,
+    "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
+    "source_sha": "22666e168936e57ff9c974e46a33bc0499bb6e02",
+    "source_code_pin": "22666e168936e57ff9c974e46a33bc0499bb6e02",
+    "release_marker": "D173-E261_WEB3320_PRODUCTION_RELEASE:",
+    "release_run_id": null
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -155,5 +160,19 @@
     "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0",
     "release_main_sha": "a9dd2eb32896134b2ff00b863dce0f53ea54b126",
     "release_run_id": 43376201506
+  },
+  "web3320_candidate": {
+    "change_id": "D173-E261",
+    "pr": 974,
+    "version": "3.3.20",
+    "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
+    "scope": "D173_WEB_UI_ONLY",
+    "owner_code_release_approved": true,
+    "source_pin": "22666e168936e57ff9c974e46a33bc0499bb6e02",
+    "source_ci": "PENDING",
+    "release": "PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD"
   }
 }

@@ -1368,3 +1368,10 @@ Windows Agent top actions left to right: **Chọn Agent chính | Cập nhật | 
 
 ## D173-E237 — Web cross-page layout consistency (Owner 12/11/2026)
 Use existing **Xử lý báo hàng** compact presentation as the reference for authenticated Web section spacing, card radius, borders, colors and active tabs, including light/dark. Remove top-level page titles that repeat the selected navigation item; preserve semantic sub-section titles, warnings, descriptions and controls. Sticky tab bars at the top of their own scrolling workspace are required for **Tổng quan/Báo cáo chi tiết**, **Nhân sự & tài khoản** and **Nhật ký**, as already done for the five operation tabs. Do not change data, role gates, realtime, network cadence, global header, or D172 business assets. Web3.3.15 PR961 is **CODE ONLY** pending CI/physical Web FIELD and distinct production authorization; stable is Owner-gated. See `docs/D173_E237_WEB3315_GLOBAL_LAYOUT_CODE_ONLY_2026-11-12.md`.
+
+
+## D173-E261 — UI Web3.3.20 (Owner 13/11/2026)
+- Đặt header trong grid row riêng tính theo chiều cao nội dung; không dùng thêm sticky chồng với container cuộn. Kiểm tra khi tăng Cỡ chữ/Web zoom.
+- Mọi workspace desktop dùng inset nhỏ đồng nhất như Tổng quan; luôn chừa khoảng cuộn ở cuối.
+- Tab Quá hạn căn giữa cả nhãn và badge; thông tin `Dữ liệu lúc` đặt bên phải cùng hàng tabs; không lặp tiêu đề trang Tổng quan hoặc thêm lời hướng dẫn Owner không yêu cầu.
+- Giữ nghiệp vụ và số đo hiện có, không thêm polling/DO/Provider request. Mức zoom lớn phải bảo toàn khả năng cuộn, không được che bảng/nút cuối. FIELD/OWNER PASS cần kiểm tra trình duyệt thật.
