@@ -7,23 +7,19 @@
   "pr": 972,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E257",
+    "id": "D173-E258",
     "date_vn": "2026-11-13",
-    "summary": "Owner FIELD NOT PASS Web3.3.18 overview; scoped E257 source CI PASS run43401797049 exact source 3d131113, full historic UI guards FAIL, no release.",
-    "status": "SCOPED_CODE_CI_PASS__GLOBAL_STALE_E032_UI_DESIGN_GUARDS_FAIL__NO_RELEASE__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md",
+    "summary": "Owner authorizes finishing PR972 and releasing Web3.3.19 + bounded D173 overview Worker after source CI; FIELD and OWNER PASS separate; D172 HOLD.",
+    "status": "OWNER_CODE_RELEASE_APPROVED__PR972_SOURCE_CI_PENDING__NO_RUNTIME_RELEASE_YET__D172_HOLD",
+    "source": "docs/D173_E258_WEB3319_RELEASE_AUTHORIZATION_2026-11-13.md",
     "branch": "fix/d173-e257-overview-live-triage-20261113",
     "pr": 972,
     "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb",
-    "published_web_version": "3.3.18",
-    "source_ci_sha": "3d13111389368a7698fbbd76bdd91207f72a6c35",
-    "source_ci_run_id": 43401797049,
-    "ci_scoped_pass": true,
-    "ci_global_pass": false,
+    "source_code_sha": "e01f0ca1cb3c4ca00e03fadff6b11d9f1997701e",
+    "target_web_version": "3.3.19",
     "release_pass": false,
     "field_pass": false,
-    "owner_pass": false,
-    "doc": "docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md"
+    "owner_pass": false
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5298,6 +5294,36 @@
       "ci_scope": "D173_E257_SCOPED_SOURCE_CI_SUCCESS_RUN43401797049_WEB_BUILD_WORKER_TYPECHECK_D172_ISOLATION",
       "source_sha": "3d13111389368a7698fbbd76bdd91207f72a6c35",
       "source_ci_run_id": 43401797049
+    },
+    {
+      "id": "D173-E258",
+      "date_vn": "2026-11-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner orders finish/release E257 Inventory overview as Web3.3.19 with existing read-only Worker, PR972",
+      "owner_approval": true,
+      "status": "OWNER_APPROVED_CODE_AND_PRODUCTION_RELEASE__SOURCE_CI_PENDING__PROTECTED_MERGE_REQUIRED__D172_HOLD",
+      "facts": [
+        "Owner current-turn command explicitly: xử lí hoàn thiện code và phát hành. Supersedes E257 CODE ONLY release hold solely for current D173 overview Worker/Web; not FIELD/OWNER acceptance of production behavior.",
+        "Main accepted base cfe3a7674b85b410f60297c77920408a971413fb, PR972 branch fix/d173-e257-overview-live-triage-20261113 was LIVE OPEN draft, exact app code source after Web3.3.19/version test updates e01f0ca1cb3c4ca00e03fadff6b11d9f1997701e.",
+        "Current E257 overview shows pending SKU/site/hour/wait and two trends, WebSocket event coalescing 15s refresh, no independent analytics polling. New /api/admin/overview remains WEB-only authorized one DO call; SQL extra 3 bounded reads.",
+        "E258 Owner-gated release marker D173-E258_WEB3319_PRODUCTION_RELEASE:, new exact-source gate tools/d173_e258_web3319_release_gate.py, auth ops/d173-e258-web3319-release-authorization.json. D172 independent PENDING/HOLD, Stable OWNER-GATED.",
+        "CI/usage p95 and post-deploy /health exact-source verification are NOT yet established; do not claim PASS before receipts."
+      ],
+      "next_action": "Verify E258 scoped build/Worker/D172/Auth/CI, pin source CI SHA in authorization, confirm scoped required check PASS, protected merge PR972 with exact release marker, run existing Worker/Web deploy and verify production /health + shell; checkpoint distinct CODE CI RELEASE FIELD OWNER statuses.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/972 ; docs/D173_E258_WEB3319_RELEASE_AUTHORIZATION_2026-11-13.md",
+      "branch": "fix/d173-e257-overview-live-triage-20261113",
+      "pr": 972,
+      "source_pr": 972,
+      "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb",
+      "source_code_sha": "e01f0ca1cb3c4ca00e03fadff6b11d9f1997701e",
+      "target_web_version": "3.3.19",
+      "code_pass": false,
+      "ci_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
