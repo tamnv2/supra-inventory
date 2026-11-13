@@ -64,6 +64,8 @@ import {
   importSkuChunk,
   importSkuFullReplace,
   listManagedUsers,
+  listContractors,
+  changeContractor,
   loginWithPassword,
   logoutInteractiveSession,
   requestPasswordReset,
@@ -96,6 +98,7 @@ import {
   type HrSyncPreview,
   type HrEventSyncState,
   type ManagedUser,
+  type ContractorItem,
   type OperationalInsights,
   type PdaAppRelease,
   type RealtimePresence,
@@ -619,7 +622,10 @@ const USER_FETCH_PAGE_SIZE = 200;
 const USER_ROSTER_TTL_MS = 120_000;
 let userRosterCache: { scope: string; loadedAt: number; items: ManagedUser[] } | null = null;
 let usersBulkMode = false;
-let usersView: "list" | "create" | "import" = "list";
+let usersView: "list" | "create" | "import" | "contractors" = "list";
+let contractors: ContractorItem[] = [];
+let contractorsLoaded = false;
+let editingContractor: string | null = null;
 let usersGlobalTargetCount: number | null = null;
 let editUserId: string | null = null;
 let passwordUserId: string | null = null;
@@ -2072,7 +2078,7 @@ function renderUsers(): string {
   const canCreateReporter = profile?.role === "ROOT" || profile?.role === "ADMIN";
   const canCreateManaged = canCreateAdmin || canCreateReporter;
   if ((usersView === "create" && !canCreateManaged) ||
-      (usersView === "import" && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || ""))) {
+      (["import", "contractors"].includes(usersView) && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || ""))) {
     usersView = "list";
   }
   const canLifecyclePickerBulk = profile?.role === "ADMIN" || profile?.role === "ROOT";
@@ -2088,6 +2094,7 @@ function renderUsers(): string {
       <button type="button" role="tab" class="workspace-tab ${usersView === "list" ? "active" : ""}" data-users-mode="list" aria-selected="${usersView === "list"}">Danh sách tài khoản</button>
       ${canCreateManaged ? `<button type="button" role="tab" class="workspace-tab ${usersView === "create" ? "active" : ""}" data-users-mode="create" aria-selected="${usersView === "create"}">Thêm tài khoản</button>` : ""}
       ${["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "") ? `<button type="button" role="tab" class="workspace-tab ${usersView === "import" ? "active" : ""}" data-users-mode="import" aria-selected="${usersView === "import"}">Thêm Picker / Excel</button>` : ""}
+      ${rolePickPackManage() ? `<button type="button" role="tab" class="workspace-tab ${usersView === "contractors" ? "active" : ""}" data-users-mode="contractors" aria-selected="${usersView === "contractors"}">Danh mục nhà thầu</button>` : ""}
     </div>
     <div class="users-list-summary" ${usersView === "list" ? "" : "hidden"}>
       <span><strong>${userTotal.toLocaleString("vi-VN")}</strong> tài khoản phù hợp</span>
@@ -2117,7 +2124,23 @@ function renderUsers(): string {
         </form>
       </article>
     </div>
-    ${usersView === "import" && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true) : ""}
+    ${usersView === "import" && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true, contractors.map((item) => item.name)) : ""}
+    ${usersView === "contractors" ? `<article class="ops-panel contractor-catalog-panel">
+      <div class="ops-panel-title"><div><h3>Danh mục nhà thầu</h3></div><span>${contractors.length} nhà thầu</span></div>
+      <form id="contractor-create-form" class="contractor-create-form">
+        <label>Thêm nhà thầu<input name="name" required maxlength="200" placeholder="Tên nhà thầu mới" autocomplete="off"/></label>
+        <button class="primary" type="submit">Thêm</button>
+      </form>
+      <div class="table-wrap contractor-catalog-table"><table><thead><tr><th>Nhà thầu</th><th>Picker</th><th>Thao tác</th></tr></thead><tbody>
+        ${contractors.map((item) => `<tr><td>${editingContractor === item.name ? `<form id="contractor-edit-form"><input name="name" value="${esc(item.name)}" required maxlength="200" aria-label="Tên nhà thầu mới"/></form>` : `<strong>${esc(item.name)}</strong>`}</td>
+          <td>${item.picker_count.toLocaleString("vi-VN")}</td>
+          <td>${editingContractor === item.name
+            ? '<button class="secondary" type="submit" form="contractor-edit-form">Lưu</button> <button class="secondary" type="button" id="contractor-cancel-edit">Hủy</button>'
+            : `<button type="button" class="secondary" data-contractor-edit="${esc(item.name)}" ${item.picker_count > 0 ? "disabled title='Đang có Picker thuộc nhà thầu'" : ""}>Sửa</button> <button type="button" class="secondary" data-contractor-delete="${esc(item.name)}" ${item.picker_count > 0 ? "disabled title='Đang có Picker thuộc nhà thầu'" : ""}>Xóa</button>`}
+          </td></tr>`).join("") || '<tr><td colspan="3">Chưa có nhà thầu.</td></tr>'}
+      </tbody></table></div>
+      <p class="ops-note">Nhà thầu đã có Picker: giữ nguyên dữ liệu và chặn sửa/xóa. Có thể bổ sung nhà thầu từ Excel đã xác nhận.</p>
+    </article>` : ""}
     <article class="ops-panel ops-users-panel" ${usersView === "list" ? "" : "hidden"}>
       <div class="ops-panel-title users-list-title"><strong>Danh sách tài khoản</strong><span>${userTotal.toLocaleString("vi-VN")} kết quả</span></div>
       ${renderUserBulkToolbar(canLifecyclePickerBulk)}
@@ -4344,6 +4367,16 @@ async function loadSkuWorkspace(): Promise<void> {
   markWebUpdateReceived();
 }
 
+async function loadContractors(force = false): Promise<void> {
+  if (contractorsLoaded && !force) return;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const response = await listContractors();
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  contractors = response.items;
+  contractorsLoaded = true;
+}
+
 async function loadUsers(force = false): Promise<void> {
   const allowedRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
     profile?.role === "ADMIN" ? ["PICKER", "REPORTER", "OBPP_COORDINATOR"] :
@@ -4568,9 +4601,14 @@ async function loadSection(section: Section): Promise<void> {
     hrEventSync = profile.role === "ADMIN" || profile.role === "ROOT"
       ? await getHrEventSyncState()
       : null;
+    await loadContractors();
     received = true;
   }
-  else if (section === "users" && rolePickPackManage()) { await loadUsers(true); received = true; }
+  else if (section === "users" && rolePickPackManage()) {
+    await loadUsers();
+    if (usersView === "import" || usersView === "contractors") await loadContractors();
+    received = true;
+  }
   else if (section === "sla" && roleManage()) { await loadSla(); received = true; }
   else if (section === "dashboard" && rolePickPackManage()) { await loadDashboard(); received = true; }
   else if (section === "reports" && rolePickPackManage()) { await loadReports(); received = true; }
@@ -4633,6 +4671,7 @@ function bindShell(): void {
       runtimeLogEvent("Đăng xuất");
       clearSession();
       userRosterCache = null;
+      contractors = []; contractorsLoaded = false;
       profile = null;
       notice = null;
       queueRows = [];
@@ -5462,12 +5501,54 @@ function bindSection(): void {
   });
   document.querySelectorAll<HTMLButtonElement>("[data-users-mode]").forEach(button => button.addEventListener("click", () => {
     const next = button.dataset.usersMode;
-    if (!["list", "create", "import"].includes(next || "")) return;
+    if (!["list", "create", "import", "contractors"].includes(next || "")) return;
     if (next === "create" && !["ADMIN", "ROOT"].includes(profile?.role || "")) return;
-    if (next === "import" && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "")) return;
+    if (["import", "contractors"].includes(next || "") && !rolePickPackManage()) return;
     if (next === usersView) return;
     usersView = next as typeof usersView;
+    if (next === "import" || next === "contractors") void run(async () => { await loadContractors(); patchActiveSection(false); });
+    else patchActiveSection(false);
+  }));
+  document.querySelector<HTMLFormElement>("#contractor-create-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = String(new FormData(event.currentTarget as HTMLFormElement).get("name") || "").trim();
+    if (!name) return;
+    void run(async () => {
+      await changeContractor("CREATE", name);
+      await loadContractors(true);
+      patchActiveSection(false);
+      setNotice("success", "Đã thêm nhà thầu.");
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-contractor-edit]").forEach((button) => button.addEventListener("click", () => {
+    editingContractor = button.dataset.contractorEdit || null;
     patchActiveSection(false);
+  }));
+  document.querySelector<HTMLFormElement>("#contractor-edit-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const previous = editingContractor;
+    const name = String(new FormData(event.currentTarget as HTMLFormElement).get("name") || "").trim();
+    if (!previous || !name) return;
+    void run(async () => {
+      await changeContractor("RENAME", name, previous);
+      editingContractor = null;
+      await loadContractors(true);
+      patchActiveSection(false);
+      setNotice("success", "Đã sửa nhà thầu.");
+    });
+  });
+  document.querySelector<HTMLButtonElement>("#contractor-cancel-edit")?.addEventListener("click", () => {
+    editingContractor = null; patchActiveSection(false);
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-contractor-delete]").forEach((button) => button.addEventListener("click", () => {
+    const name = button.dataset.contractorDelete || "";
+    if (!name || !window.confirm("Xóa nhà thầu " + name + "?")) return;
+    void run(async () => {
+      await changeContractor("DELETE", name);
+      await loadContractors(true);
+      patchActiveSection(false);
+      setNotice("success", "Đã xóa nhà thầu.");
+    });
   }));
   document.querySelector<HTMLButtonElement>("#users-enable-selection")?.addEventListener("click", () => {
     usersBulkMode = true; patchActiveSection();
@@ -6030,6 +6111,7 @@ async function bootstrap(): Promise<void> {
   } catch (error) {
     clearSession();
     userRosterCache = null;
+    contractors = []; contractorsLoaded = false;
     profile = null;
     setNotice("error", error instanceof Error ? error.message : "Phiên đăng nhập không hợp lệ.");
     renderLogin();
