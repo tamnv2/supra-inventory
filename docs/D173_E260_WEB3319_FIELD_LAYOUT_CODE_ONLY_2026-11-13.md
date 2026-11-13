@@ -12,6 +12,12 @@
 - **Cỡ chữ:** compensate desktop `100dvh` grid height for `body.zoom`; retain independent content/table scroll and bottom padding. Not a guarantee of physical UI PASS until cross-zoom device checks.
 - **Spacing:** desktop 781+ page inset `4px 6px` matches original Report/Dashboard for all pages; preserve 24px bottom scroll reserve and mobile-specific inset.
 
+## Exact-source code-only CI (verified)
+- Source HEAD `5fb02be48d21317187383e5c0ea424a3f30e98d1` checked by [Actions run 43415335127](https://github.com/tamnv2/supra-inventory/actions/runs/43415335127): **SUCCESS**. Included D173-E260 + accepted Web UI regressions, Web TypeScript/Vite build, service test dependencies and independent D172 isolation/regression.
+- Repo Authority Guard `43415335037`: SUCCESS; Project State Guard `43415334786`: SUCCESS; independent D173/D172 Business Isolation Guard `43415335354`: SUCCESS at the same source SHA.
+- Global UI Design Guard `43415335385`: FAILURE, **global CI not PASS**. Source inspection verifies at least one obsolete expectation `web_d107_richer_reporting` (old dashboard tokens absent from `main` before E260). Other legacy global failures must be separately reconciled; no unrelated UI guard modification included in E260.
+- This checkpoint updates docs and authority on a successor SHA without changing validated Web UI/Worker/D172 source. No merge or Production deploy performed.
+
 ## Regression and release gates
 - Targeted `tests/d173-e260-web-ui-layout.test.mjs` and current `tests/d173-e252-web3318-overview.test.mjs` updated for superseded instructional text, plus existing D173 UI regression, Web TypeScript/Vite build, D172 isolation tests in new code-only workflow.
 - Reproduce and verify on actual authenticated Web at 1280×720, 1366×768, 1600×900 and 1920×1080; 70/100/120/140% Web font and browser zoom 100/125/150%; scroll to bottom each workspace, confirm header and Quá hạn tab, both themes, no new request/DO trigger. These physical FIELD checks are pending.
