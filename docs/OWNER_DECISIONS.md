@@ -1,3 +1,9 @@
+## D173-E265 — 13/11/2026: Owner duyệt hoàn thiện code và phát hành Web3.3.21
+
+Owner yêu cầu “hoàn thiện code và triển khai phát hành” cho D173-E264 đồng nhất hình học UI Web trên chín trang. Cho phép nâng Web3.3.21 và phát hành Production qua PR #977 sau gate exact-source CI, authority, D172 isolation, merge được bảo vệ và deploy readback. Phạm vi chỉ là CSS giao diện D173 cùng Web version/tests/release pipeline; đóng gói lại existing Worker để phục vụ static assets nhưng không thay service nghiệp vụ, Fire, Agent, Android, D172, Stable, tài nguyên provider. CI/RELEASE không đồng nghĩa FIELD hoặc OWNER PASS. Xem `docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md`.
+
+---
+
 ## D173-E264 — 13/11/2026: Owner yêu cầu Web3.3.20 đồng nhất UI toàn hệ thống (CODE ONLY)
 
 Sau khi xác nhận Web3.3.20 đã phát hành OK, Owner phản hồi 9 ảnh cho thấy các trang vẫn không đồng nhất khoảng cách nội dung, bo góc/viền, tab và mục. Đây là FIELD correction trong D173, không phải nghiệm thu hoàn tất hay quyền phát hành phiên bản tiếp theo. Dùng mật độ và geometry Xử lý báo hàng được chốt ở E237/E230 làm chuẩn, áp dụng trên các trang authenticated Web qua CSS scoped; giữ nội dung, realtime, cuộn, HD/HD+, dark/light, quyền và dữ liệu, không đổi Worker/API, Agent, Android, D172 hoặc Stable. Xem `docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md`. Merge/release phải có lệnh Owner riêng sau CI và review.
