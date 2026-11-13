@@ -430,3 +430,75 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
   justify-content: center;
   line-height: 1;
 }
+
+/* D173-E264: one compact geometry authority for the authenticated Web UI.
+   E230 Operations is the reference; retain route-specific scroll, alerts and RBAC. */
+.d173-tabler-shell {
+  --d173-ui-gap: 6px;
+  --d173-ui-card-radius: 5px;
+  --d173-ui-panel-radius: 4px;
+  --d173-ui-control-radius: 4px;
+}
+.d173-tabler-shell .d173-page-content :is(
+  .business-summary-grid, .queue-summary-grid, .ops-grid-two, .account-grid,
+  .tools-grid, .sla-current-grid, .report-filter-grid, .users-filter-form,
+  .d173-overview-content, .d173-overview-kpis, .d173-overview-cols,
+  .d173-overview-priority, .d173-overview-trends, .d173-overview-bottom,
+  .sku-kpi-grid, .sku-provenance-grid, .users-top-grid,
+  .system-service-grid, .system-folder-grid, .system-table-grid,
+  .system-load-grid, .ops-summary-grid, .pro-watch-grid,
+  .reset-card-grid
+) {
+  gap: var(--d173-ui-gap) !important;
+}
+.d173-tabler-shell .d173-page-content :is(.business-summary-grid, .queue-summary-grid) {
+  margin-bottom: var(--d173-ui-gap) !important;
+}
+.d173-tabler-shell .d173-page-content :is(
+  .card, .business-summary-card, .d173-overview-kpi, .d173-overview-panel,
+  .sla-current-card, .sla-threshold-card, .sla-policy-card,
+  .tool-card, .pda-tool-card, .d167-meal-card, .ops-setting-card,
+  .summary-filter-card, .system-service-card, .history-card, .reset-card
+) {
+  border-radius: var(--d173-ui-card-radius) !important;
+}
+.d173-tabler-shell .d173-page-content :is(
+  .ops-panel, .table-wrap, .fast-list, .fast-detail, .log-row,
+  .status-panel, .source-summary, .users-filter-panel, .report-filter-panel,
+  .ops-users-panel, .shift-history-panel, .reset-security-panel,
+  .sku-provenance-panel, .sku-search-panel, .sku-import-details,
+  .users-create-panel, .contractor-catalog-panel, .audit-history-panel,
+  .log-list-panel, .log-detail-panel, .picker-detail-panel,
+  .report-picker-detail-panel
+) {
+  border-radius: var(--d173-ui-panel-radius) !important;
+}
+.d173-tabler-shell .d173-page-content :is(
+  .business-summary-card, .d173-overview-kpi, .d173-overview-panel
+) {
+  padding: 8px 10px !important;
+}
+.d173-tabler-shell .d173-page-content :is(
+  .workspace-tabs, .d173-ops-toolbar, .d173-report-toolbar
+) {
+  border-radius: var(--d173-ui-panel-radius) !important;
+}
+.d173-tabler-shell .d173-page-content .workspace-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 35px;
+  padding: 5px 9px !important;
+  gap: 5px;
+  line-height: 1.25;
+  border-radius: var(--d173-ui-control-radius) !important;
+}
+.d173-tabler-shell .d173-page-content :is(
+  .btn, button, input:not([type="checkbox"]):not([type="radio"]), select, textarea
+),
+.d173-tabler-shell .d173-tabler-navbar :is(button, select) {
+  border-radius: var(--d173-ui-control-radius) !important;
+}
+.d173-tabler-shell .d173-tabler-sidebar .nav-button {
+  border-radius: var(--d173-ui-card-radius) !important;
+}
