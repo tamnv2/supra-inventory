@@ -3,24 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e259-web3319-production-readback-20261113",
-  "pr": 973,
+  "working_branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
+  "pr": 974,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E259",
+    "id": "D173-E260",
     "date_vn": "2026-11-13",
-    "summary": "Web3319 PR972 merged main4350481D, official production health/auth readback run43408214463 PASS exact SHA, FIELD/Owner pending, D172 HOLD.",
-    "status": "PASS_TECHNICAL_PRODUCTION_WEB3319_EXACT_READBACK__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E259_WEB3319_PRODUCTION_READBACK_2026-11-13.md",
-    "branch": "docs/d173-e259-web3319-production-readback-20261113",
-    "pr": 973,
-    "source_pr": 972,
-    "source_merge_sha": "4350481de726cd33746fc634b41ff053a4d557bd",
-    "production_readback_run_id": 43408214463,
-    "code_pass": true,
-    "ci_scoped_pass": true,
-    "ci_global_pass": false,
-    "release_pass": true,
+    "summary": "Owner Web3.3.19 FIELD 5 UI defects; PR974 scoped code/test candidate and no Production authorization; CI/FIELD/OWNER pending.",
+    "status": "WEB3319_FIELD_NOT_PASS__E260_WEB_CODE_ONLY_PR974_CI_PENDING__PRODUCTION_UNCHANGED__D172_HOLD",
+    "source": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
+    "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
+    "pr": 974,
+    "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
+    "production_web_version": "3.3.19",
+    "owner_code_approved": true,
+    "owner_release_approved": false,
+    "code_pass": false,
+    "ci_scoped_pass": false,
+    "release_pass": false,
     "field_pass": false,
     "owner_pass": false
   },
@@ -5370,6 +5370,40 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E260",
+      "date_vn": "2026-11-13",
+      "kind": "OWNER_FIELD_NOT_PASS_AND_SCOPED_CODE",
+      "topic": "Five Web3.3.19 UI fixes: header, Quá hạn, dashboard guidance, font zoom reflow and shared insets",
+      "owner_approval": true,
+      "status": "WEB_UI_SCOPED_CODE_CANDIDATE__CI_PENDING__NO_PRODUCTION_RELEASE__D172_HOLD",
+      "facts": [
+        "Owner screenshots on Web3.3.19 show header partially clipped, misaligned overdue tab, owner-guidance text cluttering dashboard, A± resize obscuring bottom, inconsistent page insets.",
+        "Source inspection: global body.zoom 70–140% with 1.05 base; legacy fixed desktop shell 100vh overflow hidden; navbar sticky within first measured grid row; dashboard timestamp and guidance embedded in render markup.",
+        "Branch restricts edits to D173 Web markup/CSS and tests, plus sanitized journal/state/decision/CI. No API/Worker/DO, Agent/Android, authentication, data, realtime scheduler, D172 or Stable mutation.",
+        "CODE CANDIDATE in Draft PR974; source-only workflow added for Web build and D172 isolation. No CI PASS or physical visual results yet; Production Web3.3.19 original SHA remains deployed."
+      ],
+      "inference": [
+        "Fixed viewport height under body.zoom can clip header/bottom at higher font sizes; source supports risk but physical root-cause confirmation remains pending."
+      ],
+      "owner_decision": [
+        "Remove listed explanatory strings and dashboard duplicate title; put updated-at time right-aligned on tab bar.",
+        "Use dashboard's compact top and left inset across all pages; vertically center Quá hạn badge and fix header/zoom without changing data."
+      ],
+      "evidence": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
+      "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
+      "pr": 974,
+      "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
+      "source_workflow": ".github/workflows/d173-e260-web-ui-code-only.yml",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "UNCHANGED_WEB3319",
+      "field": "NOT_PASS_OWNER_SCREENSHOT",
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "privacy_safe": true
     }
   ],
   "resume": {
@@ -6740,5 +6774,20 @@
     "owner_pass": false,
     "doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md",
     "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0"
+  },
+  "d173_e260_web3319_field_ui": {
+    "date_vn": "2026-11-13",
+    "pr": 974,
+    "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
+    "doc": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
+    "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
+    "approved_scope": "WEB_UI_ONLY",
+    "owner_release_approved": false,
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "WEB3319_UNCHANGED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD"
   }
 }
