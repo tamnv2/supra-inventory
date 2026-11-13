@@ -2365,9 +2365,9 @@ function renderDashboard(): string{
       <td>${esc(fmt(item.first_report_at))}</td>
       <td class="d173-overview-elapsed" data-overview-wait-since="${esc(item.first_report_at)}">${esc(label)}</td>
       <td class="d173-overview-number">${num(item.open_picker_count)}</td></tr>`;
-  }).join("") : `<tr><td colspan="5">${pending ? "Chưa tải được danh sách đợt mở; không suy diễn đã hết tồn đọng." : "Không có đợt đang chờ xử lý."}</td></tr>`;
+  }).join("") : `<tr><td colspan="5">${pending ? "Chưa tải được danh sách đợt đang mở." : "Không có đợt đang chờ xử lý."}</td></tr>`;
   const issues: Array<{ tone: string; title: string; detail: string }> = [];
-  if (overdue !== null && overdue > 0) issues.push({tone:"danger",title:`${num(overdue)} đợt vượt SLA`,detail:"Theo ngưỡng SLA đang áp dụng; cần kiểm tra các đợt mở."});
+  if (overdue !== null && overdue > 0) issues.push({tone:"danger",title:`${num(overdue)} đợt vượt SLA`,detail:"Đã vượt mốc SLA hiện hành."});
   if (systemSkip > 0) issues.push({tone:"warning",title:`${num(systemSkip)} đợt Skip tự động hôm nay`,detail:`Quá hạn ${num(sourceCount("SYSTEM_TIMEOUT"))} · Cuối ngày ${num(sourceCount("SYSTEM_DAY_END"))}`});
   if (recurrence.length) {
     const first = recurrence[0];
