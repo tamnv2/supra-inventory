@@ -18,3 +18,13 @@
 - Rủi ro FIELD chưa xác minh: Chrome HD/HD+ và zoom 100–150%, tràn hàng, sticky/single-scroll trong cả light/dark, date auto-apply và khả năng bị request trùng; chỉ Owner/thiết bị thật xác nhận.
 - CODE đang trên PR #965; CI chính xác theo head phải được đối chiếu. Các workflow lịch sử có assertion Agent và version cũ không được tự gọi PASS nếu FAIL.
 - RELEASE: **HOLD**, không merge, deploy hoặc tăng version Production khi chưa được Owner duyệt. FIELD/OWNER PASS: PENDING.
+
+## E243 — Kiểm thử source xác minh ngày 13/11/2026
+- PR #965, source CI SHA `df757f4302613b6a0448e9d8ed1c8cde1077e6e1`.
+- <https://github.com/tamnv2/supra-inventory/actions/runs/43351325372> — **PASS:** E242 + E237/E233/E230/E227 regression, Web TypeScript và Vite build, D172 isolated guard và test.
+- <https://github.com/tamnv2/supra-inventory/actions/runs/43351325639> — Authority PASS.
+- <https://github.com/tamnv2/supra-inventory/actions/runs/43351325756> — Continuity PASS.
+- <https://github.com/tamnv2/supra-inventory/actions/runs/43351325885> — Scope/types PASS.
+- <https://github.com/tamnv2/supra-inventory/actions/runs/43351325405> — Source SQL/Auth/D172 PASS.
+- Các kiểm tra Agent/history legacy không thuộc scope còn FAIL với assertion UI Agent và pin Web phiên bản cũ; **không gọi toàn bộ CI PASS**.
+- D173-E243 ghi trạng thái **CODE/CI PASS theo phạm vi**, RELEASE HOLD, FIELD và OWNER PASS chưa có. Việc bổ sung checkpoint docs/state sau source pin không làm thay đổi Web runtime.

@@ -7,13 +7,15 @@
   "pr": 965,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E242",
+    "id": "D173-E243",
     "date_vn": "2026-11-13",
-    "summary": "Owner Web3.3.15 FIELD UI corrections in four areas; isolated Web3.3.16 source candidate PR965; no production authorization; CI and physical browser FIELD pending.",
-    "status": "WEB3316_CODE_ONLY_PR965_DRAFT__CI_PENDING__RELEASE_HOLD",
+    "summary": "Web3.3.16 PR965 exact source df757f43: scoped Web regression, build, D172, authority, continuity and scope CI PASS; historical unrelated CI FAIL; release/field/owner HOLD.",
+    "status": "PASS_SCOPED_SOURCE_AND_CI__RELEASE_FIELD_OWNER_PENDING",
     "source": "docs/D173_E242_WEB3316_UI_FIELD_CORRECTIONS_2026-11-13.md",
     "branch": "fix/d173-e242-web3316-ui-consistency-20261113",
-    "pr": 965
+    "pr": 965,
+    "source_sha": "df757f4302613b6a0448e9d8ed1c8cde1077e6e1",
+    "web_source_ci_run": 43351325372
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4854,6 +4856,33 @@
       ],
       "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/965 ; source Web files and tests on PR head; docs/D173_E242_WEB3316_UI_FIELD_CORRECTIONS_2026-11-13.md",
       "next_action": "Verify exact PR source E242 Web CI, source build and D172 isolation; hold merge/deploy until Owner provides explicit authorization; verify real-browser layouts before FIELD PASS"
+    },
+    {
+      "id": "D173-E243",
+      "date_vn": "2026-11-13",
+      "kind": "TEST",
+      "topic": "Web3.3.16 scoped E242 source CI build and D172 isolation receipt",
+      "status": "PASS_SCOPED_WEB_BUILD_UI_D172_AUTHORITY__PRODUCTION_HOLD__FIELD_PENDING",
+      "owner_approval": null,
+      "pr": 965,
+      "branch": "fix/d173-e242-web3316-ui-consistency-20261113",
+      "source_sha": "df757f4302613b6a0448e9d8ed1c8cde1077e6e1",
+      "facts": [
+        "Exact PR source df757f4302613b6a0448e9d8ed1c8cde1077e6e1 E242 Web regression and Web TypeScript/Vite build PASS",
+        "Source CI workflow 43351325372 PASS including independent D172 guard and tests after installing existing service dependencies",
+        "Authority 43351325639, project-state continuity 43351325756, source scope/types 43351325885, source SQL auth and D172 43351325405 SUCCESS",
+        "Other historic CI jobs still FAIL old Agent UI/old Web-version assertions; no broad CI or FIELD/OWNER PASS claim",
+        "Owner did not authorize Web3.3.16 Production release; Web3.3.15 remains installed"
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/43351325372 ; https://github.com/tamnv2/supra-inventory/actions/runs/43351325639 ; https://github.com/tamnv2/supra-inventory/actions/runs/43351325756",
+      "next_action": "Hold PR965 draft and Production; browser FIELD and explicit Owner release authorization required",
+      "code": "PASS_SCOPED",
+      "ci": "PASS_SCOPED",
+      "release": "HOLD",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
