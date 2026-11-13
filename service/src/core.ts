@@ -1222,7 +1222,7 @@ export class InventoryCore {
         // D173-E252: one authorized DO invocation for three existing read-only
         // query contracts; preserve D167 as-of-first-report semantics and role checks.
         const days = [target.searchParams.get("day_from"), target.searchParams.get("day_to")];
-        if (days.some(day => !day || !/^\\d{4}-\\d{2}-\\d{2}$/.test(day))) {
+        if (days.some(day => !day || !/^\d{4}-\d{2}-\d{2}$/.test(day))) {
           return response({ error: "INVALID_OVERVIEW_DAYS" }, 400);
         }
         const fromTo = new URLSearchParams();
