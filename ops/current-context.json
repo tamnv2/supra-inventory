@@ -7,14 +7,14 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E250",
-    "pr": 968,
-    "branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
-    "status": "WEB3317_EXACT_SOURCE_7_OF_7_SCOPED_CI_PASS__OWNER_MERGE_PRODUCTION_APPROVED__RELEASE_PENDING",
+    "checkpoint_id": "D173-E251",
+    "pr": 969,
+    "branch": "docs/d173-e251-web3317-production-receipt-20261113",
+    "status": "WEB3317_PRODUCTION_TECHNICAL_RELEASE_PASS__PR969_DOCS_ONLY__FIELD_OWNER_PENDING",
     "owner_merge_approved": true,
     "owner_release_approved": true,
-    "source_doc": "docs/D173_E249_WEB3317_RELEASE_AUTHORIZATION_2026-11-13.md",
-    "production_web_version": "3.3.16",
+    "source_doc": "docs/D173_E251_WEB3317_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
+    "production_web_version": "3.3.17",
     "target_web_version": "3.3.17",
     "field_pass": false,
     "owner_pass": false,
@@ -22,8 +22,9 @@
     "source_ci_run_id": 43362168997,
     "release_marker": "D173-E249_WEB3317_PRODUCTION_RELEASE:",
     "source_code_pin": "344980c9a17cf8ddbde476cb0db81c45cf3a67c0",
-    "release_run_id": null,
-    "release_attempt": null
+    "source_main_sha": "d8aa54cfbff78b5480f7fb17c4489ae06f6d9181",
+    "release_run_id": 43362731384,
+    "release_attempt": 1
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -50,14 +51,14 @@
       "host_build": 14
     },
     "web": {
-      "version": "3.3.16",
-      "worker_web_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43353567258",
-      "source_change_id": "D173-E246",
-      "source_main_sha": "f4df26dd28f753f4f4456254124d821ce88d0077",
-      "worker_version_id_at_deploy": "7af05af0-4946-4124-ac44-ab8eae8b1cb5",
+      "version": "3.3.17",
+      "worker_web_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43362731384",
+      "source_change_id": "D173-E251",
+      "source_main_sha": "d8aa54cfbff78b5480f7fb17c4489ae06f6d9181",
       "ci_release": "PASS_PRODUCTION_TECHNICAL_EXACT_SOURCE__ATTEMPT1",
-      "field": "WEB3316_AUTHENTICATED_BROWSER_VISUAL_PENDING",
-      "owner_pass": "PENDING"
+      "field": "WEB3317_AUTHENTICATED_BROWSER_VISUAL_AND_CONTRACTOR_CRUD_PENDING",
+      "owner_pass": "PENDING",
+      "local_user_cache": "AUTHENTICATED_RAM_ONLY_TTL120SEC__NOT_ON_DISK"
     },
     "android": {
       "tag": "beta-vc128",
@@ -66,7 +67,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E241_WEB3315_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
+    "receipt": "docs/D173_E251_WEB3317_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md"
   },
   "d172": {
     "change_id": "D172",

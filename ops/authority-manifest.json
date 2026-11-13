@@ -156,7 +156,8 @@
     "current_d173_e234_web3314_owner_code_release": "docs/D173_E234_WEB3314_OWNER_DEPLOY_2026-11-12.md",
     "current_d173_e236_web3314_production_receipt": "docs/D173_E236_WEB3314_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
     "current_d173_e237_web3315": "docs/D173_E237_WEB3315_GLOBAL_LAYOUT_CODE_ONLY_2026-11-12.md",
-    "current_d173_e241_web3315": "docs/D173_E241_WEB3315_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md"
+    "current_d173_e241_web3315": "docs/D173_E241_WEB3315_PRODUCTION_RELEASE_RECEIPT_2026-11-12.md",
+    "current_d173_e251_web3317_release_receipt": "docs/D173_E251_WEB3317_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -243,9 +244,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 968,
-    "ref_rule": "D173_E247_WEB3317_PR968_DRAFT_CODE_ONLY__CI_REQUIRED__PRODUCTION_HOLD__D172_HOLD",
-    "freshness": "2026_11_13_E247_WEB3317_OWNER_FIELD_FIX_SOURCE_CANDIDATE",
+    "active_working_pr": 969,
+    "ref_rule": "D173_E251_WEB3317_PRODUCTION_TECH_PASS_PR969_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_11_13_E251_WEB3317_PRODUCTION_RELEASE_RECEIPT",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -375,7 +376,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
+    "active_working_branch": "docs/d173-e251-web3317-production-receipt-20261113",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,
