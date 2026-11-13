@@ -1,3 +1,8 @@
+## D173-E258 — 13/11/2026: Owner lệnh hoàn thiện E257 và phát hành Web3.3.19
+Owner nói “xử lí hoàn thiện code và phát hành” cho Tổng quan E257 đang FIELD FAIL Web3.3.18. Cho phép tiếp tục code, CI, protected PR #972 và Production Web3.3.19 + Worker read-only overview sau khi đủ release gates. Không cho phép đổi D172/Agent/Android/Firebase/Stable, tạo tài nguyên mới, hay coi release là FIELD/OWNER PASS. Event-driven refresh theo realtime, tránh polling request, không đưa 5 kết quả mới nhất trở lại. Có thể tăng Rows Read nên đo/đối chiếu, không báo tiết kiệm nếu không có chứng cứ. Xem docs/D173_E258_WEB3319_RELEASE_AUTHORIZATION_2026-11-13.md.
+
+---
+
 ## D173-E257 — 13/11/2026: Web 3.3.18 FIELD NOT PASS, sửa Tổng quan theo nghiệp vụ Inventory
 Owner bác bỏ cách trình bày chỉ KPI/tổng hợp, yêu cầu một trang hiển thị trực tiếp SKU/đợt đang chờ, thời điểm, thời gian chờ, khu vực lịch sử, dấu hiệu bất thường và so sánh 7 ngày/ngày hôm nay; không cần bấm sang tab khác hoặc hiển thị 5 kết quả gần nhất. D173 CODE sửa, giữ Web3.3.18 Production cho tới khi có lệnh phát hành mới. Không tự kết luận nguyên nhân thiếu hàng, không đưa số liệu không chứng minh được; chấp nhận tối đa 6 ca chờ lâu nhất và ghi rõ 6/tổng. Thêm 3 SELECT giới hạn trong API overview hiện có nhưng phải đo Rows Read/CPU trước release; không mở API/DO/polling mới. D172/Agent/Android/Stable bất biến. Xem docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md.
 
