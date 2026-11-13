@@ -820,7 +820,7 @@ jobs:
           # short time to expose its updated source stamp. Keep the exact SHA
           # and environment requirement, but fail only after a bounded retry.
           expected="${GITHUB_SHA}"
-          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+          for attempt in $(seq 1 30); do
             health_code="$(curl -sS --max-time 25 -o "$health" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
             current="$(jq -r '.source_commit // ""' "$health" 2>/dev/null || true)"
             environment="$(jq -r '.environment // ""' "$health" 2>/dev/null || true)"
@@ -829,7 +829,7 @@ jobs:
               break
             fi
             echo "D166 post-secret attempt=$attempt http=${health_code:-000} env=${environment:-none} commit_match=$([ "$current" = "$expected" ] && echo true || echo false)"
-            [ "$attempt" -lt 12 ] || {
+            [ "$attempt" -lt 30 ] || {
               echo "::error::D166 Worker post-secret source mismatch after bounded propagation retry"
               exit 1
             }
