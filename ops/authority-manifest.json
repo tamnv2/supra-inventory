@@ -16,7 +16,6 @@
     "docs/OPERATING_PROTOCOL.md",
     "recent_commits_and_ci",
     "relevant_live_source",
-    "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md",
     "docs/D173_E206_AGENT191_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
     "docs/D173_E207_AGENT192_TWO_COLUMN_LAYOUT_2026-11-12.md",
     "docs/D173_E208_AGENT192_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
@@ -26,7 +25,8 @@
     "docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md",
     "docs/D173_E262_WEB3320_POSTSECRET_RELEASE_RECOVERY_2026-11-13.md",
     "docs/D173_E263_WEB3320_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
-    "docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md"
+    "docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md",
+    "docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -170,7 +170,8 @@
     "current_d173_e261_web3320_owner_release": "docs/D173_E261_WEB3320_RELEASE_AUTHORIZATION_2026-11-13.md",
     "current_d173_e262_web3320_recovery": "docs/D173_E262_WEB3320_POSTSECRET_RELEASE_RECOVERY_2026-11-13.md",
     "current_d173_e263_web3320_release_receipt": "docs/D173_E263_WEB3320_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
-    "current_d173_e264_web_global_ui": "docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md"
+    "current_d173_e264_web_global_ui": "docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md",
+    "current_d173_e265_web3321_release": "docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -258,8 +259,8 @@
     ],
     "active_working_change_id": "D173",
     "active_working_pr": 977,
-    "ref_rule": "D173_E264_WEB3320_FIELD_GLOBAL_UI_CODE_ONLY_PR977_DRAFT__CI_PENDING__PRODUCTION_WEB3320_STILL_RELEASED__D172_HOLD",
-    "freshness": "2026_11_13_E264_WEB3320_FIELD_GLOBAL_UI_CODE_ONLY",
+    "ref_rule": "D173_E265_WEB3321_OWNER_RELEASE_APPROVED__PR977_EXACT_CI_PENDING__D172_HOLD",
+    "freshness": "2026_11_13_E265_WEB3321_OWNER_RELEASE_COMMAND",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
