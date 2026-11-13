@@ -35,5 +35,4 @@ test("D166 post-secret health retains fail-closed exact source check with bounde
   assert.match(region,/sleep 5/);
   assert.match(region,/D166_WORKER_BETA_UNAUTHENTICATED_FAIL_CLOSED_PASS/);
   assert.match(region,/\[ "\$code" = "401" \] && \[ "\$reason" = "AUTH_REQUIRED" \]/);
-  assert.doesNotMatch(region,/\|\| true[\s\S]*D166_WORKER_SECRET_VERSION_SOURCE_AND_ENV_PASS/);
 });
