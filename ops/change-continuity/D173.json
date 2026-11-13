@@ -3,19 +3,18 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e251-web3317-production-receipt-20261113",
-  "pr": 969,
+  "working_branch": "docs/d173-e252-dashboard-review-20261113",
+  "pr": 970,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E251",
+    "id": "D173-E252",
     "date_vn": "2026-11-13",
-    "summary": "Web3.3.17 Production Worker/Web SUCCESS run43362731384 at main d8aa54cf; /health200 source exact, SQL17/17, operational7/7; PR969 docs-only; FIELD/OWNER pending.",
-    "status": "PASS_TECHNICAL_RELEASE_WEB3317__PR969_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362731384 ; docs/D173_E251_WEB3317_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
-    "branch": "docs/d173-e251-web3317-production-receipt-20261113",
-    "pr": 969,
-    "release_main_sha": "d8aa54cfbff78b5480f7fb17c4489ae06f6d9181",
-    "release_run_id": 43362731384
+    "summary": "Owner review-only Inventory dashboard redesign sourced from Web 3.3.17; 7-day aggregate/usage tradeoff proposed; no app/provider changes authorized.",
+    "status": "REVIEW_ONLY_UNAPPROVED__NO_CODE_NO_RELEASE__D172_HOLD",
+    "source": "docs/D173_E252_DASHBOARD_REVIEW_ONLY_2026-11-13.md",
+    "branch": "docs/d173-e252-dashboard-review-20261113",
+    "pr": 970,
+    "source_main_sha": "d8aa54cfbff78b5480f7fb17c4489ae06f6d9181"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5105,6 +5104,34 @@
       "code_pass": true,
       "ci_pass": true,
       "release_pass": true,
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E252",
+      "date_vn": "2026-11-13",
+      "topic": "Owner requests source-grounded full Web3.3.17 Inventory overview redesign, real inventory triage, hourly/daily last-seven-days with controlled Cloudflare usage",
+      "kind": "OWNER_REVIEW_REQUEST",
+      "owner_approval": null,
+      "status": "REVIEW_ONLY_UNAPPROVED__NO_CODE_NO_RELEASE__D172_HOLD",
+      "facts": [
+        "Verified Web 3.3.17 Production source and technical release PR968 main d8aa54cf/run43362731384; merged docs receipt PR969. FIELD/OWNER status is distinct.",
+        "Web renderDashboard consumes three separate stats APIs and optional realtime presence polling; D167 area summary uses as-of first report and correlated SQL per-batch, requiring Rows Read risk review before 7x24 aggregation.",
+        "Existing AdminDashboard timeline supports hour OR day; simultaneous seven-day hourly-area evidence not proven by present response. Distinguish findings, hypotheses, missing physical stock cause evidence.",
+        "Owner requests text proposal + source-buildable visual review; static HTML prototype delivered in chat, not deployed. Current Business Web/Worker/Agent/Android/D172 unchanged.",
+        "Details and proposed measurable acceptance/usage gates: docs/D173_E252_DASHBOARD_REVIEW_ONLY_2026-11-13.md."
+      ],
+      "assumptions": [
+        "7 days interpreted as seven Vietnam calendar dates including the current incomplete day; owner review required before adoption."
+      ],
+      "next_action": "Owner reviews proposed Dashboard business definitions and layout; no code or release until explicit approval and measurable DO Requests/Rows Read baseline; keep D172 independent.",
+      "evidence": "docs/D173_E252_DASHBOARD_REVIEW_ONLY_2026-11-13.md ; https://github.com/tamnv2/supra-inventory/pull/970 ; https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362731384",
+      "source_main_sha": "d8aa54cfbff78b5480f7fb17c4489ae06f6d9181",
+      "pr": 970,
+      "branch": "docs/d173-e252-dashboard-review-20261113",
+      "code_pass": false,
+      "ci_pass": false,
+      "release_pass": false,
       "field_pass": false,
       "owner_pass": false
     }
