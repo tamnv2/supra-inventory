@@ -7,13 +7,14 @@
   "pr": 968,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E249",
+    "id": "D173-E250",
     "date_vn": "2026-11-13",
-    "summary": "Owner approved Web3.3.17 PR968 source CI, protected two-parent merge and official existing Worker/Web Production; D172 regression mandatory; FIELD/OWNER pending.",
-    "status": "OWNER_CODE_AND_PRODUCTION_RELEASE_APPROVED__EXACT_SOURCE_CI_PENDING__D172_HOLD",
-    "source": "https://github.com/tamnv2/supra-inventory/pull/968 ; docs/D173_E249_WEB3317_RELEASE_AUTHORIZATION_2026-11-13.md ; ops/d173-e249-web3317-release-authorization.json ; tools/d173_e249_web3317_release_gate.py",
+    "summary": "Web3.3.17 PR968 source e25524f3 7/7 relevant CI PASS. E249 Owner authorized release; protected merge and Production Worker/Web pending. FIELD/Owner separate.",
+    "status": "PASS_SCOPED_SOURCE_CI_7_OF_7__OWNER_RELEASE_APPROVED__MERGE_DEPLOY_PENDING",
+    "source": "https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362168997 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362169192 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362169213 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362168847 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362169273 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362169215 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362168982",
     "branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
-    "pr": 968
+    "pr": 968,
+    "source_ci_sha": "e25524f3b17832e645c5f6d4630b6401b9ab4786"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5046,6 +5047,38 @@
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false
+    },
+    {
+      "id": "D173-E250",
+      "date_vn": "2026-11-13",
+      "topic": "Web3.3.17 PR968 exact-source seven required CI gates verified and source SHA pinned for Owner-authorized release",
+      "kind": "TEST",
+      "owner_approval": null,
+      "status": "PASS_SCOPED_SOURCE_CI_7_OF_7__OWNER_RELEASE_APPROVED__MERGE_DEPLOY_PENDING",
+      "facts": [
+        "GitHub PR968 OPEN Draft, source CI head e25524f3b17832e645c5f6d4630b6401b9ab4786.",
+        "All 7 scoped CI workflows completed SUCCESS on matching source: 43362168997 Web E247 incl gate+Web build/Worker TS + D172; 43362169192 authority; 43362169213 continuity; 43362168847 D173/D172 isolation; 43362169273 D172 backend; 43362169215 RBAC; 43362168982 E123 SQL/auth/D172.",
+        "One E249 corrective action: E059 fastpath historical assertion initially failed, preserved literal if(this.isExistingSchemaReady()) return and re-tested PASS in final CI.",
+        "Owner authorization/CI receipts pinned in ops/d173-e249-web3317-release-authorization.json. Web3.3.17 not yet Production at checkpoint time.",
+        "Long-term persisted personal staff roster on disk remains disabled for shared workstation security; RAM list TTL 120sec and all-roster filter verified by source/CI."
+      ],
+      "next_action": "Mark PR968 ready; exact-head two-parent protected merge D173-E249_WEB3317_PRODUCTION_RELEASE; verify main deploy GitHub Actions and official /health, record technical receipt; FIELD/Owner separate.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362168997 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362169192 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362169213 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362168847 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362169273 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362169215 ; https://github.com/tamnv2/supra-inventory/actions/runs/43362168982",
+      "source_ci_sha": "e25524f3b17832e645c5f6d4630b6401b9ab4786",
+      "source_ci_run_ids": [
+        43362168997,
+        43362169192,
+        43362169213,
+        43362168847,
+        43362169273,
+        43362169215,
+        43362168982
+      ],
+      "code_pass": true,
+      "ci_pass": true,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
@@ -5213,7 +5246,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
-      "E249: finish PR968 exact-source CI, pin verified receipt, merge with Owner marker, confirm Worker/Web Production /health, FIELD/Owner separate.",
+      "E250: 7/7 Web3317 source CI PASS at e25524f3; Owner authorized protected PR968 merge and Production validation. D172 independent.",
       "E168: filter PASS/cancelled backlog from any current D173 report.",
       "D173-E167 owner-approved four components, PR868 source updated; require CI/release/field receipts; 05:30 full Drive-log correlation unverified.",
       "E165 latest log proposal: 2h from 05:00 VN (05/07/09/11/13/15/17/19/21/23/01/03), not the earlier 06:00 anchor. Pending Owner approval, no log code.",
