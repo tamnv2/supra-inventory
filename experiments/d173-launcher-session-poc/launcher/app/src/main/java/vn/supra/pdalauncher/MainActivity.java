@@ -51,6 +51,9 @@ public class MainActivity extends Activity {
     private LinearLayout appArea;
     private TextView clock;
     private TextView battery;
+    private Button identityConfirmButton;
+    private Button identityLogoutButton;
+    private TextView identityStatusText;
     private LinearLayout timeWarningCard;
     private TextView timeWarningText;
     private ImageView guardPauseIcon;
@@ -69,10 +72,8 @@ public class MainActivity extends Activity {
         @Override public void run() {
             updateClock();
             updateGuardPauseUi();
-            LauncherDiagnostics.tick(MainActivity.this);
             // Reuse the visible clock tick, but the existing 60-minute cache
             // prevents any extra network polling or background wakeups.
-            UpdateManager.checkOnLaunch(MainActivity.this);
             long now = System.currentTimeMillis();
             long delay = 60000L - (now % 60000L);
             handler.postDelayed(this, delay);
@@ -100,23 +101,19 @@ public class MainActivity extends Activity {
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        LauncherDiagnostics.initialize(this);
         buildUi();
         updateDeviceIdentityUi();
-        DeviceRegistryClient.syncIfNeeded(this);
-        UpdateManager.checkOnLaunch(this);
         applyImmersive();
     }
 
     @Override protected void onResume() {
         super.onResume();
         Prefs.clearTimeFixSession(this);
+        refreshIdentityUi();
         loadAllowedApps();
         refreshTimeState();
         updateDeviceIdentityUi();
         updateGuardPauseUi();
-        DeviceRegistryClient.retryPending(this);
-        LauncherDiagnostics.onLauncherForeground(this);
         UpdateManager.checkOnLaunch(this);
         applyImmersive();
 
@@ -333,6 +330,7 @@ public class MainActivity extends Activity {
         divider.setBackgroundColor(0xFFE2E7EC);
         root.addView(divider, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, dp(1)));
+        addIdentityControls(root);
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -404,13 +402,90 @@ public class MainActivity extends Activity {
         setContentView(root);
     }
 
+    private void addIdentityControls(LinearLayout root) {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(12), dp(8), dp(12), dp(8));
+        panel.setBackground(roundRect(0xFFFFFFFF, 12f, true));
+
+        identityStatusText = new TextView(this);
+        identityStatusText.setTextSize(12f);
+        identityStatusText.setTextColor(0xFF38435A);
+        panel.addView(identityStatusText);
+
+        identityConfirmButton = new Button(this);
+        identityConfirmButton.setText("Xác nhận định danh");
+        identityConfirmButton.setAllCaps(false);
+        identityConfirmButton.setOnClickListener(v -> showTestIdentityDialog());
+        panel.addView(identityConfirmButton);
+
+        identityLogoutButton = new Button(this);
+        identityLogoutButton.setText("Đăng xuất phiên thử");
+        identityLogoutButton.setAllCaps(false);
+        identityLogoutButton.setOnClickListener(v -> {
+            TestSessionStore.logout(this);
+            refreshIdentityUi();
+            loadAllowedApps();
+        });
+        panel.addView(identityLogoutButton);
+
+        TextView warning = new TextView(this);
+        warning.setText("KIỂM THỬ CỤC BỘ • Chưa xác minh mã nhân viên từ máy chủ; không đăng nhập Firebase.");
+        warning.setTextSize(10f);
+        warning.setTextColor(0xFF9C4E00);
+        panel.addView(warning);
+
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        p.setMargins(0, dp(8), 0, dp(4));
+        root.addView(panel, p);
+    }
+
+    private void showTestIdentityDialog() {
+        final EditText input = new EditText(this);
+        input.setHint("Nhập mã nhân viên thử nghiệm");
+        input.setSingleLine(true);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Xác nhận định danh")
+                .setMessage("Bản thử chỉ xác nhận định dạng mã, KHÔNG xác thực tài khoản Supra thực tế.")
+                .setView(input)
+                .setNegativeButton("Hủy", null)
+                .setPositiveButton("Xác nhận", null)
+                .create();
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String code = input.getText().toString().trim();
+            if (!TestSessionStore.isValidFormat(code)) {
+                input.setError("Nhập 5–12 chữ số.");
+                return;
+            }
+            TestSessionStore.login(this, code);
+            dialog.dismiss();
+            refreshIdentityUi();
+            loadAllowedApps();
+        }));
+        dialog.show();
+    }
+
+    private void refreshIdentityUi() {
+        if (identityStatusText == null) return;
+        boolean active = TestSessionStore.isUnlocked(this);
+        identityStatusText.setText(active
+                ? "Phiên SSO mô phỏng: " + TestSessionStore.employeeCode(this)
+                : "Chưa xác nhận định danh — ứng dụng bị khóa");
+        identityConfirmButton.setVisibility(active ? View.GONE : View.VISIBLE);
+        identityLogoutButton.setVisibility(active ? View.VISIBLE : View.GONE);
+    }
+
     private void loadAllowedApps() {
         if (appArea == null) return;
 
         Set<String> allowed = Prefs.getAllowed(this);
+        // Independent SSO test client is visible even if the original allowlist is empty.
+        allowed.add("vn.supra.identitytest");
         List<String> allowedSorted = new ArrayList<String>(allowed);
         Collections.sort(allowedSorted);
-        String allowedKey = TextUtils.join("|", allowedSorted);
+        String allowedKey = TextUtils.join("|", allowedSorted) + "|" + TestSessionStore.isUnlocked(this);
         if (allowedKey.equals(lastAllowedKey) && appArea.getChildCount() > 0) return;
         appArea.removeAllViews();
         lastAllowedKey = allowedKey;
@@ -480,6 +555,7 @@ public class MainActivity extends Activity {
         tile.setBackground(roundRect(0xFFFFFFFF, 15f, true));
         tile.setClickable(true);
         tile.setFocusable(true);
+        tile.setAlpha(TestSessionStore.isUnlocked(this) ? 1f : 0.35f);
 
         ImageView icon = new ImageView(this);
         Drawable drawable = info.loadIcon(getPackageManager());
@@ -505,6 +581,10 @@ public class MainActivity extends Activity {
         tile.setContentDescription(String.valueOf(info.loadLabel(getPackageManager())));
         tile.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
+                if (!TestSessionStore.isUnlocked(MainActivity.this)) {
+                    Toast.makeText(MainActivity.this, "Hãy ấn Xác nhận định danh trước.", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 if (isSystemTimeInvalid()) {
                     refreshTimeState();
                     Toast.makeText(MainActivity.this,

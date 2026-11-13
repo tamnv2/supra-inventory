@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
+    <permission android:name="vn.supra.pdalauncher.identitytest.permission.SESSION_CONTROL" android:protectionLevel="signature" />
+    <uses-permission android:name="vn.supra.pdalauncher.identitytest.permission.SESSION_CONTROL" />
 
     <application
         android:allowBackup="false"
         android:icon="@drawable/supra_logo"
         android:roundIcon="@drawable/supra_logo"
-        android:label="Launcher PDA"
+        android:label="Launcher SSO TEST"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
@@ -23,16 +21,13 @@
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.HOME" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity android:name=".AdminActivity" android:exported="false" />
+        <activity android:name=".HandoffActivity" android:exported="true" />
+        <receiver android:name=".SessionCommandReceiver" android:exported="true" android:permission="vn.supra.pdalauncher.identitytest.permission.SESSION_CONTROL" />
 
         <receiver android:name=".LauncherLogAlarmReceiver"
                   android:exported="false" />
@@ -43,6 +38,7 @@
 
         <service
             android:name=".GuardService"
+            android:enabled="false"
             android:exported="true"
             android:label="Launcher PDA - Chống lách"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
@@ -76,7 +72,7 @@
 
         <receiver
             android:name=".BootReceiver"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

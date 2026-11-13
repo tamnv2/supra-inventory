@@ -5,8 +5,8 @@ plugins {
 import java.util.Properties
 import java.util.Base64
 
-final def versionNameProp = project.findProperty('VERSION_NAME') ?: '0.2.0-test'
-final def versionCodeProp = (project.findProperty('VERSION_CODE') ?: '2').toInteger()
+final def versionNameProp = project.findProperty('VERSION_NAME') ?: '0.3.26-session-test'
+final def versionCodeProp = (project.findProperty('VERSION_CODE') ?: '32601').toInteger()
 final def keystorePropertiesFile = rootProject.file('keystore.properties')
 final def keystoreProperties = new Properties()
 final def generatedResDir = layout.buildDirectory.dir('generated/supraRes')
@@ -24,7 +24,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'vn.supra.pdalauncher'
+        applicationId 'vn.supra.pdalauncher.identitytest'
         minSdk 23
         targetSdk 35
         versionCode versionCodeProp

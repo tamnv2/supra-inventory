@@ -1,0 +1,42 @@
+name: D173 Isolated Launcher SSO PoC
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/d173-launcher-session-poc/**'
+      - '.github/workflows/d173-launcher-session-poc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-poc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Offline security and separation guard
+        run: python3 experiments/d173-launcher-session-poc/check_poc.py
+      - name: Build Launcher test
+        working-directory: experiments/d173-launcher-session-poc/launcher
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Build independent test client (same debug signer)
+        working-directory: experiments/d173-launcher-session-poc/test-client
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Upload pair for PDA field test
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-launcher-identity-session-poc-debug-pair
+          path: |
+            experiments/d173-launcher-session-poc/launcher/app/build/outputs/apk/debug/app-debug.apk
+            experiments/d173-launcher-session-poc/test-client/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
