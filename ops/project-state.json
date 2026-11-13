@@ -7627,7 +7627,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e242-web3316-ui-consistency-20261113",
     "pr": 965,
-    "latest_checkpoint_id": "D173-E243",
+    "latest_checkpoint_id": "D173-E244",
     "checkpoint_date_vn": "2026-11-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7636,7 +7636,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 965,
     "active_working_branch": "fix/d173-e242-web3316-ui-consistency-20261113",
-    "working_pr_lifecycle": "PR965_DRAFT_CODE_AND_SCOPED_CI_PASS__RELEASE_HOLD_FIELD_OWNER_PENDING"
+    "working_pr_lifecycle": "PR965_OPEN_WEB3316_OWNER_RELEASE_AUTHORIZED__EXACT_CI_GUARD_PENDING__D172_HOLD"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
