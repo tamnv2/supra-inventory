@@ -507,7 +507,8 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
    E264 aligned grid gaps/radii but left legacy section margins, title
    spacing, form gaps and role-scoped page padding unchanged. */
 @media (min-width: 781px) {
-  body .d173-tabler-shell > .d173-page-content {
+  body .d173-tabler-shell > .d173-page-content,
+  body .d173-tabler-shell > .d173-page-content:not(:has(.ops-business-workspace)) {
     padding: 4px 6px 24px !important;
   }
 }
