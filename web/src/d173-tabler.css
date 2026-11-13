@@ -301,6 +301,16 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
 }
 
 /* D173-E247: remove nested report frame, tighten header/date controls and account density. */
+.d173-tabler-shell .report-workspace { max-width:none; width:100%; margin:0; }
+.d173-tabler-shell .users-workspace .users-list-summary[hidden] { display:none !important; }
+.d173-tabler-shell .users-workspace .contractor-create-form { display:flex; gap:7px; align-items:end; margin-bottom:8px; }
+.d173-tabler-shell .users-workspace .contractor-create-form label { flex:1; }
+.d173-tabler-shell .users-workspace .contractor-create-form :is(input,button) { min-height:34px; height:34px; }
+.d173-tabler-shell .users-workspace .contractor-catalog-table { max-height:none; }
+.d173-tabler-shell .users-workspace .contractor-catalog-table :is(th,td) { padding:5px 8px !important; vertical-align:middle; }
+.d173-tabler-shell .users-workspace .contractor-catalog-table button { min-height:32px; padding:5px 9px; }
+.d173-tabler-shell .users-workspace .contractor-catalog-table form { margin:0; }
+
 @media (min-width:781px) {
   .d173-tabler-shell > .d173-page-content:has(.report-workspace) {
     padding:4px 6px 10px !important;
