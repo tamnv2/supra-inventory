@@ -10,7 +10,7 @@
     "checkpoint_id": "D173-E264",
     "pr": 977,
     "branch": "fix/d173-e264-web-global-ui-rhythm-20261113",
-    "status": "WEB3320_OWNER_FIELD_UI_NOT_PASS__GLOBAL_GEOMETRY_CODE_ONLY__CI_PENDING__D172_HOLD",
+    "status": "WEB3320_FIELD_GEOMETRY_PR977_SCOPED_CODE_CI_PASS__GLOBAL_LEGACY_CI_FAIL__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_merge_approved": false,
     "owner_release_approved": false,
     "source_doc": "docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md",
@@ -19,9 +19,12 @@
     "field_pass": false,
     "owner_pass": false,
     "source_main_sha": "d61292cf9053ca70c1a35c2a4a7b0ca179ec73a2",
-    "code_scoped_pass": false,
-    "ci_scoped_pass": false,
-    "release_technical_pass": false
+    "code_scoped_pass": true,
+    "ci_scoped_pass": true,
+    "release_technical_pass": false,
+    "ci_global_pass": false,
+    "source_sha": "56d2ce390bb19019f230be8185a765b1959f08a0",
+    "source_ci_run_id": 43427296326
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -185,12 +188,13 @@
     "pr": 977,
     "branch": "fix/d173-e264-web-global-ui-rhythm-20261113",
     "production_unchanged": "3.3.20",
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
+    "code": "PASS_SCOPED_SOURCE_AND_BUILD",
+    "ci": "PASS_SCOPED_43427296326__GLOBAL_LEGACY_FAILED",
     "release": "HOLD_OWNER",
     "field_pass": false,
     "owner_pass": false,
     "source": "web/src/d173-tabler.css",
-    "d172": "INDEPENDENT_HOLD"
+    "d172": "INDEPENDENT_HOLD",
+    "source_sha": "56d2ce390bb19019f230be8185a765b1959f08a0"
   }
 }
