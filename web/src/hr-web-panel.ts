@@ -5,7 +5,7 @@ function esc(value: unknown): string {
   return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
 
-export function renderHrWeb(rows: HrEmployeeInput[], preview: HrSyncPreview | null, filename: string, tabs: string, canManage: boolean): string {
+export function renderHrWeb(rows: HrEmployeeInput[], preview: HrSyncPreview | null, filename: string, tabs: string, canManage: boolean, contractors: string[] = []): string {
   if (!canManage) return `<section class="ops-route people-workspace"><div class="business-page-head"><h2>Nhân sự & tài khoản</h2></div>${tabs}<div class="ops-readonly">Chỉ Quản trị Invent, Quản trị Pick Pack hoặc Root được phép nhập nhân sự Picker.</div></section>`;
   const conflictCount = preview?.collisions?.length || 0;
   const changeCount = Number(preview?.rename || 0) + Number(preview?.contractor_update || 0);
@@ -18,8 +18,8 @@ export function renderHrWeb(rows: HrEmployeeInput[], preview: HrSyncPreview | nu
         <form id="hr-manual-form" class="ops-form-grid">
           <label>Mã nhân viên<input name="employeeCode" required maxlength="64" autocomplete="off" /></label>
           <label>Họ và tên<input name="displayName" required maxlength="200" autocomplete="off" /></label>
-          <label>Nhà thầu<input name="contractorName" required maxlength="200" autocomplete="off" /></label>
-          <div class="ops-form-actions"><button class="primary" type="submit">Kiểm tra thông tin</button></div>
+          <label>Nhà thầu<select name="contractorName" required><option value="">Chọn nhà thầu</option>${contractors.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join("")}</select></label>
+          <div class="ops-form-actions"><button class="primary" type="submit" ${contractors.length ? "" : "disabled"}>Kiểm tra thông tin</button></div>
         </form>
       </article>
       <article class="ops-panel">
