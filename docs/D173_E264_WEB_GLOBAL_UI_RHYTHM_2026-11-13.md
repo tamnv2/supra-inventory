@@ -20,3 +20,9 @@
 ## Rủi ro và phương án kiểm soát
 - Tác động: baseline D173 Web authenticated presentation; không đổi accepted base D171 và không làm thay đổi backend. Rủi ro là CSS specificity/override và thiếu không gian ở HD/HD+; không dùng selector toàn body, không ép max-height/grid template hoặc ẩn nội dung, kiểm soát bằng test source + field sau release.
 - Mọi merge/push main có thể kích hoạt phát hành Web; PR phải giữ mở cho tới lệnh Owner phát hành rõ ràng theo chính xác candidate SHA.
+
+## E264 source CI exact-code (13/11/2026)
+- Source HEAD `56d2ce390bb19019f230be8185a765b1959f08a0`: [scoped E264 CI run 43427296326](https://github.com/tamnv2/supra-inventory/actions/runs/43427296326) **SUCCESS**: UI E264/E260/E252/E237/E230/E242 regressions (27/27), Web TypeScript/Vite build, service TypeScript test dependency, D172 source isolation + regression (50/50), code-only no deploy. The initial candidate run 43426925295 failed 4 D172 tests because workflow did not install existing service TypeScript dependency; corrected without altering D172 source.
+- Same SHA [Authority Guard 43427296544](https://github.com/tamnv2/supra-inventory/actions/runs/43427296544), [Change Continuity 43427296397](https://github.com/tamnv2/supra-inventory/actions/runs/43427296397), [D173 E123 source SQL/Auth/D172 43427296290](https://github.com/tamnv2/supra-inventory/actions/runs/43427296290): **SUCCESS**.
+- Historical repo-wide jobs still **FAIL** at this SHA (including legacy Agent overview assertions, superseded Web version and Tabler collapse assertions); global CI is **NOT PASS**. These checks are not silently changed as they do not test E264 geometry. Scope-limited CI PASS does not mean global validation or FIELD PASS.
+- **CODE scoped PASS / CI scoped PASS / RELEASE NO CHANGE (Web3.3.20 live) / FIELD PENDING / OWNER PASS false.** PR977 remains Draft/unmerged, requires separate Owner release order.
