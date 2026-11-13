@@ -2141,7 +2141,7 @@ function renderUsers(): string {
             : `<button type="button" class="secondary" data-contractor-edit="${esc(item.name)}" ${item.picker_count > 0 ? "disabled title='Đang có Picker thuộc nhà thầu'" : ""}>Sửa</button> <button type="button" class="secondary" data-contractor-delete="${esc(item.name)}" ${item.picker_count > 0 ? "disabled title='Đang có Picker thuộc nhà thầu'" : ""}>Xóa</button>`}
           </td></tr>`).join("") || '<tr><td colspan="3">Chưa có nhà thầu.</td></tr>'}
       </tbody></table></div>
-      <p class="ops-note">Nhà thầu đã có Picker: giữ nguyên dữ liệu và chặn sửa/xóa. Có thể bổ sung nhà thầu từ Excel đã xác nhận.</p>
+      <p class="ops-note">Nhà thầu đang có Picker: không sửa/xóa. Có thể thêm từ Excel đã xác nhận.</p>
     </article>` : ""}
     <article class="ops-panel ops-users-panel" ${usersView === "list" ? "" : "hidden"}>
       <div class="ops-panel-title users-list-title"><strong>Danh sách tài khoản</strong><span>${userTotal.toLocaleString("vi-VN")} kết quả</span></div>
