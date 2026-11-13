@@ -5519,21 +5519,17 @@
     {
       "id": "D173-E264",
       "date_vn": "2026-11-13",
-      "kind": "OWNER_FIELD_NOT_PASS_AND_CODE_ONLY",
+      "kind": "OWNER_COMMAND",
       "topic": "Web3.3.20 all-page spacing/radius/tab inconsistent after technical release",
-      "owner_approval": {
-        "code": true,
-        "merge": false,
-        "release": false,
-        "field_pass": false
-      },
+      "owner_approval": null,
       "status": "CODE_CANDIDATE_PR977__SCOPED_CI_PENDING__NO_RELEASE__D172_HOLD",
       "facts": [
         "Owner confirms Web3.3.20 Production release OK, but nine authenticated page screenshots show inconsistent spacing, rounded corners, tab alignment and page density. This is FIELD UI correction, not whole D173 Owner PASS.",
         "Main d61292cf9053ca70c1a35c2a4a7b0ca179ec73a2; Web3.3.20 production main a2ef3f4013760a457cc4ede58b084616c08ab029, deploy run43422924760 previously technically successful.",
         "Verified current CSS cascade: E230 compact Operations 4-5px radius and 6px gap, E237 non-Operations 4px, E252 Overview 7px. E260 uniform outer 4px 6px 24px did not normalize internal elements.",
         "Draft PR977 modifies only web/src/d173-tabler.css presentation and adds exact-source test, scoped CI, Owner UI decision/spec/doc. No API/Worker/data/auth/Agent/Android/D172 or provider usage mutation.",
-        "Preserve special Operations/Report scroll, dark/light status signaling and Web zoom while normalizing component geometry. Browser FIELD evidence and CI still pending."
+        "Preserve special Operations/Report scroll, dark/light status signaling and Web zoom while normalizing component geometry. Browser FIELD evidence and CI still pending.",
+        "Source CODE scope approved by Owner message, Production merge/release not requested; exact source CI awaited."
       ],
       "next_action": "Complete scoped CI and review, repair any failure within E264; keep PR977 unmerged. Exact production release requires separate Owner authorization; authenticated browser FIELD/Owner PASS remain independent.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/977 ; docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md ; web/src/d173-tabler.css",
