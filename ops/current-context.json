@@ -7,15 +7,15 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E256",
-    "pr": 971,
-    "branch": "docs/d173-e256-web3318-production-receipt-20261113",
-    "status": "WEB3318_PRODUCTION_TECHNICAL_RELEASE_PASS__PR971_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
-    "owner_merge_approved": true,
-    "owner_release_approved": true,
-    "source_doc": "docs/D173_E256_WEB3318_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
+    "checkpoint_id": "D173-E257",
+    "pr": 972,
+    "branch": "fix/d173-e257-overview-live-triage-20261113",
+    "status": "WEB3318_OVERVIEW_OWNER_FIELD_FAIL__PR972_CODE_ONLY_CI_PENDING_RELEASE_HOLD__D172_HOLD",
+    "owner_merge_approved": false,
+    "owner_release_approved": false,
+    "source_doc": "docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md",
     "production_web_version": "3.3.18",
-    "target_web_version": "3.3.18",
+    "target_web_version": "UNASSIGNED_CODE_ONLY",
     "field_pass": false,
     "owner_pass": false,
     "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0",
@@ -24,7 +24,8 @@
     "source_code_pin": "f214a2fb423acc1a8932d0c1b8a08429c1d3b7d0",
     "source_main_sha": "a9dd2eb32896134b2ff00b863dce0f53ea54b126",
     "release_run_id": 43376201506,
-    "release_attempt": 1
+    "release_attempt": 1,
+    "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb"
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -56,7 +57,7 @@
       "source_change_id": "D173-E256",
       "source_main_sha": "a9dd2eb32896134b2ff00b863dce0f53ea54b126",
       "ci_release": "PASS_PRODUCTION_TECHNICAL_EXACT_SOURCE__ATTEMPT1",
-      "field": "WEB3318_AUTHENTICATED_BROWSER_HEADER_DASHBOARD_PENDING",
+      "field": "WEB3318_OVERVIEW_FIELD_NOT_PASS_2026_11_13",
       "owner_pass": "PENDING",
       "local_user_cache": "AUTHENTICATED_RAM_ONLY_TTL120SEC__NOT_ON_DISK"
     },
