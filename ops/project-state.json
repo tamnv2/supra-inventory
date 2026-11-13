@@ -7627,7 +7627,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e252-dashboard-review-20261113",
     "pr": 970,
-    "latest_checkpoint_id": "D173-E254",
+    "latest_checkpoint_id": "D173-E255",
     "checkpoint_date_vn": "2026-11-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -14522,16 +14522,16 @@
     "d172": "INDEPENDENT_PENDING_HOLD__REGRESSION_REQUIRED",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E253_WEB3318_RELEASE_AUTHORIZATION_2026-11-13.md",
-    "source_ci_sha": "6041dc6b87fdd1438dffc331a06a80a1b53c1afa",
+    "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0",
     "ci_run_ids": [
-      43374808090,
-      43374808042,
-      43374808210,
-      43374808157,
-      43374807975,
-      43374808067,
-      43374808121,
-      43374808085
+      43375507520,
+      43375507508,
+      43375507547,
+      43375507459,
+      43375507403,
+      43375507481,
+      43375507405,
+      43375507318
     ]
   }
 }
