@@ -1,3 +1,8 @@
+## D173 — 13/11/2026: Owner chốt dùng Firebase Báo hàng hiện hữu để thử Launcher SSO
+Owner bác yêu cầu tạo Firebase project QA mới: chỉ cần kiểm thử đăng nhập/đăng xuất **Firebase Auth thật trên chính project `supra-inventory-beta` đang phục vụ Báo hàng/Confirm Picklist**, bằng hai APK test độc lập, tuyệt đối không ảnh hưởng user đang làm việc. Source thực tế chứng minh `POST /api/auth/login` có side effect kích hoạt `ANDROID session_generation` và `POST /api/auth/logout` kết thúc phiên, nên test buộc **chỉ dùng tài khoản Picker QA độc lập, chưa đăng nhập vận hành, force=false**. Không được dùng user đang hoạt động; không thay đổi Firebase Rules, Worker/DO, app Báo hàng Production hay D172. Tài khoản QA và Firebase client API key để build còn chưa xác minh nên không gọi FIELD PASS. Source/test PR của nhánh `feat/d173-existing-firebase-qa-sso-test-20261113`, tài liệu `experiments/d173-launcher-session-poc/FIREBASE_REAL_TEST_SCOPE.md`.
+
+---
+
 ## D173-E233 — 12/11/2026: Web 3.3.13 FIELD chưa đạt, review cache và vùng cuộn
 Owner báo ba vấn đề sau phát hành: danh sách SKU tải chậm; muốn xem xét cache trên máy; hai thanh cuộn khiến cả vùng nội dung bên phải cuộn; hàng SKU cuối bị che. Đã kiểm tra source `main`: mỗi tab kết quả load đủ page tối đa 200 nhưng chưa có RAM cache đa tab/ngày, layout cùng lúc bật scroll vùng main và table-wrap với height theo viewport. Chưa đo latency thực tế; ảnh chứng minh che dòng, **không chứng minh dữ liệu bị mất**. Owner mới hỏi phương án/hiểu đúng, **chưa có lệnh phát hành bản sửa mới hoặc cấp phép persistent cache dữ liệu nghiệp vụ**. Review theo `docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md`; Web 3.3.13 Production TECH PASS nhưng FIELD chưa PASS; D172 và Stable không thay đổi.
 

@@ -1,0 +1,323 @@
+package vn.supra.pdalauncher;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.SystemClock;
+import java.util.HashSet;
+import java.util.Set;
+
+final class Prefs {
+    private static final String NAME = "launcher_prefs";
+    static final String KEY_ALLOWED = "allowed_packages";
+    private static final String KEY_ADMIN_UNTIL = "admin_until";
+    private static final String KEY_SHOW_BATTERY = "show_battery";
+    private static final String KEY_LOW_BATTERY_ALERT = "low_battery_alert";
+    private static final String KEY_TIME_FIX_UNTIL = "time_fix_until";
+    private static final String KEY_UPDATE_UNTIL = "update_until";
+    private static final String KEY_UPDATE_LAST_CHECK_AT = "update_last_check_at";
+    private static final String KEY_UPDATE_REQUIRED_VERSION = "update_required_version";
+    private static final String KEY_UPDATE_REQUIRED_CODE = "update_required_code";
+    private static final String KEY_UPDATE_REQUIRED_URL = "update_required_url";
+    private static final String KEY_UPDATE_REQUIRED_SHA256 = "update_required_sha256";
+    private static final String KEY_UNINSTALL_UNTIL = "uninstall_until";
+    private static final String KEY_UNINSTALL_PACKAGE = "uninstall_package";
+    private static final String KEY_GUARD_PAUSE_UNTIL_WALL = "guard_pause_until_wall";
+    private static final String KEY_GUARD_PAUSE_UNTIL_ELAPSED = "guard_pause_until_elapsed";
+    private static final long GUARD_PAUSE_MS = 5L * 60L * 1000L;
+    private static final String KEY_REG_DEVICE_KEY = "registry_device_key";
+    private static final String KEY_REG_PAYLOAD_HASH = "registry_payload_hash";
+    private static final String KEY_REG_REGISTERED = "registry_registered";
+    private static final String KEY_REG_REGISTERED_AT = "registry_registered_at";
+    private static final String KEY_REG_LAST_VALIDATED_AT = "registry_last_validated_at";
+    private static final String KEY_REG_LAST_ATTEMPT_AT = "registry_last_attempt_at";
+    private static final String KEY_REG_SCHEMA_VERSION = "registry_schema_version";
+    private static final String KEY_REG_RETRY_STEP = "registry_retry_step";
+    private static final String KEY_REG_NEXT_RETRY_AT = "registry_next_retry_at";
+
+    private Prefs() {}
+
+    static SharedPreferences preferences(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE);
+    }
+
+    static Set<String> getAllowed(Context c) {
+        Set<String> s = c.getSharedPreferences(NAME, Context.MODE_PRIVATE).getStringSet(KEY_ALLOWED, null);
+        return s == null ? new HashSet<String>() : new HashSet<String>(s);
+    }
+
+    static void setAllowed(Context c, Set<String> s) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putStringSet(KEY_ALLOWED, new HashSet<String>(s)).apply();
+    }
+
+    static void beginAdminSession(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putLong(KEY_ADMIN_UNTIL, System.currentTimeMillis() + 5L * 60L * 1000L).apply();
+    }
+
+    static boolean isAdminSession(Context c) {
+        long until = c.getSharedPreferences(NAME, Context.MODE_PRIVATE).getLong(KEY_ADMIN_UNTIL, 0L);
+        return System.currentTimeMillis() < until;
+    }
+
+    static void clearAdminSession(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit().remove(KEY_ADMIN_UNTIL).apply();
+    }
+
+    static boolean isShowBattery(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE).getBoolean(KEY_SHOW_BATTERY, true);
+    }
+
+    static void setShowBattery(Context c, boolean enabled) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putBoolean(KEY_SHOW_BATTERY, enabled).apply();
+    }
+
+    static boolean isLowBatteryAlertEnabled(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE).getBoolean(KEY_LOW_BATTERY_ALERT, true);
+    }
+
+    static void setLowBatteryAlertEnabled(Context c, boolean enabled) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putBoolean(KEY_LOW_BATTERY_ALERT, enabled).apply();
+    }
+
+    static void beginTimeFixSession(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putLong(KEY_TIME_FIX_UNTIL, System.currentTimeMillis() + 90L * 1000L).apply();
+    }
+
+    static boolean isTimeFixSession(Context c) {
+        long until = c.getSharedPreferences(NAME, Context.MODE_PRIVATE).getLong(KEY_TIME_FIX_UNTIL, 0L);
+        return System.currentTimeMillis() < until;
+    }
+
+    static void clearTimeFixSession(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit().remove(KEY_TIME_FIX_UNTIL).apply();
+    }
+
+    static void beginUpdateSession(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putLong(KEY_UPDATE_UNTIL, System.currentTimeMillis() + 3L * 60L * 1000L).apply();
+    }
+
+    static boolean isUpdateSession(Context c) {
+        long until = c.getSharedPreferences(NAME, Context.MODE_PRIVATE).getLong(KEY_UPDATE_UNTIL, 0L);
+        long now = System.currentTimeMillis();
+        long remaining = until - now;
+        return remaining > 0L && remaining <= 3L * 60L * 1000L;
+    }
+
+    static void clearUpdateSession(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit().remove(KEY_UPDATE_UNTIL).apply();
+    }
+
+
+    static long getLastUpdateCheckAt(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getLong(KEY_UPDATE_LAST_CHECK_AT, 0L);
+    }
+
+    static void markUpdateCheck(Context c, long at) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putLong(KEY_UPDATE_LAST_CHECK_AT, at)
+                .apply();
+    }
+
+    static void markRequiredUpdate(
+            Context c,
+            String version,
+            int versionCode,
+            String apkUrl,
+            String sha256) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putString(KEY_UPDATE_REQUIRED_VERSION, version == null ? "" : version)
+                .putInt(KEY_UPDATE_REQUIRED_CODE, Math.max(0, versionCode))
+                .putString(KEY_UPDATE_REQUIRED_URL, apkUrl == null ? "" : apkUrl)
+                .putString(KEY_UPDATE_REQUIRED_SHA256, sha256 == null ? "" : sha256)
+                .apply();
+    }
+
+    static boolean isRequiredUpdate(Context c, int currentVersionCode) {
+        return getRequiredUpdateCode(c) > currentVersionCode;
+    }
+
+    static String getRequiredUpdateVersion(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getString(KEY_UPDATE_REQUIRED_VERSION, "");
+    }
+
+    static int getRequiredUpdateCode(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getInt(KEY_UPDATE_REQUIRED_CODE, 0);
+    }
+
+    static String getRequiredUpdateUrl(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getString(KEY_UPDATE_REQUIRED_URL, "");
+    }
+
+    static String getRequiredUpdateSha256(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getString(KEY_UPDATE_REQUIRED_SHA256, "");
+    }
+
+    static void clearRequiredUpdate(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .remove(KEY_UPDATE_REQUIRED_VERSION)
+                .remove(KEY_UPDATE_REQUIRED_CODE)
+                .remove(KEY_UPDATE_REQUIRED_URL)
+                .remove(KEY_UPDATE_REQUIRED_SHA256)
+                .apply();
+    }
+
+    static void beginGuardPause(Context c) {
+        long wallNow = System.currentTimeMillis();
+        long elapsedNow = SystemClock.elapsedRealtime();
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putLong(KEY_GUARD_PAUSE_UNTIL_WALL, wallNow + GUARD_PAUSE_MS)
+                .putLong(KEY_GUARD_PAUSE_UNTIL_ELAPSED, elapsedNow + GUARD_PAUSE_MS)
+                .apply();
+    }
+
+    static boolean isGuardPaused(Context c) {
+        SharedPreferences p = c.getSharedPreferences(NAME, Context.MODE_PRIVATE);
+        long wallUntil = p.getLong(KEY_GUARD_PAUSE_UNTIL_WALL, 0L);
+        long elapsedUntil = p.getLong(KEY_GUARD_PAUSE_UNTIL_ELAPSED, 0L);
+        long wallRemaining = wallUntil - System.currentTimeMillis();
+        long elapsedRemaining = elapsedUntil - SystemClock.elapsedRealtime();
+
+        boolean valid = wallRemaining > 0L
+                && wallRemaining <= GUARD_PAUSE_MS
+                && elapsedRemaining > 0L
+                && elapsedRemaining <= GUARD_PAUSE_MS;
+
+        if (!valid && (wallUntil != 0L || elapsedUntil != 0L)) {
+            clearGuardPause(c);
+        }
+        return valid;
+    }
+
+    static long guardPauseRemainingMs(Context c) {
+        if (!isGuardPaused(c)) return 0L;
+        SharedPreferences p = c.getSharedPreferences(NAME, Context.MODE_PRIVATE);
+        long wallRemaining = p.getLong(KEY_GUARD_PAUSE_UNTIL_WALL, 0L)
+                - System.currentTimeMillis();
+        long elapsedRemaining = p.getLong(KEY_GUARD_PAUSE_UNTIL_ELAPSED, 0L)
+                - SystemClock.elapsedRealtime();
+        return Math.max(0L, Math.min(wallRemaining, elapsedRemaining));
+    }
+
+    static void clearGuardPause(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .remove(KEY_GUARD_PAUSE_UNTIL_WALL)
+                .remove(KEY_GUARD_PAUSE_UNTIL_ELAPSED)
+                .apply();
+    }
+
+
+    static String getRegistryDeviceKey(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getString(KEY_REG_DEVICE_KEY, "");
+    }
+
+    static String getRegistryPayloadHash(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getString(KEY_REG_PAYLOAD_HASH, "");
+    }
+
+    static boolean isRegistryRegistered(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_REG_REGISTERED, false);
+    }
+
+    static long getRegistryLastValidatedAt(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getLong(KEY_REG_LAST_VALIDATED_AT, 0L);
+    }
+
+    static long getRegistryLastAttemptAt(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getLong(KEY_REG_LAST_ATTEMPT_AT, 0L);
+    }
+
+    static int getRegistryRetryStep(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getInt(KEY_REG_RETRY_STEP, 0);
+    }
+
+    static long getRegistryNextRetryAt(Context c) {
+        return c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getLong(KEY_REG_NEXT_RETRY_AT, 0L);
+    }
+
+    static void markRegistryAttempt(Context c, long at) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putLong(KEY_REG_LAST_ATTEMPT_AT, at)
+                .apply();
+    }
+
+    static void markRegistrySuccess(Context c, String deviceKey, String payloadHash, int schemaVersion, long at) {
+        SharedPreferences prefs = c.getSharedPreferences(NAME, Context.MODE_PRIVATE);
+        long registeredAt = prefs.getLong(KEY_REG_REGISTERED_AT, 0L);
+        SharedPreferences.Editor editor = prefs.edit()
+                .putString(KEY_REG_DEVICE_KEY, deviceKey == null ? "" : deviceKey)
+                .putString(KEY_REG_PAYLOAD_HASH, payloadHash == null ? "" : payloadHash)
+                .putBoolean(KEY_REG_REGISTERED, true)
+                .putInt(KEY_REG_SCHEMA_VERSION, schemaVersion)
+                .putLong(KEY_REG_LAST_VALIDATED_AT, at)
+                .putLong(KEY_REG_LAST_ATTEMPT_AT, at)
+                .putInt(KEY_REG_RETRY_STEP, 0)
+                .remove(KEY_REG_NEXT_RETRY_AT);
+        if (registeredAt <= 0L) editor.putLong(KEY_REG_REGISTERED_AT, at);
+        editor.apply();
+    }
+
+    static void markRegistryPending(Context c, int retryStep, long nextRetryAt, long at) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putBoolean(KEY_REG_REGISTERED, false)
+                .putInt(KEY_REG_RETRY_STEP, Math.max(0, retryStep))
+                .putLong(KEY_REG_NEXT_RETRY_AT, Math.max(0L, nextRetryAt))
+                .putLong(KEY_REG_LAST_ATTEMPT_AT, at)
+                .apply();
+    }
+
+    static void markRegistryValidated(Context c, long at) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putBoolean(KEY_REG_REGISTERED, true)
+                .putLong(KEY_REG_LAST_VALIDATED_AT, at)
+                .putLong(KEY_REG_LAST_ATTEMPT_AT, at)
+                .apply();
+    }
+
+    static void markRegistryMissing(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putBoolean(KEY_REG_REGISTERED, false)
+                .apply();
+    }
+
+    static void beginUninstallSession(Context c, String packageName) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .putLong(KEY_UNINSTALL_UNTIL, System.currentTimeMillis() + 90L * 1000L)
+                .putString(KEY_UNINSTALL_PACKAGE, packageName == null ? "" : packageName)
+                .apply();
+    }
+
+    static boolean isUninstallPackageAllowed(Context c, String packageName) {
+        long until = c.getSharedPreferences(NAME, Context.MODE_PRIVATE).getLong(KEY_UNINSTALL_UNTIL, 0L);
+        long now = System.currentTimeMillis();
+        String allowed = c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+                .getString(KEY_UNINSTALL_PACKAGE, "");
+        return until > now
+                && until - now <= 90L * 1000L
+                && packageName != null
+                && packageName.equals(allowed);
+    }
+
+    static void clearUninstallSession(Context c) {
+        c.getSharedPreferences(NAME, Context.MODE_PRIVATE).edit()
+                .remove(KEY_UNINSTALL_UNTIL)
+                .remove(KEY_UNINSTALL_PACKAGE)
+                .apply();
+    }
+}
