@@ -1,0 +1,11 @@
+{
+  "functions": [
+    {
+      "source": ".",
+      "codebase": "d173-launcher-poc"
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

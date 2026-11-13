@@ -12,7 +12,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.ListenerRegistration;
+import org.json.JSONObject;
+import java.util.concurrent.TimeUnit;
 
+/** Real Firebase Auth transfer from the isolated test Launcher, not Báo hàng. */
 public final class MainActivity extends Activity {
     private static final String LAUNCHER_PKG = "vn.supra.pdalauncher.identitytest";
     private static final int HANDOFF_REQUEST = 7;
@@ -21,46 +27,38 @@ public final class MainActivity extends Activity {
     private TextView account;
     private boolean pending;
     private long lastCheckedElapsed;
-
-    private final SharedPreferences.OnSharedPreferenceChangeListener onLocalChange =
-            (p, key) -> runOnUiThread(this::render);
+    private ListenerRegistration observer;
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        local = getSharedPreferences("sso_client_local", MODE_PRIVATE);
+        local = getSharedPreferences("sso_client_firebase_test", MODE_PRIVATE);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(20), dp(26), dp(20), dp(20));
         root.setBackgroundColor(0xFFF5F7FA);
-
         TextView heading = new TextView(this);
-        heading.setText("SSO kiểm thử");
+        heading.setText("Firebase SSO kiểm thử");
         heading.setTextSize(25f);
         heading.setTextColor(0xFF12253B);
         root.addView(heading);
-
         TextView warning = new TextView(this);
-        warning.setText("KHÔNG liên kết Báo hàng • KHÔNG đăng nhập Firebase • Chỉ kiểm thử truyền phiên giữa hai APK.");
+        warning.setText("Chỉ kết nối Firebase QA độc lập; không đọc hoặc thay đổi Báo hàng.");
         warning.setTextSize(13f);
         warning.setTextColor(0xFF97500D);
         warning.setPadding(0, dp(12), 0, dp(18));
         root.addView(warning);
-
         status = label(root);
         account = label(root);
-
         Button refresh = new Button(this);
         refresh.setAllCaps(false);
-        refresh.setText("Nhận phiên từ Launcher");
+        refresh.setText("Tự nhận Firebase session từ Launcher");
         refresh.setOnClickListener(v -> requestSession());
         root.addView(refresh);
-
         Button logout = new Button(this);
         logout.setAllCaps(false);
-        logout.setText("Đăng xuất cả hai app thử");
+        logout.setText("Đăng xuất cả hai APK thử");
         logout.setOnClickListener(v -> logout());
         root.addView(logout);
-
         setContentView(root);
         render();
     }
@@ -77,24 +75,28 @@ public final class MainActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
-        local.registerOnSharedPreferenceChangeListener(onLocalChange);
         render();
+        observeSession();
         if (!pending && SystemClock.elapsedRealtime() - lastCheckedElapsed > 1500L) {
             requestSession();
         }
     }
 
     @Override protected void onPause() {
-        local.unregisterOnSharedPreferenceChangeListener(onLocalChange);
+        if (observer != null) { observer.remove(); observer = null; }
         super.onPause();
     }
 
     private void requestSession() {
         if (pending) return;
+        if (!PocFirebase.configured()) {
+            status.setText("Chưa có Firebase QA độc lập. Không kết nối Production.");
+            return;
+        }
         if (getPackageManager().checkSignatures(LAUNCHER_PKG, getPackageName())
                 != PackageManager.SIGNATURE_MATCH) {
-            local.edit().clear().commit();
-            status.setText("Không có Launcher test cùng chữ ký. Hãy cài hai APK từ cùng bản build.");
+            clearLocal();
+            status.setText("Hai APK thử phải dùng cùng chữ ký.");
             return;
         }
         pending = true;
@@ -103,63 +105,133 @@ public final class MainActivity extends Activity {
         intent.setClassName(LAUNCHER_PKG, "vn.supra.pdalauncher.HandoffActivity");
         try {
             startActivityForResult(intent, HANDOFF_REQUEST);
-        } catch (Exception error) {
+        } catch (Exception ignored) {
             pending = false;
-            status.setText("Launcher test chưa sẵn sàng.");
+            status.setText("Launcher test chưa xác thực định danh QA.");
         }
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode != HANDOFF_REQUEST) return;
-        pending = false;
-        lastCheckedElapsed = SystemClock.elapsedRealtime();
-        if (resultCode != RESULT_OK || data == null ||
-                !data.getBooleanExtra("demo_only", false)) {
-            local.edit().clear().commit();
+        if (resultCode != RESULT_OK || data == null) {
+            pending = false;
+            clearAndSignOut();
             render();
             return;
         }
+        String grant = data.getStringExtra("grant");
         String code = data.getStringExtra("employee_code");
-        String session = data.getStringExtra("session_id");
-        long generation = data.getLongExtra("generation", 0L);
-        if (code == null || !code.matches("[0-9]{5,12}")
-                || session == null || session.isEmpty() || generation <= 0L) {
-            local.edit().clear().commit();
+        if (grant == null || code == null || !code.matches("[0-9]{5,12}")) {
+            pending = false;
+            clearAndSignOut();
             render();
             return;
         }
-        local.edit().putString("employee_code", code).putString("session_id", session)
-                .putLong("generation", generation).commit();
-        render();
+        status.setText("Đang xác nhận token một lần với Firebase...");
+        new Thread(() -> {
+            boolean ok = false;
+            try {
+                JSONObject answer = PocFirebase.post(this, "redeem",
+                        new JSONObject().put("grant", grant), false);
+                String token = answer.getString("custom_token");
+                String expectedUid = answer.getString("uid");
+                FirebaseAuth auth = PocFirebase.auth(this);
+                Tasks.await(auth.signInWithCustomToken(token), 20, TimeUnit.SECONDS);
+                if (auth.getCurrentUser() == null ||
+                        !expectedUid.equals(auth.getCurrentUser().getUid()))
+                    throw new IllegalStateException("Firebase UID mismatch");
+                Object rawGeneration = Tasks.await(auth.getCurrentUser().getIdToken(true),
+                        12, TimeUnit.SECONDS).getClaims().get("poc_session_generation");
+                long generation = answer.getLong("generation");
+                if (!(rawGeneration instanceof Number) ||
+                        ((Number) rawGeneration).longValue() != generation)
+                    throw new IllegalStateException("Generation mismatch");
+                local.edit().putString("employee_code", code)
+                    .putString("session_id", answer.getString("session_id"))
+                    .putString("firebase_uid", expectedUid)
+                    .putLong("generation", generation).commit();
+                ok = true;
+            } catch (Exception ignored) {
+                clearAndSignOut();
+            }
+            final boolean success = ok;
+            runOnUiThread(() -> {
+                pending = false;
+                render();
+                if (success) observeSession();
+                else status.setText("Firebase SSO thất bại; không nhận phiên.");
+            });
+        }, "poc-fire-client-redeem").start();
+    }
+
+    private void observeSession() {
+        if (observer != null) { observer.remove(); observer = null; }
+        String id = local.getString("session_id", "");
+        if (id.isEmpty() || !PocFirebase.configured()) return;
+        String uid = local.getString("firebase_uid", "");
+        try {
+            if (PocFirebase.auth(this).getCurrentUser() == null ||
+                    !uid.equals(PocFirebase.auth(this).getCurrentUser().getUid())) {
+                clearAndSignOut(); render(); return;
+            }
+            observer = PocFirebase.firestore(this).collection("poc_sessions").document(id)
+                .addSnapshotListener((doc, error) -> {
+                    if (error != null || doc == null || doc.getMetadata().isFromCache()) return;
+                    Long generation = doc.getLong("generation");
+                    Long expires = doc.getLong("expires_at_ms");
+                    boolean valid = doc.exists() && Boolean.TRUE.equals(doc.getBoolean("active"))
+                        && uid.equals(doc.getString("uid"))
+                        && generation != null && generation == local.getLong("generation", 0L)
+                        && expires != null && System.currentTimeMillis() < expires;
+                    if (!valid && id.equals(local.getString("session_id", ""))) {
+                        clearAndSignOut();
+                        runOnUiThread(this::render);
+                    }
+                });
+        } catch (Exception ignored) { clearAndSignOut(); render(); }
     }
 
     private void logout() {
-        String session = local.getString("session_id", "");
-        if (!session.isEmpty() && getPackageManager().checkSignatures(LAUNCHER_PKG,
-                getPackageName()) == PackageManager.SIGNATURE_MATCH) {
-            Intent request = new Intent("vn.supra.identitytest.REQUEST_LOGOUT");
-            request.setClassName(LAUNCHER_PKG, "vn.supra.pdalauncher.SessionCommandReceiver");
-            request.putExtra("session_id", session);
-            sendBroadcast(request);
-        }
-        local.edit().clear().commit();
+        String id = local.getString("session_id", "");
+        clearLocal();
         render();
+        new Thread(() -> {
+            if (!id.isEmpty()) {
+                try {
+                    PocFirebase.post(this, "logout",
+                        new JSONObject().put("session_id", id), true);
+                } catch (Exception ignored) {}
+            }
+            try { PocFirebase.auth(this).signOut(); } catch (Exception ignored) {}
+            // Keep local UI locked, notify Launcher even if offline.
+            if (!id.isEmpty() && getPackageManager().checkSignatures(
+                    LAUNCHER_PKG, getPackageName()) == PackageManager.SIGNATURE_MATCH) {
+                Intent request = new Intent("vn.supra.identitytest.REQUEST_LOGOUT");
+                request.setClassName(LAUNCHER_PKG, "vn.supra.pdalauncher.SessionCommandReceiver");
+                request.putExtra("session_id", id);
+                sendBroadcast(request);
+            }
+        }, "poc-fire-client-logout").start();
     }
 
+    private void clearLocal() { local.edit().clear().commit(); }
+    private void clearAndSignOut() {
+        clearLocal();
+        try { if (PocFirebase.configured()) PocFirebase.auth(this).signOut(); }
+        catch (Exception ignored) {}
+    }
     private void render() {
         if (status == null || account == null) return;
-        String session = local.getString("session_id", "");
-        boolean active = !session.isEmpty();
-        status.setText(active ? "Phiên mô phỏng đang hoạt động" : "Chưa nhận phiên hoặc đã đăng xuất");
+        String id = local.getString("session_id", "");
+        boolean active = !id.isEmpty();
+        status.setText(active ? "Đã đăng nhập Firebase QA" : "Chưa có phiên Firebase hợp lệ");
         account.setVisibility(active ? View.VISIBLE : View.GONE);
         if (active) {
-            account.setText("Mã nhân viên thử: " + local.getString("employee_code", "")
-                    + "\nGeneration: " + local.getLong("generation", 0L));
+            account.setText("Mã nhân viên QA: " + local.getString("employee_code", "")
+                + "\nUID: " + local.getString("firebase_uid", "")
+                + "\nGeneration: " + local.getLong("generation", 0L));
         }
     }
-
-    private int dp(int x) {
-        return Math.round(x * getResources().getDisplayMetrics().density);
-    }
+    private int dp(int x) { return Math.round(x * getResources().getDisplayMetrics().density); }
 }

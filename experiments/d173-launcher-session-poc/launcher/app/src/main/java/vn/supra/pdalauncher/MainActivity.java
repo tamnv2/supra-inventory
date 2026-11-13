@@ -32,6 +32,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.text.InputType;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,6 +69,7 @@ public class MainActivity extends Activity {
     private boolean batteryReceiverRegistered;
     private boolean timeReceiverRegistered;
     private String lastAllowedKey;
+    private ListenerRegistration identityObserver;
 
     private final Runnable clockTick = new Runnable() {
         @Override public void run() {
@@ -84,7 +87,6 @@ public class MainActivity extends Activity {
         @Override public void onReceive(Context context, Intent intent) {
             updateClock();
             refreshTimeState();
-            LauncherDiagnostics.onSystemClockOrBoot(context);
         }
     };
 
@@ -95,7 +97,6 @@ public class MainActivity extends Activity {
             int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
             int percent = (level >= 0 && scale > 0) ? Math.round(level * 100f / scale) : -1;
             updateBatteryUi(percent, isCharging(intent));
-            LauncherDiagnostics.onBatteryChanged(MainActivity.this, intent);
         }
     };
 
@@ -111,10 +112,10 @@ public class MainActivity extends Activity {
         Prefs.clearTimeFixSession(this);
         refreshIdentityUi();
         loadAllowedApps();
+        identityObserver = TestSessionStore.observe(this, () -> { refreshIdentityUi(); loadAllowedApps(); });
         refreshTimeState();
         updateDeviceIdentityUi();
         updateGuardPauseUi();
-        UpdateManager.checkOnLaunch(this);
         applyImmersive();
 
         handler.removeCallbacks(clockTick);
@@ -143,6 +144,7 @@ public class MainActivity extends Activity {
     }
 
     @Override protected void onPause() {
+        if (identityObserver != null) { identityObserver.remove(); identityObserver = null; }
         super.onPause();
         handler.removeCallbacks(clockTick);
         if (timeReceiverRegistered) {
@@ -216,7 +218,7 @@ public class MainActivity extends Activity {
         update.setContentDescription("Kiểm tra cập nhật");
         update.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                UpdateManager.check(MainActivity.this, true);
+                Toast.makeText(MainActivity.this, "Đã khóa cập nhật trên bản kiểm thử.", Toast.LENGTH_SHORT).show();
             }
         });
         LinearLayout.LayoutParams updateLp =
@@ -243,7 +245,9 @@ public class MainActivity extends Activity {
         settings.setBackground(roundRect(0xFFFFFFFF, 12f, true));
         settings.setContentDescription("Cài đặt quản trị");
         settings.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { showAdminLogin(); }
+            @Override public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Quản trị chỉ dùng trên Launcher Production.", Toast.LENGTH_SHORT).show();
+            }
         });
         topRow.addView(settings, new LinearLayout.LayoutParams(settingsSize, settingsSize));
         root.addView(topRow);
@@ -430,7 +434,7 @@ public class MainActivity extends Activity {
         panel.addView(identityLogoutButton);
 
         TextView warning = new TextView(this);
-        warning.setText("KIỂM THỬ CỤC BỘ • Chưa xác minh mã nhân viên từ máy chủ; không đăng nhập Firebase.");
+        warning.setText("FIREBASE QA RIÊNG • Không dùng tài khoản và dữ liệu Production.");
         warning.setTextSize(10f);
         warning.setTextColor(0xFF9C4E00);
         panel.addView(warning);
@@ -442,27 +446,59 @@ public class MainActivity extends Activity {
     }
 
     private void showTestIdentityDialog() {
-        final EditText input = new EditText(this);
-        input.setHint("Nhập mã nhân viên thử nghiệm");
-        input.setSingleLine(true);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        if (!PocFirebase.configured()) {
+            Toast.makeText(this, "Chưa thiết lập Firebase kiểm thử riêng.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        final EditText codeField = new EditText(this);
+        codeField.setHint("Mã nhân viên QA");
+        codeField.setSingleLine(true);
+        codeField.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        final EditText emailField = new EditText(this);
+        emailField.setHint("Email QA (chỉ cần thiết lập lần đầu)");
+        emailField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        final EditText passwordField = new EditText(this);
+        passwordField.setHint("Mật khẩu QA (nhập một lần, không lưu)");
+        passwordField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        boolean paired = PocFirebase.auth(this).getCurrentUser() != null;
+        emailField.setVisibility(paired ? View.GONE : View.VISIBLE);
+        passwordField.setVisibility(paired ? View.GONE : View.VISIBLE);
+        LinearLayout body = new LinearLayout(this);
+        body.setPadding(dp(16), dp(4), dp(16), dp(2));
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.addView(codeField);
+        body.addView(emailField);
+        body.addView(passwordField);
+
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Xác nhận định danh")
-                .setMessage("Bản thử chỉ xác nhận định dạng mã, KHÔNG xác thực tài khoản Supra thực tế.")
-                .setView(input)
-                .setNegativeButton("Hủy", null)
-                .setPositiveButton("Xác nhận", null)
-                .create();
+                .setMessage(paired ? "Tài khoản QA đã liên kết Firebase test."
+                        : "Liên kết tài khoản Firebase QA một lần trước khi thử chỉ nhập mã nhân viên.")
+                .setView(body).setNegativeButton("Hủy", null)
+                .setPositiveButton("Xác nhận", null).create();
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String code = input.getText().toString().trim();
+            String code = codeField.getText().toString().trim();
             if (!TestSessionStore.isValidFormat(code)) {
-                input.setError("Nhập 5–12 chữ số.");
-                return;
+                codeField.setError("Mã QA phải gồm 5–12 chữ số."); return;
             }
-            TestSessionStore.login(this, code);
-            dialog.dismiss();
-            refreshIdentityUi();
-            loadAllowedApps();
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            TestSessionStore.login(this, code,
+                    emailField.getText().toString().trim(),
+                    passwordField.getText().toString(), (ok, message) -> {
+                        passwordField.setText("");
+                        if (ok) {
+                            dialog.dismiss();
+                            if (identityObserver != null) identityObserver.remove();
+                            identityObserver = TestSessionStore.observe(this,
+                                    () -> { refreshIdentityUi(); loadAllowedApps(); });
+                        } else {
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                        }
+                        refreshIdentityUi();
+                        loadAllowedApps();
+                        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                    });
         }));
         dialog.show();
     }
@@ -471,7 +507,7 @@ public class MainActivity extends Activity {
         if (identityStatusText == null) return;
         boolean active = TestSessionStore.isUnlocked(this);
         identityStatusText.setText(active
-                ? "Phiên SSO mô phỏng: " + TestSessionStore.employeeCode(this)
+                ? "Firebase test • Mã NV: " + TestSessionStore.employeeCode(this)
                 : "Chưa xác nhận định danh — ứng dụng bị khóa");
         identityConfirmButton.setVisibility(active ? View.GONE : View.VISIBLE);
         identityLogoutButton.setVisibility(active ? View.VISIBLE : View.GONE);
@@ -596,8 +632,7 @@ public class MainActivity extends Activity {
                     Intent launch = getPackageManager().getLaunchIntentForPackage(pkg);
                     if (launch == null) throw new IllegalStateException("No launch intent");
                     launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    LauncherDiagnostics.recordAppLaunch(MainActivity.this, pkg);
-                    startActivity(launch);
+                            startActivity(launch);
                 } catch (Exception e) {
                     Toast.makeText(MainActivity.this,
                             "Không thể mở ứng dụng.", Toast.LENGTH_SHORT).show();

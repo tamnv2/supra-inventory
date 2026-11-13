@@ -22,8 +22,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Offline security and separation guard
+      - name: Firebase dedicated-project source guard
         run: python3 experiments/d173-launcher-session-poc/check_poc.py
+      - name: Test one-time grant authority and Production boundary
+        working-directory: experiments/d173-launcher-session-poc/firebase-test-backend
+        run: node --test test/*.test.mjs
       - name: Build Launcher test
         working-directory: experiments/d173-launcher-session-poc/launcher
         run: gradle :app:assembleDebug --no-daemon --stacktrace
@@ -54,13 +57,13 @@ jobs:
           test -n "$cert_l" || { echo "::error::Launcher certificate fingerprint missing"; exit 1; }
           test -n "$cert_c" || { echo "::error::Client certificate fingerprint missing"; exit 1; }
           test "$cert_l" = "$cert_c" || { echo "::error::Debug signing certificates differ"; exit 1; }
-          ! "$aapt" dump permissions "$launcher" | grep -q "android.permission.INTERNET"
-          ! "$aapt" dump permissions "$client" | grep -q "android.permission.INTERNET"
-          echo "Both isolated APKs are signed with matching debug certificate; package/network guards PASS."
+          "$aapt" dump permissions "$launcher" | grep -q "android.permission.INTERNET"
+          "$aapt" dump permissions "$client" | grep -q "android.permission.INTERNET"
+          echo "Both isolated APKs are signed with matching debug certificate; test Firebase SDK enabled."
       - name: Upload pair for PDA field test
         uses: actions/upload-artifact@v4
         with:
-          name: d173-launcher-identity-session-poc-debug-pair
+          name: d173-firebase-identity-session-poc-debug-pair
           path: |
             experiments/d173-launcher-session-poc/launcher/app/build/outputs/apk/debug/app-debug.apk
             experiments/d173-launcher-session-poc/test-client/app/build/outputs/apk/debug/app-debug.apk

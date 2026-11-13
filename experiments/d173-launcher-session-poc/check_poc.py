@@ -1,33 +1,47 @@
 from pathlib import Path
-
 root = Path(__file__).parent
 launcher = root / "launcher"
 client = root / "test-client"
-main = (launcher / "app/src/main/java/vn/supra/pdalauncher/MainActivity.java").read_text()
-hand = (launcher / "app/src/main/java/vn/supra/pdalauncher/HandoffActivity.java").read_text()
-session = (launcher / "app/src/main/java/vn/supra/pdalauncher/TestSessionStore.java").read_text()
-receiver = (launcher / "app/src/main/java/vn/supra/pdalauncher/SessionCommandReceiver.java").read_text()
-manifest = (launcher / "app/src/main/AndroidManifest.xml").read_text()
-client_manifest = (client / "app/src/main/AndroidManifest.xml").read_text()
-client_main = (client / "app/src/main/java/vn/supra/identitytest/MainActivity.java").read_text()
-
+server = root / "firebase-test-backend"
+read = lambda base, path: (base / path).read_text()
+main = read(launcher, "app/src/main/java/vn/supra/pdalauncher/MainActivity.java")
+handoff = read(launcher, "app/src/main/java/vn/supra/pdalauncher/HandoffActivity.java")
+session = read(launcher, "app/src/main/java/vn/supra/pdalauncher/TestSessionStore.java")
+receiver = read(launcher, "app/src/main/java/vn/supra/pdalauncher/SessionCommandReceiver.java")
+manifest = read(launcher, "app/src/main/AndroidManifest.xml")
+client_manifest = read(client, "app/src/main/AndroidManifest.xml")
+app = read(client, "app/src/main/java/vn/supra/identitytest/MainActivity.java")
+backend = read(server, "index.mjs")
+logic = read(server, "session-logic.mjs")
+for project in [launcher, client]:
+    sdk = next(project.glob("app/src/main/java/**/PocFirebase.java")).read_text()
+    assert "TEST_FIREBASE_PROJECT_ID" in sdk
+    assert "supra-d173-poc-[a-z0-9-]" in sdk
+    assert "FirebaseAuth.getInstance" in sdk
+    assert "custom_token" not in sdk
+assert "Xác nhận định danh" in main
 assert "TestSessionStore.isUnlocked(this)" in main
-assert 'Xác nhận định danh' in main
-assert 'isValidFormat' in session
-assert 'package vn.supra.pdalauncher' in main
-assert 'getCallingPackage()' in hand
-assert 'PackageManager.SIGNATURE_MATCH' in hand and 'PackageManager.SIGNATURE_MATCH' in receiver
+assert "signInWithEmailAndPassword" in session
+assert "getCallingPackage()" in handoff
+assert "PackageManager.SIGNATURE_MATCH" in handoff and "PackageManager.SIGNATURE_MATCH" in receiver
 assert 'REQUEST_LOGOUT' in receiver and 'SESSION_CHANGED' in session
-assert 'SESSION_CONTROL' in manifest and 'SESSION_CONTROL' in client_manifest
-assert 'getPackageManager().checkSignatures' in client_main
-assert 'android.permission.INTERNET' not in manifest
-assert 'android.permission.INTERNET' not in client_manifest
-assert 'android.intent.category.HOME' not in manifest
-assert 'android:enabled="false"' in manifest
-assert 'vn.supra.pdalauncher.identitytest' in (launcher / 'app/build.gradle').read_text()
-assert 'vn.supra.identitytest' in (client / 'app/build.gradle').read_text()
-assert 'signInWithCustomToken' not in client_main
-# Never ship a credential as a hidden value inside a public APK.
-assert not any('Supra@123' in p.read_text(errors='ignore')
-               for p in root.rglob('*') if p.is_file() and p.name != 'check_poc.py' and '.git' not in p.parts)
-print("PoC static separation and token-safety checks PASS (not runtime or Firebase FIELD PASS)")
+assert "SESSION_CONTROL" in manifest and "SESSION_CONTROL" in client_manifest
+assert "getPackageManager().checkSignatures" in app
+assert "signInWithCustomToken" in app
+assert "getIdToken(true)" in app
+assert "poc_session_generation" in app
+assert "firebase_uid" in app
+assert "canRedeem" in backend and "createCustomToken" in backend
+assert "ensureDedicatedTestProject(project)" in backend
+assert "NOT_DEDICATED_TEST_PROJECT" in logic
+assert "android.permission.INTERNET" in manifest and "android.permission.INTERNET" in client_manifest
+assert "android.intent.category.HOME" not in manifest
+assert '<activity android:name=".AdminActivity" android:enabled="false"' in manifest
+assert 'android:name=".GuardService"\n            android:enabled="false"' in manifest
+assert "UpdateManager.checkOnLaunch(this)" not in main
+assert "LauncherDiagnostics.recordAppLaunch" not in main
+assert "vn.supra.pdalauncher.identitytest" in read(launcher,"app/build.gradle")
+assert "vn.supra.identitytest" in read(client, "app/build.gradle")
+assert not any('Supra@123' in p.read_text(errors="ignore") for p in root.rglob("*")
+    if p.is_file() and p.name not in {"check_poc.py", "README.md"})
+print("Dedicated Firebase test source guard PASS; NOT a live Firebase/field assertion")

@@ -5,6 +5,10 @@ plugins {
 import java.util.Properties
 import java.util.Base64
 
+// Explicit D173-only test Firebase configuration, absent by default.
+def pocCfg = { key -> (project.findProperty(key) ?: System.getenv(key) ?: '').toString() }
+def pocQuote = { value -> '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"' }
+
 final def versionNameProp = project.findProperty('VERSION_NAME') ?: '0.3.26-session-test'
 final def versionCodeProp = (project.findProperty('VERSION_CODE') ?: '32601').toInteger()
 final def keystorePropertiesFile = rootProject.file('keystore.properties')
@@ -25,6 +29,9 @@ android {
 
     defaultConfig {
         applicationId 'vn.supra.pdalauncher.identitytest'
+        buildConfigField 'String', 'TEST_FIREBASE_PROJECT_ID', pocQuote(pocCfg('D173_POC_FIREBASE_PROJECT_ID'))
+        buildConfigField 'String', 'TEST_FIREBASE_API_KEY', pocQuote(pocCfg('D173_POC_FIREBASE_API_KEY'))
+        buildConfigField 'String', 'TEST_FIREBASE_APP_ID', pocQuote(pocCfg('D173_POC_FIREBASE_APP_ID'))
         minSdk 23
         targetSdk 35
         versionCode versionCodeProp
@@ -86,6 +93,9 @@ tasks.named('preBuild').configure {
 }
 
 dependencies {
+    implementation platform('com.google.firebase:firebase-bom:34.19.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
     implementation 'androidx.core:core:1.15.0'
     implementation 'com.google.zxing:core:3.5.3'
 }

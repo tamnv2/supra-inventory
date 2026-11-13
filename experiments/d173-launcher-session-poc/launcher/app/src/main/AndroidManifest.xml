@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <permission android:name="vn.supra.pdalauncher.identitytest.permission.SESSION_CONTROL" android:protectionLevel="signature" />
@@ -25,14 +27,16 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AdminActivity" android:exported="false" />
+        <activity android:name=".AdminActivity" android:enabled="false" android:exported="false" />
         <activity android:name=".HandoffActivity" android:exported="true" />
         <receiver android:name=".SessionCommandReceiver" android:exported="true" android:permission="vn.supra.pdalauncher.identitytest.permission.SESSION_CONTROL" />
 
         <receiver android:name=".LauncherLogAlarmReceiver"
+                  android:enabled="false"
                   android:exported="false" />
         <service
             android:name=".LauncherDiagnosticJobService"
+            android:enabled="false"
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="false" />
 
@@ -62,7 +66,7 @@
 
         <receiver
             android:name=".BatteryAlertReceiver"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BATTERY_LOW" />

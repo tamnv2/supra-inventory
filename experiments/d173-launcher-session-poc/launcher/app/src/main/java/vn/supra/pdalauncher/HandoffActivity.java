@@ -4,11 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import org.json.JSONObject;
 
-/** Explicit same-signature IPC; never returns credentials or real auth tokens. */
+/** One-time server grant passed only through same-signature explicit IPC. */
 public final class HandoffActivity extends Activity {
-    @Override protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    @Override protected void onCreate(Bundle state) {
+        super.onCreate(state);
         String caller = getCallingPackage();
         if (!"vn.supra.identitytest".equals(caller)
                 || getPackageManager().checkSignatures(caller, getPackageName())
@@ -18,12 +19,24 @@ public final class HandoffActivity extends Activity {
             finish();
             return;
         }
-        Intent response = new Intent();
-        response.putExtra("employee_code", TestSessionStore.employeeCode(this));
-        response.putExtra("session_id", TestSessionStore.sessionId(this));
-        response.putExtra("generation", TestSessionStore.generation(this));
-        response.putExtra("demo_only", true);
-        setResult(RESULT_OK, response);
-        finish();
+        String current = TestSessionStore.sessionId(this);
+        new Thread(() -> {
+            Intent result = new Intent();
+            boolean success = false;
+            try {
+                JSONObject reply = PocFirebase.post(this, "grant",
+                    new JSONObject().put("session_id", current), true);
+                if (current.equals(TestSessionStore.sessionId(this))) {
+                    result.putExtra("grant", reply.getString("grant"));
+                    result.putExtra("employee_code", TestSessionStore.employeeCode(this));
+                    success = true;
+                }
+            } catch (Exception ignored) {}
+            final boolean ok = success;
+            runOnUiThread(() -> {
+                setResult(ok ? RESULT_OK : RESULT_CANCELED, ok ? result : null);
+                finish();
+            });
+        }, "poc-fire-grant").start();
     }
 }
