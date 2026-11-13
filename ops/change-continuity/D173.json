@@ -9,13 +9,22 @@
   "last_checkpoint": {
     "id": "D173-E265",
     "date_vn": "2026-11-13",
-    "summary": "Owner authorizes code and Web3.3.21 production release for D173 E264 UI only; exact-source guarded PR977, CI/release pending, D172 HOLD.",
-    "status": "OWNER_APPROVED_WEB3321_CODE_MERGE_RELEASE_EXACT_SOURCE_CI_PENDING",
+    "summary": "Owner approved Web3.3.21 production; scoped source CI4/4 exact 06f107b0ff7d048c2c006b9ad36565f7727a9dec PASS, protected PR977 merge/release pending; global historic CI FAIL, D172 HOLD.",
+    "status": "WEB3321_EXACT_SOURCE_CI_4_OF_4_PASS__MERGE_RELEASE_PENDING__D172_HOLD",
     "source": "docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md",
     "branch": "fix/d173-e264-web-global-ui-rhythm-20261113",
     "pr": 977,
-    "owner_code_approved": true,
-    "owner_release_approved": true,
+    "source_ci_sha": "06f107b0ff7d048c2c006b9ad36565f7727a9dec",
+    "source_ci_runs": [
+      43429065484,
+      43429065501,
+      43429065698,
+      43429065450
+    ],
+    "code_pass": true,
+    "ci_scoped_pass": true,
+    "global_ci_pass": false,
+    "release_pass": false,
     "field_pass": false,
     "owner_pass": false
   },
@@ -5556,26 +5565,36 @@
       "kind": "OWNER_COMMAND",
       "topic": "Owner permits complete E264 Web UI code and production Web3.3.21 release",
       "owner_approval": true,
-      "status": "OWNER_APPROVED_WEB3321_CODE_MERGE_RELEASE_EXACT_SOURCE_CI_PENDING",
+      "status": "WEB3321_EXACT_SOURCE_CI_4_OF_4_PASS__MERGE_RELEASE_PENDING__D172_HOLD",
       "facts": [
         "Owner explicitly directs complete code and deploy/release for E264 all-Web UI geometry inconsistency observed in nine Web3.3.20 screenshots; no additional business scope approved.",
         "Existing release baseline Web3.3.20 production at main a2ef3f4013760a457cc4ede58b084616c08ab029 run43422924760 SUCCESS; current base main d61292cf9053ca70c1a35c2a4a7b0ca179ec73a2.",
         "PR977 existing CSS E264 source CI PASS (run43427653013), authority/continuity/D172 scoped tests PASS; historical unrelated global tests still FAIL; new version release requires fresh exact SHA tests.",
         "Owner authorizes target Web3.3.21 with exact protected PR merge and registered Worker repackage of static assets only. D172 remains separate pending/hold; no service, Agent, Android, Firebase or Stable change.",
-        "Source version, scoped CI, immutable base/allowed diff, release authorization and protected main push marker must be verified before marking CODE/CI/RELEASE PASS."
+        "Source version, scoped CI, immutable base/allowed diff, release authorization and protected main push marker must be verified before marking CODE/CI/RELEASE PASS.",
+        "Exact source 06f107b0ff7d048c2c006b9ad36565f7727a9dec confirmed: scoped Web3.3.21 UI/test/build and D172 50 tests run43429065484 SUCCESS, Authority43429065501 SUCCESS, Continuity43429065698 SUCCESS, E123 Worker/SQL/D17243429065450 SUCCESS. Global legacy unrelated guards still fail and are not claimed PASS."
       ],
-      "next_action": "Finish Web3.3.21 package, add exact release gate and source pinned CI; fix failures in scope; protected merge with E265 release marker, verify deploy/health/401/static/OAuth, then record exact receipt. Field/Owner PASS independent.",
+      "next_action": "Protected merge PR977 with D173-E265_WEB3321_PRODUCTION_RELEASE marker; verify deploy-beta and production exact source/health/401; report FIELD/Owner separately.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/977 ; docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md",
       "branch": "fix/d173-e264-web-global-ui-rhythm-20261113",
       "pr": 977,
       "base_main_sha": "d61292cf9053ca70c1a35c2a4a7b0ca179ec73a2",
-      "code_pass": false,
-      "ci_pass": false,
+      "code_pass": true,
+      "ci_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "source_code_sha": "c0bee4be347a52544fbb23d10b8e023466120457",
+      "source_ci_sha": "06f107b0ff7d048c2c006b9ad36565f7727a9dec",
+      "source_ci_run_ids": [
+        43429065484,
+        43429065501,
+        43429065698,
+        43429065450
+      ],
+      "global_ci_pass": false
     }
   ],
   "resume": {

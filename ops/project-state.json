@@ -2569,7 +2569,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E265_WEB3321_OWNER_CODE_RELEASE_APPROVED_EXACT_CI_AND_PROTECTED_MERGE_PENDING__D172_HOLD",
+    "current_change_status": "D173_E265_WEB3321_SOURCE_CI_SCOPED_PASS_OWNER_RELEASE_APPROVED__PROTECTED_MERGE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -14830,16 +14830,23 @@
     "base_main_sha": "d61292cf9053ca70c1a35c2a4a7b0ca179ec73a2",
     "production_web_baseline": "3.3.20",
     "target_web_version": "3.3.21",
-    "source_code_sha": null,
-    "source_ci_sha": null,
-    "code": "CANDIDATE",
-    "ci": "PENDING_EXACT",
-    "release": "PENDING_GATED",
+    "source_code_sha": "c0bee4be347a52544fbb23d10b8e023466120457",
+    "source_ci_sha": "06f107b0ff7d048c2c006b9ad36565f7727a9dec",
+    "code": "PASS_WEB3321_UI_SOURCE_AND_VITE_BUILD",
+    "ci": "PASS_SCOPED_4_OF_4_EXACT_CI_SHA__GLOBAL_LEGACY_FAIL",
+    "release": "OWNER_GATED_MERGE_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md",
-    "auth": "ops/d173-e265-web3321-release-authorization.json"
+    "auth": "ops/d173-e265-web3321-release-authorization.json",
+    "source_ci_run_ids": [
+      43429065484,
+      43429065501,
+      43429065698,
+      43429065450
+    ],
+    "global_ci_pass": false
   }
 }

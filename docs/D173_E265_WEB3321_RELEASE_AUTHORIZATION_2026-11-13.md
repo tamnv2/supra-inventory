@@ -22,3 +22,8 @@ Owner: “hoàn thiện code và triển khai phát hành”, nối tiếp yêu 
 ## Evidence slots
 - Owner scope: lời phê duyệt trong lượt hội thoại hiện hành; checkpoint D173-E265.
 - SOURCE SHA / CI run IDs / main protected merge SHA / Production Deploy run ID và kỹ thuật readback: ghi sau khi xác minh, không tự suy đoán.
+
+## Exact-source CI PASS — trước phát hành
+- Source app/CI SHA `06f107b0ff7d048c2c006b9ad36565f7727a9dec`, khóa code SHA `c0bee4be347a52544fbb23d10b8e023466120457`: scoped Web3.3.21 UI contract, Vite build và D172 isolation [run 43429065484](https://github.com/tamnv2/supra-inventory/actions/runs/43429065484) SUCCESS.
+- [Authority 43429065501](https://github.com/tamnv2/supra-inventory/actions/runs/43429065501), [Continuity 43429065698](https://github.com/tamnv2/supra-inventory/actions/runs/43429065698), [D173 E123 Worker SQL and D172 43429065450](https://github.com/tamnv2/supra-inventory/actions/runs/43429065450): SUCCESS, 4/4 source-scoped jobs. Không claim Global CI PASS: các kiểm thử cũ Agent và version lịch sử vẫn FAIL ngoài E265.
+- Owner release gate vẫn yêu cầu guarded two-parent main merge và Worker/Web exact readback. FIELD/OWNER PASS chưa được suy ra từ CI.
