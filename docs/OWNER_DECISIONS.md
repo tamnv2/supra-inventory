@@ -1,3 +1,9 @@
+## D173-E267 — 13/11/2026: Owner phản hồi FIELD FAIL khoảng cách Web3.3.21
+
+Owner xác nhận Web3.3.21 **chưa đồng nhất khoảng cách** qua bốn ảnh trang Xử lý báo hàng, Ca vận hành, Tổng quan và Nhân sự. Release kỹ thuật E266 PASS không đồng nghĩa giao diện đạt nghiệm thu. Rà source xác minh khoảng cách margin/title/form từ CSS legacy còn 10–14px trong khi E264 chỉ thống nhất gap của một số nhóm; role-specific padding còn xung đột. Tạo E267 CSS-only PR #979, bổ sung Chromium computed-geometry guard cùng test Web/D172; giữ Web Production 3.3.21, D172 HOLD, FIELD/OWNER PASS false. **Chưa có lệnh phát hành Web mới**. Xem `docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md`.
+
+---
+
 ## D173-E265 — 13/11/2026: Owner duyệt hoàn thiện code và phát hành Web3.3.21
 
 Owner yêu cầu “hoàn thiện code và triển khai phát hành” cho D173-E264 đồng nhất hình học UI Web trên chín trang. Cho phép nâng Web3.3.21 và phát hành Production qua PR #977 sau gate exact-source CI, authority, D172 isolation, merge được bảo vệ và deploy readback. Phạm vi chỉ là CSS giao diện D173 cùng Web version/tests/release pipeline; đóng gói lại existing Worker để phục vụ static assets nhưng không thay service nghiệp vụ, Fire, Agent, Android, D172, Stable, tài nguyên provider. CI/RELEASE không đồng nghĩa FIELD hoặc OWNER PASS. Xem `docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md`.
