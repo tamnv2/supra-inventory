@@ -1,3 +1,9 @@
+## D173-E260 — 13/11/2026: Owner yêu cầu sửa 5 lỗi UI Web3.3.19 sau phát hành
+
+Owner phản hồi Web3.3.19 có FIELD NOT PASS về: header bị cắt một phần, tab **Quá hạn** lệch căn giữa dọc, Tổng quan thừa lời hướng dẫn/tiêu đề và cần đưa thời điểm dữ liệu vào cùng hàng tab căn phải, Cỡ chữ phóng to làm mất nội dung phía dưới, khoảng cách ghim trên/trái giữa các trang không đồng nhất. Cho phép sửa CODE Web D173 theo 5 mục, giữ nguyên nghiệp vụ/số liệu/API/quota và bản phát hành hiện tại; **chưa có lệnh merge hoặc phát hành Production mới**. Bắt buộc kiểm tra responsive/zoom, hồi quy Web và bảo vệ độc lập D172 trước khi xem xét phát hành. FIELD/Owner PASS chưa xác nhận. Xem `docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md`, Draft PR #974.
+
+---
+
 ## D173-E258 — 13/11/2026: Owner lệnh hoàn thiện E257 và phát hành Web3.3.19
 Owner nói “xử lí hoàn thiện code và phát hành” cho Tổng quan E257 đang FIELD FAIL Web3.3.18. Cho phép tiếp tục code, CI, protected PR #972 và Production Web3.3.19 + Worker read-only overview sau khi đủ release gates. Không cho phép đổi D172/Agent/Android/Firebase/Stable, tạo tài nguyên mới, hay coi release là FIELD/OWNER PASS. Event-driven refresh theo realtime, tránh polling request, không đưa 5 kết quả mới nhất trở lại. Có thể tăng Rows Read nên đo/đối chiếu, không báo tiết kiệm nếu không có chứng cứ. Xem docs/D173_E258_WEB3319_RELEASE_AUTHORIZATION_2026-11-13.md.
 
