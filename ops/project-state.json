@@ -14289,5 +14289,21 @@
     "run_id": 43348954640,
     "artifact_id": 14002942349,
     "remaining": "LOCAL_MOCK_ONLY_NO_REAL_EMPLOYEE_VALIDATION"
+  },
+  "d173_launcher_firebase_real_qa_poc_owner_20261113": {
+    "change_id": "D173",
+    "kind": "ISOLATED_FIREBASE_AUTH_REAL_TEST",
+    "branch": "feat/d173-launcher-session-poc-20261113",
+    "pr": 964,
+    "source_sha": "49a27c3d16bd49a8cd93f496b64cb15da86f4519",
+    "run_id": 43353330048,
+    "artifact_id": 14004384190,
+    "source_ci": "PASS",
+    "provider_qa": "NOT_PROVISIONED_NOT_DEPLOYED",
+    "production": "UNCHANGED",
+    "field_pass": false,
+    "owner_pass": false,
+    "status": "AWAIT_DEDICATED_QA_PROJECT__NO_REAL_AUTH_FIELD_PASS",
+    "previous": "d173_launcher_identity_isolated_poc_20261113"
   }
 }

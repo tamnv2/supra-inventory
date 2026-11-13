@@ -6249,5 +6249,78 @@
       ]
     },
     "remaining": "REAL_USER_AUTH_AND_FIREBASE_SSO_NOT_IMPLEMENTED__PDA_FIELD_TEST_PENDING"
+  },
+  "d173_launcher_firebase_real_qa_poc_owner_20261113": {
+    "date_vn": "2026-11-13",
+    "change_id": "D173",
+    "kind": "OWNER_REJECTS_MOCK_REQUIRES_ACTUAL_FIREBASE_AUTH_INTEGRATION",
+    "pr": 964,
+    "branch": "feat/d173-launcher-session-poc-20261113",
+    "owner_request": "Build genuine Firebase Auth integration and real login/logout field test using separate Launcher and test-client APKs, absolutely without modifying Production",
+    "supersedes": "d173_launcher_identity_isolated_poc_20261113 LOCAL_MOCK_ONLY",
+    "evidence": {
+      "repository_main_scope": "ops/project-scope.json",
+      "firebase_live_project_id": "supra-inventory-beta",
+      "qa_project_registered": false,
+      "related_scope_doc": "experiments/d173-launcher-session-poc/FIREBASE_REAL_TEST_SCOPE.md",
+      "source_receipt": {
+        "run_id": 43353330048,
+        "url": "https://github.com/tamnv2/supra-inventory/actions/runs/43353330048",
+        "source_sha": "49a27c3d16bd49a8cd93f496b64cb15da86f4519",
+        "conclusion": "SUCCESS",
+        "artifact_id": 14004384190,
+        "artifact_name": "d173-firebase-identity-session-poc-debug-pair",
+        "artifact_size_bytes": 16027852,
+        "expires_utc": "2026-11-20T02:39:04Z",
+        "guards": [
+          "Repo Authority Guard PASS",
+          "Project State Guard PASS",
+          "D173 D172 Business Isolation Guard PASS",
+          "isolated both-APK debug signature match PASS",
+          "dedicated Firebase project and one-time grant backend source/unit tests PASS"
+        ]
+      }
+    },
+    "implemented_source": [
+      "Firebase SDK in independent Launcher and client packages, project ID strictly only supra-d173-poc-*",
+      "Firebase test backend open/grant/redeem/logout authority, short-lived single-use grants, Firebase Admin custom token per UID/session generation, revocation records",
+      "Client Firebase signInWithCustomToken, UID+generation verification, Firestore revocation listener and foreground AuthStateListener",
+      "Launcher Firebase QA first-time email/password enrollment; subsequent recognized test code still requires active Firebase SDK auth",
+      "Old mock replaced in source; legacy mock CI receipts retained only for history"
+    ],
+    "security": [
+      "No hard-coded shared default password; user code alone cannot prove identity",
+      "No deployment or network changes to Production; test APK Firebase configuration absent unless dedicated project provisioned",
+      "No Production global Firebase user token revocation",
+      "No test provider resource mutated: project not yet registered in project scope"
+    ],
+    "technical_receipt": {
+      "run_id": 43353330048,
+      "url": "https://github.com/tamnv2/supra-inventory/actions/runs/43353330048",
+      "source_sha": "49a27c3d16bd49a8cd93f496b64cb15da86f4519",
+      "conclusion": "SUCCESS",
+      "artifact_id": 14004384190,
+      "artifact_name": "d173-firebase-identity-session-poc-debug-pair",
+      "artifact_size_bytes": 16027852,
+      "expires_utc": "2026-11-20T02:39:04Z",
+      "guards": [
+        "Repo Authority Guard PASS",
+        "Project State Guard PASS",
+        "D173 D172 Business Isolation Guard PASS",
+        "isolated both-APK debug signature match PASS",
+        "dedicated Firebase project and one-time grant backend source/unit tests PASS"
+      ]
+    },
+    "current_status": "SOURCE_AND_BUILD_CI_PASS__FIREBASE_QA_PROJECT_NOT_PROVISIONED__BACKEND_NOT_DEPLOYED__FIELD_NOT_TESTED",
+    "code": "PASS_SOURCE_BUILD",
+    "ci": "PASS",
+    "qa_deployment": "BLOCKED_MISSING_DEDICATED_REGISTERED_FIREBASE_PROJECT_AND_PROVIDER_ACCESS",
+    "production_release": "NOT_AUTHORIZED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "next_gate": "Owner authorizes/registers dedicated QA Firebase project; provider provisioning, synthetic QA account, QA backend/rules deployment, configured paired APK build, PDA physical UID/session/logout proof",
+    "cross_poc_limit": "The current CI built binaries with no Firebase project credentials, so they intentionally fail closed; no live Firebase SSO pass"
   }
 }
