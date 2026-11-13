@@ -1,0 +1,54 @@
+name: D173 E247 Web3317 Accounts Contractor Source CI
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'service/src/core.ts'
+      - 'service/src/user-management-api.ts'
+      - 'service/src/user-management-core.ts'
+      - 'tests/d173-e247-web3317-contractors-roster.test.mjs'
+      - 'ops/project-state.json'
+      - 'ops/change-continuity/D173.json'
+      - '.github/workflows/d173-e247-web3317-source.yml'
+permissions:
+  contents: read
+jobs:
+  d173-e247-web-source:
+    if: contains(github.head_ref, 'd173-e247-web3317')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: E247 and current Web regression
+        run: |
+          node --test tests/d173-e247-web3317-contractors-roster.test.mjs \
+            tests/d173-e242-web3316-ui-consistency.test.mjs \
+            tests/d173-e237-web3315-global-layout.test.mjs \
+            tests/d173-e233-web3314-cache-scroll.test.mjs \
+            tests/d173-e230-web3313-field-density.test.mjs \
+            tests/d173-e227-web3312-eight-ui.test.mjs \
+            tests/d169-pickpack-hr-rights.test.mjs
+      - name: Web TypeScript and Vite build (no deployment)
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run build
+      - name: Worker TypeScript check (no deployment)
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run typecheck
+      - name: Shared DO D172 isolation + unchanged functional contracts
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: Owner E249 Web3317 exact-source release preflight (no deploy)
+        run: |
+          python3 tools/d173_e249_web3317_release_gate.py --component worker --preflight
+          python3 tools/d173_e249_web3317_release_gate.py --component web --preflight
+      - name: Source-only boundary
+        run: echo "D173_E247_WEB3317_CODE_ONLY__NO_PRODUCTION_RELEASE__D172_HOLD"

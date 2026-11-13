@@ -55,7 +55,7 @@ test("E242 shift visual cleanup retains operational data", () => {
   assert.ok(web.includes("getAndroidAlertWindow"));
 });
 
-test("E242 Web version is code-only 3.3.16", () => {
-  assert.ok(version.includes('WEB_VERSION = "3.3.16"'));
-  assert.equal(pkg.version, "3.3.16");
+test("E242 Web version is code-only 3.3.17", () => {
+  assert.ok(version.includes('WEB_VERSION = "3.3.17"'));
+  assert.equal(pkg.version, "3.3.17");
 });

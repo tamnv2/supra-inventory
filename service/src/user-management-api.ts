@@ -223,6 +223,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   const url = new URL(request.url);
   const supported = new Set([
     "GET /api/admin/users", "POST /api/admin/users", "PATCH /api/admin/users",
+    "GET /api/admin/contractors", "POST /api/admin/contractors",
     "PUT /api/admin/users/password", "POST /api/admin/users/delete", "POST /api/admin/pickers/bulk",
     "PUT /api/admin/hr-source-v2", "POST /api/admin/hr-sync/preview", "POST /api/admin/hr-sync/apply",
     "POST /api/admin/hr-web/preview", "POST /api/admin/hr-web/apply",
@@ -236,6 +237,17 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
     for (const name of ["query","role","status","shortage_reporting","limit","offset"]) if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     if (user.role === "PICKPACK_ADMIN") params.set("role", "PICKER");
     return core(env).fetch(`https://inventory-core.internal/admin/users?${params.toString()}`);
+  }
+  if (key === "GET /api/admin/contractors") {
+    return core(env).fetch("https://inventory-core.internal/admin/contractors");
+  }
+  if (key === "POST /api/admin/contractors") {
+    const body = await bodyObject(request);
+    return core(env).fetch("https://inventory-core.internal/admin/contractors", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...body, actor: actor(user) }),
+    });
   }
   if (key === "POST /api/admin/users") {
     const body = await bodyObject(request);

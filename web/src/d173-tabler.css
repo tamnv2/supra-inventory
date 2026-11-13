@@ -299,3 +299,103 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
   .d173-tabler-shell .report-workspace .d173-report-date .compact-date-range { flex-wrap:wrap; }
   .d173-tabler-shell .report-workspace .report-filter-detail { grid-template-columns:1fr !important; }
 }
+
+/* D173-E247: remove nested report frame, tighten header/date controls and account density. */
+.d173-tabler-shell .report-workspace { max-width:none; width:100%; margin:0; }
+.d173-tabler-shell .users-workspace .users-list-summary[hidden] { display:none !important; }
+.d173-tabler-shell .users-workspace .contractor-create-form { display:flex; gap:7px; align-items:end; margin-bottom:8px; }
+.d173-tabler-shell .users-workspace .contractor-create-form label { flex:1; }
+.d173-tabler-shell .users-workspace .contractor-create-form :is(input,button) { min-height:34px; height:34px; }
+.d173-tabler-shell .users-workspace .contractor-catalog-table { max-height:none; }
+.d173-tabler-shell .users-workspace .contractor-catalog-table :is(th,td) { padding:5px 8px !important; vertical-align:middle; }
+.d173-tabler-shell .users-workspace .contractor-catalog-table button { min-height:32px; padding:5px 9px; }
+.d173-tabler-shell .users-workspace .contractor-catalog-table form { margin:0; }
+
+@media (min-width:781px) {
+  .d173-tabler-shell > .d173-page-content:has(.report-workspace) {
+    padding:4px 6px 10px !important;
+  }
+  .d173-tabler-shell .report-workspace {
+    border:0;
+    border-radius:0;
+    background:transparent;
+  }
+  .d173-tabler-shell .report-workspace > .d173-report-content {
+    padding:4px 0 12px;
+  }
+}
+.d173-tabler-shell .report-workspace .d173-report-toolbar {
+  gap:5px;
+  padding:2px 0 4px;
+}
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-range {
+  gap:3px;
+}
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-presets {
+  display:flex;
+  align-items:center;
+  gap:4px !important;
+  margin-left:5px !important;
+}
+.d173-tabler-shell .report-workspace .d173-report-date .compact-date-presets .btn {
+  min-width:0 !important;
+  padding:4px 9px !important;
+}
+.d173-tabler-shell .users-workspace .users-list-summary {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px 16px;
+  padding:6px 8px;
+  font-size:12px;
+  color:var(--pro-muted,#637083);
+}
+.d173-tabler-shell .users-workspace .users-list-summary strong { color:var(--pro-text,#142033); }
+.d173-tabler-shell .users-workspace .users-filter-panel { padding:7px 8px !important; }
+.d173-tabler-shell .users-workspace .users-filter-panel > .ops-panel-title { margin-bottom:5px; }
+.d173-tabler-shell .users-workspace .users-filter-form {
+  display:grid;
+  grid-template-columns:minmax(220px,2fr) repeat(3,minmax(120px,1fr)) auto;
+  gap:6px;
+  align-items:end;
+}
+.d173-tabler-shell .users-workspace .users-filter-form .span { grid-column:auto; }
+.d173-tabler-shell .users-workspace .users-filter-form :is(input,select,button) {
+  min-height:34px !important;
+  height:34px !important;
+}
+.d173-tabler-shell .users-workspace .users-filter-form .ops-form-actions { margin:0; }
+.d173-tabler-shell .users-workspace .ops-users-panel { padding:7px 8px !important; }
+.d173-tabler-shell .users-workspace .users-list-title { margin-bottom:4px; }
+.d173-tabler-shell .users-workspace .ops-users-panel > .table-wrap {
+  max-height:none !important;
+  overflow:visible !important;
+}
+.d173-tabler-shell .users-workspace .ops-users-table :is(th,td) {
+  padding:5px 7px !important;
+  vertical-align:middle;
+}
+.d173-tabler-shell .users-workspace .ops-users-table .tiny {
+  margin-top:1px;
+  line-height:1.2;
+}
+.d173-tabler-shell .users-workspace .users-list-foot {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:6px;
+  color:var(--pro-muted,#637083);
+  font-size:12px;
+}
+.d173-tabler-shell .users-workspace .users-list-foot button { min-height:32px; padding:5px 9px; }
+@media (max-width:1100px) {
+  .d173-tabler-shell .users-workspace .users-filter-form {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .d173-tabler-shell .users-workspace .users-filter-form .span { grid-column:1 / -1; }
+}
+@media (max-width:780px) {
+  .d173-tabler-shell .users-workspace .users-filter-form { grid-template-columns:1fr; }
+  .d173-tabler-shell .users-workspace .users-filter-form .span { grid-column:auto; }
+}

@@ -43,7 +43,7 @@ test("8. Tabs, date and SKU filter stay inside one sticky vertical scroll toolba
   assert.match(web, /<input type="date" id="recent-day"/);
   assert.match(web, /<input id="ops-sku-suffix"/);
 });
-test("Web 3.3.16 source candidate, no data-layer change", () => {
-  assert.match(version, /WEB_VERSION = "3\.3\.16"/);
-  assert.equal(pkg.version, "3.3.16");
+test("Web 3.3.17 source candidate, no data-layer change", () => {
+  assert.match(version, /WEB_VERSION = "3\.3\.17"/);
+  assert.equal(pkg.version, "3.3.17");
 });

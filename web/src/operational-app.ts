@@ -64,6 +64,8 @@ import {
   importSkuChunk,
   importSkuFullReplace,
   listManagedUsers,
+  listContractors,
+  changeContractor,
   loginWithPassword,
   logoutInteractiveSession,
   requestPasswordReset,
@@ -96,6 +98,7 @@ import {
   type HrSyncPreview,
   type HrEventSyncState,
   type ManagedUser,
+  type ContractorItem,
   type OperationalInsights,
   type PdaAppRelease,
   type RealtimePresence,
@@ -615,9 +618,14 @@ let userShortageReporting = "";
 let userOffset = 0;
 let userTotal = 0;
 let allPickerSelection = false;
-const USER_PAGE_SIZE = 50;
+const USER_FETCH_PAGE_SIZE = 200;
+const USER_ROSTER_TTL_MS = 120_000;
+let userRosterCache: { scope: string; loadedAt: number; items: ManagedUser[] } | null = null;
 let usersBulkMode = false;
-let usersView: "list" | "create" | "import" = "list";
+let usersView: "list" | "create" | "import" | "contractors" = "list";
+let contractors: ContractorItem[] = [];
+let contractorsLoaded = false;
+let editingContractor: string | null = null;
 let usersGlobalTargetCount: number | null = null;
 let editUserId: string | null = null;
 let passwordUserId: string | null = null;
@@ -1979,6 +1987,17 @@ function renderSku(): string {
       <article class="business-summary-card"><span>Thay đổi danh mục gần nhất</span><strong class="sku-summary-time">${esc(updatedAt)}</strong></article>
     </section>
     ${!todayReady ? `<p class="notice warning">${esc(skuCatalogInfo?.sku_day_warning || "Chưa xác nhận danh mục SKU hôm nay.")}</p>` : ""}
+    <details id="sku-import-details" class="ops-panel sku-import-details" ${skuExcelExpanded || wb ? "open" : ""}>
+      <summary><strong>Cập nhật danh mục từ Excel</strong></summary>
+      <div class="sku-import-inner">
+        <p class="ops-note">SKU trùng tên cần xác nhận; Khu vực để trống sẽ giữ vị trí cũ.</p>
+        <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx"/></label></div>
+        <label class="ops-note"><input type="checkbox" id="sku-full-replace" ${skuImportFullReplace ? "checked" : ""} ${profile?.role !== "ROOT" && profile?.role !== "ADMIN" ? "disabled" : ""}/> Thay toàn bộ danh mục SKU hiệu lực: SKU không có trong file sẽ bị ẩn, không xóa SKU hoặc lịch sử. Mặc định không bật (PATCH).</label>
+        ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : '<div class="ops-note">Chưa xác nhận thì không ghi dữ liệu.</div>'}
+        ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU hợp lệ</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
+        ${wb && !wb.conflicts.length ? `<div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div>` : ""}
+      </div>
+    </details>
     <article class="ops-panel sku-provenance-panel">
       <div class="ops-panel-title"><div><h3>Nhật ký cập nhật theo nguồn</h3></div></div>
       <div class="sku-provenance-grid">
@@ -2004,17 +2023,6 @@ function renderSku(): string {
       </tbody></table></div>
       <div class="user-pagination sku-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${skuAdminTotal.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " phù hợp" : ""}</span><div><button class="secondary" id="sku-prev" ${skuAdminOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="sku-next" ${skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
-    <details id="sku-import-details" class="ops-panel sku-import-details" ${skuExcelExpanded || wb ? "open" : ""}>
-      <summary><strong>Cập nhật danh mục từ Excel</strong></summary>
-      <div class="sku-import-inner">
-        <p class="ops-note">SKU trùng tên cần xác nhận; Khu vực để trống sẽ giữ vị trí cũ.</p>
-        <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx"/></label></div>
-        <label class="ops-note"><input type="checkbox" id="sku-full-replace" ${skuImportFullReplace ? "checked" : ""} ${profile?.role !== "ROOT" && profile?.role !== "ADMIN" ? "disabled" : ""}/> Thay toàn bộ danh mục SKU hiệu lực: SKU không có trong file sẽ bị ẩn, không xóa SKU hoặc lịch sử. Mặc định không bật (PATCH).</label>
-        ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : '<div class="ops-note">Chưa xác nhận thì không ghi dữ liệu.</div>'}
-        ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU hợp lệ</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
-        ${wb && !wb.conflicts.length ? `<div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div>` : ""}
-      </div>
-    </details>
     ${wb?.conflicts.length ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xử lý SKU trùng mã khác tên</h3></div></div><div class="ops-form-grid">${wb.conflicts.map(conflict => `<label class="span">${esc(conflict.sku)}<select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map(candidate => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></label>`).join("")}</div><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div></article>` : ""}
   </section>`;
 }
@@ -2056,12 +2064,12 @@ function renderUserBulkToolbar(canLifecyclePickerBulk: boolean): string {
   const managedActions = managedCount && profile?.role === "ROOT" && profile?.base_role === "ROOT"
     ? '<button class="danger" id="delete-selected-managed">Xóa ' + managedCount + ' tài khoản quản lý</button>' : '';
   return '<div class="user-bulk-bar user-bulk-contextual"><div class="user-bulk-select">' +
-    '<button type="button" class="secondary" id="select-page-pickers">Chọn Picker trang này</button>' +
+    '<button type="button" class="secondary" id="select-page-pickers">Chọn Picker trong danh sách</button>' +
     '<button type="button" class="secondary" id="select-all-global-pickers">Chọn toàn bộ Picker hệ thống</button>' +
     '<button type="button" class="secondary" id="users-exit-selection">Thoát chọn</button></div>' +
     pickerActions + managedActions + '<span id="user-selection-status">' + esc(
       managedCount ? managedCount + ' tài khoản quản lý đã chọn' :
-      allPickerSelection ? pickerCount + ' Picker toàn hệ thống đã chọn' : pickerCount + ' Picker đã chọn trên trang'
+      allPickerSelection ? pickerCount + ' Picker toàn hệ thống đã chọn' : pickerCount + ' Picker đã chọn trong danh sách'
     ) + '</span></div>';
 }
 
@@ -2070,12 +2078,11 @@ function renderUsers(): string {
   const canCreateReporter = profile?.role === "ROOT" || profile?.role === "ADMIN";
   const canCreateManaged = canCreateAdmin || canCreateReporter;
   if ((usersView === "create" && !canCreateManaged) ||
-      (usersView === "import" && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || ""))) {
+      (["import", "contractors"].includes(usersView) && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || ""))) {
     usersView = "list";
   }
   const canLifecyclePickerBulk = profile?.role === "ADMIN" || profile?.role === "ROOT";
-  const pageStart = userTotal ? userOffset + 1 : 0;
-  const pageEnd = Math.min(userOffset + managedUsers.length, userTotal);
+
   const activeCount = managedUsers.filter((user) => user.status === "ACTIVE").length;
   const pickerCount = managedUsers.filter((user) => user.role === "PICKER").length;
   const reporterCount = managedUsers.filter((user) => user.role === "REPORTER").length;
@@ -2087,12 +2094,13 @@ function renderUsers(): string {
       <button type="button" role="tab" class="workspace-tab ${usersView === "list" ? "active" : ""}" data-users-mode="list" aria-selected="${usersView === "list"}">Danh sách tài khoản</button>
       ${canCreateManaged ? `<button type="button" role="tab" class="workspace-tab ${usersView === "create" ? "active" : ""}" data-users-mode="create" aria-selected="${usersView === "create"}">Thêm tài khoản</button>` : ""}
       ${["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "") ? `<button type="button" role="tab" class="workspace-tab ${usersView === "import" ? "active" : ""}" data-users-mode="import" aria-selected="${usersView === "import"}">Thêm Picker / Excel</button>` : ""}
+      ${rolePickPackManage() ? `<button type="button" role="tab" class="workspace-tab ${usersView === "contractors" ? "active" : ""}" data-users-mode="contractors" aria-selected="${usersView === "contractors"}">Danh mục nhà thầu</button>` : ""}
     </div>
-    <section class="business-summary-grid" ${usersView === "list" ? "" : "hidden"}>
-      <article class="business-summary-card primary"><span>Tài khoản phù hợp</span><strong>${userTotal.toLocaleString("vi-VN")}</strong><small>Theo bộ lọc hiện tại</small></article>
-      <article class="business-summary-card good"><span>Hoạt động trên trang</span><strong>${activeCount}</strong><small>Trong ${managedUsers.length} tài khoản trên trang</small></article>
-      <article class="business-summary-card"><span>Picker / Người xử lý</span><strong>${pickerCount} / ${reporterCount}</strong><small>Chỉ trang hiện tại</small></article>
-    </section>
+    <div class="users-list-summary" ${usersView === "list" ? "" : "hidden"}>
+      <span><strong>${userTotal.toLocaleString("vi-VN")}</strong> tài khoản phù hợp</span>
+      <span>${activeCount} đang hoạt động</span>
+      <span>${pickerCount} Picker · ${reporterCount} người xử lý</span>
+    </div>
     <div class="users-top-grid">
       <article class="ops-panel users-create-panel" ${usersView === "create" && canCreateManaged ? "" : "hidden"}>
         <div class="ops-panel-title"><h3>Tạo tài khoản</h3></div>
@@ -2116,11 +2124,27 @@ function renderUsers(): string {
         </form>
       </article>
     </div>
-    ${usersView === "import" && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true) : ""}
+    ${usersView === "import" && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true, contractors.map((item) => item.name)) : ""}
+    ${usersView === "contractors" ? `<article class="ops-panel contractor-catalog-panel">
+      <div class="ops-panel-title"><div><h3>Danh mục nhà thầu</h3></div><span>${contractors.length} nhà thầu</span></div>
+      <form id="contractor-create-form" class="contractor-create-form">
+        <label>Thêm nhà thầu<input name="name" required maxlength="200" placeholder="Tên nhà thầu mới" autocomplete="off"/></label>
+        <button class="primary" type="submit">Thêm</button>
+      </form>
+      <div class="table-wrap contractor-catalog-table"><table><thead><tr><th>Nhà thầu</th><th>Picker</th><th>Thao tác</th></tr></thead><tbody>
+        ${contractors.map((item) => `<tr><td>${editingContractor === item.name ? `<form id="contractor-edit-form"><input name="name" value="${esc(item.name)}" required maxlength="200" aria-label="Tên nhà thầu mới"/></form>` : `<strong>${esc(item.name)}</strong>`}</td>
+          <td>${item.picker_count.toLocaleString("vi-VN")}</td>
+          <td>${editingContractor === item.name
+            ? '<button class="secondary" type="submit" form="contractor-edit-form">Lưu</button> <button class="secondary" type="button" id="contractor-cancel-edit">Hủy</button>'
+            : `<button type="button" class="secondary" data-contractor-edit="${esc(item.name)}" ${item.picker_count > 0 ? "disabled title='Đang có Picker thuộc nhà thầu'" : ""}>Sửa</button> <button type="button" class="secondary" data-contractor-delete="${esc(item.name)}" ${item.picker_count > 0 ? "disabled title='Đang có Picker thuộc nhà thầu'" : ""}>Xóa</button>`}
+          </td></tr>`).join("") || '<tr><td colspan="3">Chưa có nhà thầu.</td></tr>'}
+      </tbody></table></div>
+      <p class="ops-note">Nhà thầu đã có Picker: giữ nguyên dữ liệu và chặn sửa/xóa. Có thể bổ sung nhà thầu từ Excel đã xác nhận.</p>
+    </article>` : ""}
     <article class="ops-panel ops-users-panel" ${usersView === "list" ? "" : "hidden"}>
-      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
+      <div class="ops-panel-title users-list-title"><strong>Danh sách tài khoản</strong><span>${userTotal.toLocaleString("vi-VN")} kết quả</span></div>
       ${renderUserBulkToolbar(canLifecyclePickerBulk)}
-      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Nhân viên</th>${hasVisiblePicker ? "<th>Báo hàng</th>" : ""}<th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Nhân viên</th>${hasVisiblePicker ? "<th>Báo hàng</th>" : ""}<th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
@@ -2154,10 +2178,10 @@ function renderUsers(): string {
           const reporting = isPicker
             ? `<span class="badge ${user.shortage_reporting_enabled !== false ? "good" : "closed"}">${user.shortage_reporting_enabled !== false ? "Đang bật" : "Đang tắt"}</span>`
             : "—";
-          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b><div class="tiny">${esc(user.display_name)}</div>${isPicker && contractor !== "—" ? `<small class="muted">${esc(contractor)}</small>` : ""}</td>${hasVisiblePicker ? `<td>${reporting}</td>` : ""}<td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${user.last_login_at ? `${esc(fmt(user.last_login_at))}<div class="tiny muted">${esc(user.last_login_channel || "")}</div>` : "Chưa ghi nhận"}</td><td>${actions}</td></tr>`;
-        }).join("") : `<tr><td colspan="${hasVisiblePicker ? 7 : 6}" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
+          return `<tr><td class="user-select-col">${selectable}</td><td title="${esc(user.last_login_at ? `Đăng nhập: ${fmt(user.last_login_at)} · ${user.last_login_channel || ""}` : "Chưa ghi nhận đăng nhập")}"><b>${esc(user.employee_code || user.user_id)}</b><div class="tiny">${esc(user.display_name)}</div>${isPicker && contractor !== "—" ? `<small class="muted">${esc(contractor)}</small>` : ""}</td>${hasVisiblePicker ? `<td>${reporting}</td>` : ""}<td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${actions}</td></tr>`;
+        }).join("") : `<tr><td colspan="${hasVisiblePicker ? 6 : 5}" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
       </tbody></table></div>
-      <div class="user-pagination"><span>Trang hiển thị ${pageStart}–${pageEnd}</span><div><button class="secondary" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
+      <div class="users-list-foot"><span>Toàn bộ ${userTotal.toLocaleString("vi-VN")} tài khoản phù hợp</span><button type="button" class="secondary" id="users-refresh-list">Làm mới danh sách</button></div>
     </article>
   </section>`;
 }
@@ -4343,44 +4367,59 @@ async function loadSkuWorkspace(): Promise<void> {
   markWebUpdateReceived();
 }
 
-async function loadUsers(): Promise<void> {
+async function loadContractors(force = false): Promise<void> {
+  if (contractorsLoaded && !force) return;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const response = await listContractors();
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  contractors = response.items;
+  contractorsLoaded = true;
+}
+
+async function loadUsers(force = false): Promise<void> {
   const allowedRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
     profile?.role === "ADMIN" ? ["PICKER", "REPORTER", "OBPP_COORDINATOR"] :
     ["PICKER", "REPORTER", "OBPP_COORDINATOR", "PICKPACK_ADMIN", "ADMIN"];
   if (profile?.role === "PICKPACK_ADMIN" && userRole !== "PICKER") {
-    userRole = "PICKER"; userOffset = 0;
+    userRole = "PICKER";
   } else if (userRole && !allowedRoles.includes(userRole)) {
-    userRole = ""; userOffset = 0;
+    userRole = "";
   }
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const result = await listManagedUsers({
-    query: userQuery,
-    role: userRole,
-    status: userStatus,
-    shortageReporting: userShortageReporting,
-    limit: USER_PAGE_SIZE,
-    offset: userOffset,
-  });
-  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-  if (result.total > 0 && userOffset >= result.total) {
-    userOffset = Math.max(0, Math.floor((result.total - 1) / USER_PAGE_SIZE) * USER_PAGE_SIZE);
-    const retry = await listManagedUsers({
-      query: userQuery,
-      role: userRole,
-      status: userStatus,
-      shortageReporting: userShortageReporting,
-      limit: USER_PAGE_SIZE,
-      offset: userOffset,
-    });
-    if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-    managedUsers = retry.items;
-    userTotal = retry.total;
-    markWebUpdateReceived();
-    return;
+  const scope = [userId, profile?.role, profile?.base_role].join(":");
+  if (force || !userRosterCache || userRosterCache.scope !== scope ||
+      Date.now() - userRosterCache.loadedAt > USER_ROSTER_TTL_MS) {
+    const items: ManagedUser[] = [];
+    let total = 0;
+    for (let offset = 0; offset === 0 || offset < total; offset += USER_FETCH_PAGE_SIZE) {
+      const page = await listManagedUsers({ limit: USER_FETCH_PAGE_SIZE, offset });
+      if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+      if (offset === 0) total = page.total;
+      if (page.total !== total || (offset < total && !page.items.length)) {
+        throw new Error("Danh sách tài khoản thay đổi khi tải. Hãy làm mới lại.");
+      }
+      items.push(...page.items);
+    }
+    if (items.length !== total || new Set(items.map((user) => user.user_id)).size !== total) {
+      throw new Error("Danh sách tài khoản chưa đầy đủ. Hãy làm mới lại.");
+    }
+    userRosterCache = { scope, loadedAt: Date.now(), items };
   }
-  managedUsers = result.items;
-  userTotal = result.total;
+  const query = userQuery.trim().toLocaleLowerCase("vi-VN");
+  managedUsers = userRosterCache.items.filter((user) => {
+    if (userRole && user.role !== userRole) return false;
+    if (userStatus && user.status !== userStatus) return false;
+    if (userShortageReporting) {
+      if (user.role !== "PICKER" ||
+          (user.shortage_reporting_enabled !== false) !== (userShortageReporting === "ENABLED")) return false;
+    }
+    if (!query) return true;
+    return [user.employee_code, user.display_name, user.contractor_name, user.user_id]
+      .some((value) => String(value || "").toLocaleLowerCase("vi-VN").includes(query));
+  });
+  userTotal = managedUsers.length;
   markWebUpdateReceived();
 }
 
@@ -4562,9 +4601,14 @@ async function loadSection(section: Section): Promise<void> {
     hrEventSync = profile.role === "ADMIN" || profile.role === "ROOT"
       ? await getHrEventSyncState()
       : null;
+    await loadContractors();
     received = true;
   }
-  else if (section === "users" && rolePickPackManage()) { await loadUsers(); received = true; }
+  else if (section === "users" && rolePickPackManage()) {
+    await loadUsers();
+    if (usersView === "import" || usersView === "contractors") await loadContractors();
+    received = true;
+  }
   else if (section === "sla" && roleManage()) { await loadSla(); received = true; }
   else if (section === "dashboard" && rolePickPackManage()) { await loadDashboard(); received = true; }
   else if (section === "reports" && rolePickPackManage()) { await loadReports(); received = true; }
@@ -4626,6 +4670,8 @@ function bindShell(): void {
       invalidateRecentViewCache();
       runtimeLogEvent("Đăng xuất");
       clearSession();
+      userRosterCache = null;
+      contractors = []; contractorsLoaded = false;
       profile = null;
       notice = null;
       queueRows = [];
@@ -4822,7 +4868,7 @@ function bindOverlay(): void {
     void run(async () => {
       await updateManagedUser(userId, displayName, status, authEmail, role);
       editUserId = null;
-      await loadUsers();
+      await loadUsers(true);
       setNotice("success", "Đã cập nhật tài khoản.");
     });
   });
@@ -4836,7 +4882,7 @@ function bindOverlay(): void {
     void run(async () => {
       await setManagedUserPassword(userId, password);
       passwordUserId = null;
-      await loadUsers();
+      await loadUsers(true);
       setNotice("success", "Đã đổi mật khẩu tài khoản.");
     });
   });
@@ -5369,11 +5415,12 @@ function bindSection(): void {
     const rows = hrWebRows, preview = hrWebPreview;
     await applyHrWebInput(rows, preview, changed > 0);
     const applied = rows.length;
+    contractorsLoaded = false;
     if (seq === hrWebRequestSeq) {
       hrWebRows = []; hrWebPreview = null; hrWebFilename = "";
     }
     usersView = "list"; userOffset = 0; userQuery = ""; userRole = ""; userStatus = ""; userShortageReporting = "";
-    await loadUsers();
+    await loadUsers(true);
     patchActiveSection(false);
     setNotice("success", `Đã ghi nhận ${applied} Picker. Dữ liệu không có trong file được giữ nguyên.`);
   }));
@@ -5435,7 +5482,7 @@ function bindSection(): void {
       );
       usersView = "list";
       userOffset = 0; userQuery = ""; userRole = ""; userStatus = ""; userShortageReporting = "";
-      await loadUsers();
+      await loadUsers(true);
       setNotice("success", "Đã tạo tài khoản.");
     });
   });
@@ -5455,12 +5502,55 @@ function bindSection(): void {
   });
   document.querySelectorAll<HTMLButtonElement>("[data-users-mode]").forEach(button => button.addEventListener("click", () => {
     const next = button.dataset.usersMode;
-    if (!["list", "create", "import"].includes(next || "")) return;
+    if (!["list", "create", "import", "contractors"].includes(next || "")) return;
     if (next === "create" && !["ADMIN", "ROOT"].includes(profile?.role || "")) return;
     if (next === "import" && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "")) return;
+    if (next === "contractors" && !rolePickPackManage()) return;
     if (next === usersView) return;
     usersView = next as typeof usersView;
+    if (next === "import" || next === "contractors") void run(async () => { await loadContractors(); patchActiveSection(false); });
+    else patchActiveSection(false);
+  }));
+  document.querySelector<HTMLFormElement>("#contractor-create-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = String(new FormData(event.currentTarget as HTMLFormElement).get("name") || "").trim();
+    if (!name) return;
+    void run(async () => {
+      await changeContractor("CREATE", name);
+      await loadContractors(true);
+      patchActiveSection(false);
+      setNotice("success", "Đã thêm nhà thầu.");
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-contractor-edit]").forEach((button) => button.addEventListener("click", () => {
+    editingContractor = button.dataset.contractorEdit || null;
     patchActiveSection(false);
+  }));
+  document.querySelector<HTMLFormElement>("#contractor-edit-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const previous = editingContractor;
+    const name = String(new FormData(event.currentTarget as HTMLFormElement).get("name") || "").trim();
+    if (!previous || !name) return;
+    void run(async () => {
+      await changeContractor("RENAME", name, previous);
+      editingContractor = null;
+      await loadContractors(true);
+      patchActiveSection(false);
+      setNotice("success", "Đã sửa nhà thầu.");
+    });
+  });
+  document.querySelector<HTMLButtonElement>("#contractor-cancel-edit")?.addEventListener("click", () => {
+    editingContractor = null; patchActiveSection(false);
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-contractor-delete]").forEach((button) => button.addEventListener("click", () => {
+    const name = button.dataset.contractorDelete || "";
+    if (!name || !window.confirm("Xóa nhà thầu " + name + "?")) return;
+    void run(async () => {
+      await changeContractor("DELETE", name);
+      await loadContractors(true);
+      patchActiveSection(false);
+      setNotice("success", "Đã xóa nhà thầu.");
+    });
   }));
   document.querySelector<HTMLButtonElement>("#users-enable-selection")?.addEventListener("click", () => {
     usersBulkMode = true; patchActiveSection();
@@ -5511,7 +5601,7 @@ function bindSection(): void {
     void run(async () => {
       const result = await deleteManagedUsers(ids);
       selectedManagedUserIds.clear();
-      await loadUsers();
+      await loadUsers(true);
       setNotice("success", `Đã xóa ${result.affected} tài khoản.`);
     });
   });
@@ -5535,7 +5625,7 @@ function bindSection(): void {
       selectedManagedUserIds.clear();
       excludedPickerIds.clear();
       allPickerSelection = false; usersGlobalTargetCount = null; usersBulkMode = false;
-      await loadUsers();
+      await loadUsers(true);
       setNotice("success", action === "REPORTING_ENABLE" ? "Đã bật Báo hàng cho Picker." : action === "REPORTING_DISABLE" ? "Đã tắt Báo hàng cho Picker." : "Đã cập nhật Picker.");
     });
   }));
@@ -5550,7 +5640,7 @@ function bindSection(): void {
     if (!window.confirm(label + "? Thao tác áp dụng cho 1 tài khoản đã chọn.")) return;
     void run(async () => {
       await updatePickerAccounts(action, [id], false, [], 1);
-      await loadUsers();
+      await loadUsers(true);
       setNotice("success", "Đã cập nhật tài khoản.");
     });
   }));
@@ -5561,7 +5651,7 @@ function bindSection(): void {
     if (!window.confirm("Xóa tài khoản " + (target.employee_code || target.user_id) + "? Tài khoản này sẽ mất quyền đăng nhập.")) return;
     void run(async () => {
       await deleteManagedUsers([id]);
-      await loadUsers();
+      await loadUsers(true);
       setNotice("success", "Đã xóa tài khoản.");
     });
   }));
@@ -5575,13 +5665,8 @@ function bindSection(): void {
     editUserId = null;
     patchOverlays();
   }));
-  document.querySelector<HTMLButtonElement>("#user-prev")?.addEventListener("click", () => {
-    userOffset = Math.max(0, userOffset - USER_PAGE_SIZE);
-    void run(loadUsers);
-  });
-  document.querySelector<HTMLButtonElement>("#user-next")?.addEventListener("click", () => {
-    userOffset += USER_PAGE_SIZE;
-    void run(loadUsers);
+  document.querySelector<HTMLButtonElement>("#users-refresh-list")?.addEventListener("click", () => {
+    void run(() => loadUsers(true));
   });
 
   document.querySelector<HTMLInputElement>("#skip-delay-setting")?.addEventListener("change", (event) => {
@@ -6027,6 +6112,8 @@ async function bootstrap(): Promise<void> {
     window.dispatchEvent(new CustomEvent("supra:session-changed"));
   } catch (error) {
     clearSession();
+    userRosterCache = null;
+    contractors = []; contractorsLoaded = false;
     profile = null;
     setNotice("error", error instanceof Error ? error.message : "Phiên đăng nhập không hợp lệ.");
     renderLogin();
