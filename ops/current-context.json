@@ -7,30 +7,32 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E258",
-    "pr": 972,
-    "branch": "fix/d173-e257-overview-live-triage-20261113",
-    "status": "OWNER_RELEASE_APPROVED__SCOPED_SOURCE_CI_8_8_PASS__PR972_PROTECTED_MERGE_PENDING__D172_HOLD",
+    "checkpoint_id": "D173-E259",
+    "pr": 973,
+    "branch": "docs/d173-e259-web3319-production-readback-20261113",
+    "status": "WEB3319_PRODUCTION_TECH_EXACT_SHA_PASS_RUN43408214463__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_merge_approved": true,
     "owner_release_approved": true,
-    "source_doc": "docs/D173_E258_WEB3319_RELEASE_AUTHORIZATION_2026-11-13.md",
-    "production_web_version": "3.3.18",
+    "source_doc": "docs/D173_E259_WEB3319_PRODUCTION_READBACK_2026-11-13.md",
+    "production_web_version": "3.3.19",
     "target_web_version": "3.3.19",
     "field_pass": false,
     "owner_pass": false,
     "source_ci_sha": "aa2b50323993246e082824d38518b2d2b9cd139d",
-    "source_ci_run_id": 43375507520,
-    "release_marker": "D173-E253_WEB3318_PRODUCTION_RELEASE:",
-    "source_code_pin": "f214a2fb423acc1a8932d0c1b8a08429c1d3b7d0",
-    "source_main_sha": "a9dd2eb32896134b2ff00b863dce0f53ea54b126",
-    "release_run_id": 43376201506,
-    "release_attempt": 1,
+    "source_ci_run_id": 43406500044,
+    "release_marker": "D173-E258_WEB3319_PRODUCTION_RELEASE:",
+    "source_code_pin": "b462215cda2255864f727cf47c441d103bf568ff",
+    "source_main_sha": "4350481de726cd33746fc634b41ff053a4d557bd",
+    "release_run_id": null,
+    "release_attempt": null,
     "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb",
     "source_sha": "b462215cda2255864f727cf47c441d103bf568ff",
     "ci_source_run_id": 43406500044,
     "code_scoped_pass": true,
     "ci_scoped_pass": true,
-    "ci_global_pass": false
+    "ci_global_pass": false,
+    "production_readback_run_id": 43408214463,
+    "release_technical_pass": true
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -57,14 +59,16 @@
       "host_build": 14
     },
     "web": {
-      "version": "3.3.18",
-      "worker_web_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43376201506",
-      "source_change_id": "D173-E256",
-      "source_main_sha": "a9dd2eb32896134b2ff00b863dce0f53ea54b126",
-      "ci_release": "PASS_PRODUCTION_TECHNICAL_EXACT_SOURCE__ATTEMPT1",
-      "field": "WEB3318_OVERVIEW_FIELD_NOT_PASS_2026_11_13",
+      "version": "3.3.19",
+      "worker_web_run": null,
+      "source_change_id": "D173-E258",
+      "source_main_sha": "4350481de726cd33746fc634b41ff053a4d557bd",
+      "ci_release": "PASS_PRODUCTION_EXACT_SOURCE_BY_READBACK_RUN43408214463__DEPLOY_PUSH_WORKFLOW_RUN_UNVERIFIED",
+      "field": "WEB3319_AUTHENTICATED_HD_HDPLUS_LIGHT_DARK_FIELD_PENDING",
       "owner_pass": "PENDING",
-      "local_user_cache": "AUTHENTICATED_RAM_ONLY_TTL120SEC__NOT_ON_DISK"
+      "local_user_cache": "AUTHENTICATED_RAM_ONLY_TTL120SEC__NOT_ON_DISK",
+      "runtime_readback_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43408214463",
+      "deploy_push_workflow_run": "UNVERIFIED"
     },
     "android": {
       "tag": "beta-vc128",
@@ -73,7 +77,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E251_WEB3317_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md"
+    "receipt": "docs/D173_E259_WEB3319_PRODUCTION_READBACK_2026-11-13.md"
   },
   "d172": {
     "change_id": "D172",
