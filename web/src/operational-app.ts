@@ -42,7 +42,6 @@ import {
   confirmD167Meal,
   editD167Meal,
   getAdminSla,
-  getDashboardPreference,
   getPdaAppRelease,
   getRuntimeLogDetail,
   getRuntimeLogs,
