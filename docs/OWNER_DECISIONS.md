@@ -1,3 +1,8 @@
+## D173 — 13/11/2026: Owner yêu cầu PoC Launcher ↔ app kiểm thử đăng nhập/đăng xuất
+Owner yêu cầu sao chép source tương ứng build Launcher đã phát hành mới nhất `v0.3.26` vào một nhánh Inventory để kiểm thử, làm mờ app khi chưa định danh, hiện nút **Xác nhận định danh** nhận mã nhân viên, đăng nhập/mở khóa, và làm một APK độc lập để xác minh handoff/login/logout mà không sửa APK Báo hàng. Owner nêu phương án mật khẩu dùng chung ẩn; **không được hiểu là cho phép ghi cứng một credential vào APK/repo công khai**. Source hiện tại đòi hỏi username+password; chưa có backend tin cậy cho luồng chỉ nhập mã nhân viên. PoC chỉ mô phỏng mã nhân viên, chứng minh **IPC và đăng xuất đồng bộ** giữa hai APK ký cùng khóa; không khẳng định xác thực tài khoản thực hoặc Firebase SSO. Giữ nguyên Launcher Production, Báo hàng/Agent/Worker, D172 và Stable; không có quyền phát hành Production. Ghi nhận ở `experiments/d173-launcher-session-poc/README.md`, D173 journal và PR riêng.
+
+---
+
 ## D173-E233 — 12/11/2026: Web 3.3.13 FIELD chưa đạt, review cache và vùng cuộn
 Owner báo ba vấn đề sau phát hành: danh sách SKU tải chậm; muốn xem xét cache trên máy; hai thanh cuộn khiến cả vùng nội dung bên phải cuộn; hàng SKU cuối bị che. Đã kiểm tra source `main`: mỗi tab kết quả load đủ page tối đa 200 nhưng chưa có RAM cache đa tab/ngày, layout cùng lúc bật scroll vùng main và table-wrap với height theo viewport. Chưa đo latency thực tế; ảnh chứng minh che dòng, **không chứng minh dữ liệu bị mất**. Owner mới hỏi phương án/hiểu đúng, **chưa có lệnh phát hành bản sửa mới hoặc cấp phép persistent cache dữ liệu nghiệp vụ**. Review theo `docs/D173_E233_WEB3313_FIELD_CACHE_SCROLL_REVIEW_2026-11-12.md`; Web 3.3.13 Production TECH PASS nhưng FIELD chưa PASS; D172 và Stable không thay đổi.
 

@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /poc_sessions/{sessionId} {
+      allow get: if request.auth != null
+        && request.auth.uid == resource.data.uid;
+      allow list, create, update, delete: if false;
+    }
+    match /poc_test_users/{uid} {
+      allow read, write: if false;
+    }
+    match /poc_grants/{grantId} {
+      allow read, write: if false;
+    }
+  }
+}
