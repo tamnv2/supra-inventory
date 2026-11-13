@@ -1,0 +1,57 @@
+name: D173 E259 Web3319 Production readback
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/d173-e259-web3319-readback.yml'
+      - 'docs/D173_E259_WEB3319_PRODUCTION_READBACK_2026-11-13.md'
+permissions:
+  contents: read
+jobs:
+  d173-e259-production-readback:
+    if: contains(github.head_ref, 'd173-e259-web3319-production-readback')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify official registered Worker exact source and SQLite
+        env:
+          EXPECTED_SHA: "4350481de726cd33746fc634b41ff053a4d557bd"
+          HOSTNAME: inventory.supra.cc.cd
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          for attempt in $(seq 1 30); do
+            code="$(curl -sS --connect-timeout 5 --max-time 18 -o "$tmp" -w '%{http_code}' "https://${HOSTNAME}/health" || true)"
+            if [[ "$code" == "200" ]] && jq -e --arg sha "$EXPECTED_SHA" '
+              .status=="ok" and .environment=="beta" and .source_commit==$sha
+              and (.missing_bindings | length)==0
+              and .storage.ok==true
+              and .storage.schema_version==17 and .storage.expected_schema_version==17
+              and .storage.operational_v2.ready==true
+              and .storage.operational_v2.schema_version==7 and .storage.operational_v2.expected_schema_version==7
+              and .oauth_refresh_token_configured==true and .root_bootstrap_secret_configured==true
+            ' "$tmp" >/dev/null 2>&1; then
+              echo "D173_E259_WEB3319_PRODUCTION_EXACT_SHA_STORAGE_PASS $EXPECTED_SHA"
+              exit 0
+            fi
+            echo "Health check attempt $attempt pending (HTTP ${code:-000}); no release PASS yet"
+            sleep 6
+          done
+          echo "::error::D173_E259 Production readback FAILED: exact-source health/schema not established"
+          exit 1
+      - name: Verify public Web shell and protected overview endpoint
+        env:
+          HOSTNAME: inventory.supra.cc.cd
+        run: |
+          set -euo pipefail
+          html="$(mktemp)"; response="$(mktemp)"
+          trap 'rm -f "$html" "$response"' EXIT
+          code="$(curl -sS --connect-timeout 5 --max-time 18 -o "$html" -w '%{http_code}' "https://${HOSTNAME}/")"
+          [[ "$code" == "200" ]] && grep -Fq '<div id="app"></div>' "$html" && grep -Fq 'Website nghiệp vụ Inventory' "$html" || {
+            echo "::error::Web shell smoke FAILED"; exit 1;
+          }
+          status="$(curl -sS --connect-timeout 5 --max-time 18 -o "$response" -w '%{http_code}' "https://${HOSTNAME}/api/admin/overview?from=2026-11-12T17%3A00%3A00Z&to=2026-11-13T17%3A00%3A00Z&day_from=2026-11-13&day_to=2026-11-13")"
+          [[ "$status" == "401" || "$status" == "403" ]] || {
+            echo "::error::Unauthenticated D173 overview should be denied; received HTTP $status"; exit 1;
+          }
+          echo "D173_E259_WEB3319_SHELL_AND_OVERVIEW_AUTH_GUARD_PASS"
