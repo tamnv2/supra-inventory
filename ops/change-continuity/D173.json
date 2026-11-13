@@ -5261,9 +5261,9 @@
     {
       "id": "D173-E257",
       "date_vn": "2026-11-13",
-      "kind": "OWNER_FIELD_FAIL_AND_CODE_CANDIDATE",
+      "kind": "STATUS",
       "topic": "Web3.3.18 overview rejected as reporting-heavy; implement evidence-first single-page Inventory triage",
-      "owner_approval": "CODE_ONLY_REDESIGN_NOT_RELEASE",
+      "owner_approval": true,
       "status": "WEB3318_FIELD_NOT_PASS__PR972_DRAFT_CODE_ONLY__CI_PENDING__RELEASE_HOLD",
       "facts": [
         "Owner FIELD evidence: dashboard only shows aggregate open batch counts, and generic latest 5 outcomes; does not identify affected SKU, area, first report time or waiting duration on the same screen.",
