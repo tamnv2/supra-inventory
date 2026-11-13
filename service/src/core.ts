@@ -213,11 +213,13 @@ export class InventoryCore {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`);
+    // Seed existing Picker contractors before the fast-path return, without rerunning D172 DDL.
+    const seedReady = sql.exec<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('schema_meta','users')",
+    ).toArray().length === 2;
+    if (seedReady) this.seedContractorCatalog();
     this.startupPhase = "schema_readiness";
-    if (this.isExistingSchemaReady()) {
-      this.seedContractorCatalog();
-      return;
-    }
+    if (this.isExistingSchemaReady()) return;
     this.startupPhase = "base_schema_migration";
     sql.exec(`
       PRAGMA foreign_keys = ON;
