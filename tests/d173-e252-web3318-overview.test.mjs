@@ -77,3 +77,21 @@ test("E253 Production workflow preserves 10-slot Web log and D172 Gateway isolat
   assert.match(deploy, /d173_e253_web3318_release_gate\.py --component worker/);
   assert.match(deploy, /D173_E165_WEB_LOG_10_SLOTS_DURABLE_SERVICE_CONTRACT_PASS/);
 });
+
+test("E258 Web3.3.19 release keeps one authorized Worker/DO and the immutable D172 boundary", () => {
+  const gate = readFileSync("tools/d173_e258_web3319_release_gate.py", "utf8");
+  const auth = JSON.parse(readFileSync("ops/d173-e258-web3319-release-authorization.json", "utf8"));
+  assert.equal(auth.owner_production_release_approved, true);
+  assert.equal(auth.web_target_version, "3.3.19");
+  assert.deepEqual(auth.approved_components, ["worker","web"]);
+  assert.equal(auth.d172_pending_hold, true);
+  assert.equal(auth.stable_mutation, false);
+  assert.equal(auth.new_provider_resources, false);
+  assert.equal(deploy.split("D173-E258_WEB3319_PRODUCTION_RELEASE:*").length - 1, 3);
+  assert.match(deploy, /D173_E258_EXISTING_GATEWAY_D172_UNCHANGED__READ_ONLY_D173_OVERVIEW/);
+  assert.match(gate, /SOURCE_DRIFT_AFTER_PIN/);
+  assert.match(gate, /CODE_DRIFT_AFTER_CI/);
+  assert.match(gate, /CROSS_MODULE_OR_PROVIDER_CHANGE/);
+  assert.match(gate, /D173_ONLY_READONLY_ADMIN_OVERVIEW_BOUNDED_TRIAGE/);
+  assert.doesNotMatch(gate, /obpp1291\/src\/.*write/i);
+});
