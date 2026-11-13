@@ -14614,7 +14614,7 @@
     "owner_approval_reference": "OWNER_20261113_E257_FINISH_CODE_AND_RELEASE_WEB3319",
     "base_main_sha": "cfe3a7674b85b410f60297c77920408a971413fb",
     "source_pr": 972,
-    "source_code_sha": "e01f0ca1cb3c4ca00e03fadff6b11d9f1997701e",
+    "source_code_sha": "b462215cda2255864f727cf47c441d103bf568ff",
     "working_branch": "fix/d173-e257-overview-live-triage-20261113",
     "release_marker": "D173-E258_WEB3319_PRODUCTION_RELEASE:",
     "previous_production_web_version": "3.3.18",
