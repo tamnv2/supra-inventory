@@ -17,6 +17,12 @@ RUNTIME = {
 }
 ALLOWED = RUNTIME | {
     "tests/d173-e252-web3318-overview.test.mjs",
+    "tests/d173-e247-web3317-contractors-roster.test.mjs",
+    "tests/d173-e242-web3316-ui-consistency.test.mjs",
+    "tests/d173-e237-web3315-global-layout.test.mjs",
+    "tests/d173-e233-web3314-cache-scroll.test.mjs",
+    "tests/d173-e230-web3313-field-density.test.mjs",
+    "tests/d173-e227-web3312-eight-ui.test.mjs",
     ".github/workflows/d173-e252-web3318-source.yml",
     ".github/workflows/deploy-beta.yml",
     "ops/d173-e253-web3318-release-authorization.json",
