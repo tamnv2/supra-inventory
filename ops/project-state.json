@@ -7627,16 +7627,16 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
     "pr": 968,
-    "latest_checkpoint_id": "D173-E248",
+    "latest_checkpoint_id": "D173-E249",
     "checkpoint_date_vn": "2026-11-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E248_WEB3317_CI_PASS_CODE_ONLY__NO_PRODUCTION_AUTHORIZATION__D172_HOLD",
+    "owner_release_gate": "D173_E249_OWNER_APPROVED_WEB3317_PRODUCTION_AFTER_EXACT_SOURCE_CI__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 968,
     "active_working_branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
-    "working_pr_lifecycle": "PR968_DRAFT_OPEN__WEB3317_SCOPED_CODE_CI_PASS_SOURCE_1D537AD__PRODUCTION_HOLD"
+    "working_pr_lifecycle": "PR968_DRAFT_OPEN__WEB3317_E249_RELEASE_AUTHORIZATION_SOURCE_CI_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14422,5 +14422,28 @@
       43360257741,
       43360257861
     ]
+  },
+  "d173_e249_web3317_owner_release": {
+    "date_vn": "2026-11-13",
+    "owner_instruction": "done code hoàn chỉnh và phát hành 3.3.17",
+    "approved": true,
+    "components": [
+      "worker",
+      "web"
+    ],
+    "scope": "D173 Web3317 layout/accounts + D173 contractor_catalog/API within existing Worker only",
+    "pr": 968,
+    "branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
+    "main_base": "648cbe69d4925aa8a61c7ff978b798711d9e9ab3",
+    "release_marker": "D173-E249_WEB3317_PRODUCTION_RELEASE:",
+    "source_gate": "tools/d173_e249_web3317_release_gate.py",
+    "authorization": "ops/d173-e249-web3317-release-authorization.json",
+    "source_ci": "PENDING_NEW_RUN_AFTER_E249_GATE",
+    "release": "OWNER_AUTHORIZED_PENDING_SOURCE_CI_PROTECTED_MERGE_PRODUCTION_WORKFLOW",
+    "d172": "INDEPENDENT_PENDING_HOLD__SHARED_WORKER_ISOLATION_REQUIRED",
+    "other_clients": "AGENT_ANDROID_FIREBASE_GATEWAY_STABLE_UNCHANGED",
+    "field_pass": false,
+    "owner_pass": false,
+    "local_disk_roster": "NOT_ENABLED_FOR_SENSITIVE_STAFF_DATA__FULL_LIST_IN_SCOPED_RAM_TTL120S"
   }
 }
