@@ -21,6 +21,7 @@
       "id": "D173-E242",
       "date_vn": "2026-11-13",
       "kind": "OWNER_WEB_FIELD_REQUEST_AND_CODE_CANDIDATE",
+      "status": "WEB3316_SOURCE_CODE_CANDIDATE_PR965_DRAFT_CI_PENDING_RELEASE_HOLD",
       "pr": 965,
       "branch": "fix/d173-e242-web3316-ui-consistency-20261113",
       "baseline_main": "bbd922e2f5873586aaa7264038b464b16be0c597",
