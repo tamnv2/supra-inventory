@@ -10,7 +10,7 @@
     "checkpoint_id": "D173-E260",
     "pr": 974,
     "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
-    "status": "WEB3319_FIELD_NOT_PASS__E260_CODE_ONLY_SOURCE_CI_PENDING__PRODUCTION_UNCHANGED__D172_HOLD",
+    "status": "WEB3319_FIELD_NOT_PASS__E260_SCOPED_CODE_CI_PASS__GLOBAL_UI_GUARD_FAIL__RELEASE_UNCHANGED__D172_HOLD",
     "owner_merge_approved": false,
     "owner_release_approved": false,
     "source_doc": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
@@ -20,9 +20,12 @@
     "owner_pass": false,
     "source_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
     "technical_production_readback_run_id": 43408214463,
-    "code_scoped_pass": false,
-    "ci_scoped_pass": false,
-    "release_technical_pass": false
+    "code_scoped_pass": true,
+    "ci_scoped_pass": true,
+    "release_technical_pass": false,
+    "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
+    "source_ci_run_id": 43415335127,
+    "ci_global_pass": false
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -129,10 +132,12 @@
     "doc": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
     "web_version": "3.3.19",
     "scope": "WEB_UI_ONLY_NO_RUNTIME_DEPLOY",
-    "code": "CANDIDATE",
-    "ci": "PENDING",
+    "code": "PASS_SCOPED_SOURCE",
+    "ci": "SCOPED_PASS__GLOBAL_UI_GUARD_FAIL",
     "field": "NOT_PASS_SCREENSHOT__RETEST_PENDING",
-    "owner_pass": false
+    "owner_pass": false,
+    "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
+    "source_ci_run_id": 43415335127
   },
   "web3318_candidate": {
     "change_id": "D173-E253",
