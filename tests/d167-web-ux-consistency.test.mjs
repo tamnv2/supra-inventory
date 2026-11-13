@@ -13,7 +13,7 @@ const section = (begin, end) => {
 
 test("Owner NOT PASS: three People views are exclusive and match each action", () => {
   const users = section("function renderUsers(): string {", "function renderSla(): string {");
-  assert.match(web, /let usersView: "list" \| "create" \| "import" = "list"/);
+  assert.match(web, /let usersView: "list" \| "create" \| "import" \| "contractors" = "list"/);
   for (const name of ["list", "create", "import"]) {
     assert.ok(users.includes('data-users-mode="' + name + '"'));
     assert.ok(users.includes('usersView === "' + name + '"'));
@@ -69,7 +69,10 @@ test("Owner NOT PASS: SLA three compact steps and two policy columns", () => {
   const authorizedE214=e214.owner_code_approved && e214.owner_production_release_approved &&
     e214.web_target_version === "3.3.9" && e214.d172_pending_hold && e214.stable_mutation === false;
   const webVersion=authorizedE214 ? "3.3.9" : authorizedE210 ? "3.3.8" : authorizedE209 ? "3.3.7" : authorizedE185 ? "3.3.6" : e175.owner_approved_code && e175.web_target_version === "3.3.5" && e175.d172_pending_hold && e175.no_stable ? "3.3.5" : release.log_protocol_approved && release.web_mutation ? "3.3.4" : "3.3.3";
-  assert.ok(version.includes('WEB_VERSION = "' + webVersion + '"'));
+  const e253 = JSON.parse(readFileSync(new URL("../ops/d173-e253-web3318-release-authorization.json",import.meta.url),"utf8"));
+  const authorizedE253 = e253.owner_code_approved && e253.owner_production_release_approved &&
+    e253.web_target_version === "3.3.18" && e253.d172_pending_hold && e253.stable_mutation === false;
+  assert.ok(version.includes('WEB_VERSION = "' + (authorizedE253 ? "3.3.18" : webVersion) + '"'));
 });
 
 test("All Web screens: no Owner-facing narrative or long non-actionable paragraphs", () => {
