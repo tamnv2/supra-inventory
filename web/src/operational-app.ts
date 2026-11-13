@@ -44,7 +44,6 @@ import {
   getAdminSla,
   getDashboardPreference,
   getPdaAppRelease,
-  getRealtimePresence,
   getRuntimeLogDetail,
   getRuntimeLogs,
   getLauncherLogDiagnostics,
@@ -104,7 +103,6 @@ import {
   type ContractorItem,
   type OperationalInsights,
   type PdaAppRelease,
-  type RealtimePresence,
   type RuntimeLogDetail,
   type RuntimeLogItem,
   type LauncherLogDiagnostics,
@@ -356,7 +354,6 @@ function clearRoleScopedViewState(): void {
   slaFormDirty = false;
   slaLoadGeneration += 1;
   operationalInsights = null;
-  realtimePresence = null;
   reportSummary = null;
   reportInsights = null;
   serviceHealth = null;
@@ -467,7 +464,6 @@ let slaFormDirty = false;
 let slaDraftMode: AutoSkipMode | null = null;
 let slaSaveBusy = false;
 let operationalInsights: OperationalInsights | null = null;
-let realtimePresence: RealtimePresence | null = null;
 let managedUsers: ManagedUser[] = [];
 let selectedUserIds = new Set<string>();
 let selectedManagedUserIds = new Set<string>();
@@ -2292,7 +2288,7 @@ function renderReportTabs(current: "dashboard" | "reports"): string {
     <button type="button" class="workspace-tab ${current === "dashboard" ? "active" : ""}" data-workspace-section="dashboard">Tổng quan</button>
     <button type="button" class="workspace-tab ${current === "reports" ? "active" : ""}" data-workspace-section="reports">Báo cáo chi tiết</button>
   </div>
-    <form id="${current === "dashboard" ? "dashboard-filter" : "report-date-filter"}" class="d173-report-date" aria-label="Chọn ngày hiển thị">${renderCompactDateRange(current, from, to)}</form>
+    ${current === "reports" ? `<form id="report-date-filter" class="d173-report-date" aria-label="Chọn ngày báo cáo">${renderCompactDateRange("reports", from, to)}</form>` : `<span class="d173-overview-mode">Giám sát hôm nay · Đối chiếu 7 ngày</span>`}
   </div>`;
 }
 
@@ -4313,20 +4309,9 @@ async function loadDashboard(): Promise<void> {
   const generation = ++dashboardLoadGeneration;
   const sessionGeneration = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  if (userId && dashboardPreferenceLoadedUserId !== userId) {
-    const saved = await getDashboardPreference();
-    if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-    if (saved.configured && saved.preference?.from && saved.preference?.to) {
-      dashboardFrom = saved.preference.from;
-      dashboardTo = saved.preference.to;
-      localStorage.setItem(dashboardRangeStorageKey(userId), JSON.stringify({ from: dashboardFrom, to: dashboardTo }));
-    } else {
-      dashboardFrom = dateDaysAgo(0);
-      dashboardTo = dateDaysAgo(0);
-      localStorage.removeItem(dashboardRangeStorageKey(userId));
-    }
-    dashboardPreferenceLoadedUserId = userId;
-  }
+  // The operational overview always describes today; historical date filters belong to Reports.
+  dashboardFrom = dateDaysAgo(0);
+  dashboardTo = dashboardFrom;
   const range = apiRange(dashboardFrom, dashboardTo);
   const next = await getAdminOverview(range.from, range.to, dashboardFrom, dashboardTo);
   if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
@@ -4337,11 +4322,7 @@ async function loadDashboard(): Promise<void> {
   dashboardTrendHours = next.trend_7d_hours;
   dashboardGeneratedAt = next.generated_at;
   markWebUpdateReceived();
-  if (document.visibilityState === "visible") void getRealtimePresence().then((nextPresence) => {
-    if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-    realtimePresence = nextPresence;
-    if (activeSection === "dashboard") patchActiveSection(true);
-  }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
+
 }
 
 async function loadReports(): Promise<void> {
@@ -6137,7 +6118,6 @@ window.addEventListener("pageshow", () => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     scheduleCorrectionExpiry();
-    refreshDashboardPresence();
   }
 });
 
@@ -6223,16 +6203,4 @@ window.setInterval(updateQueueClockDom, 15_000);
 window.setInterval(() => {
   if (themeMode === "AUTO") applyTheme();
 }, 60_000);
-function refreshDashboardPresence(): void {
-  if (document.visibilityState !== "visible" || !hasSession() || !profile || !roleManage() || activeSection !== "dashboard") return;
-  const generation = sessionViewGeneration;
-  const userId = profile.user_id;
-  void getRealtimePresence().then((next) => {
-    if (generation !== sessionViewGeneration || userId !== profile?.user_id || activeSection !== "dashboard") return;
-    realtimePresence = next;
-    patchActiveSection(true);
-  }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
-}
-window.setInterval(refreshDashboardPresence, 30_000);
-
 void bootstrap();
