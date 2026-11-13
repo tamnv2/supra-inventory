@@ -46,5 +46,9 @@ jobs:
         run: |
           python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
           node --test tests/d172-*.test.mjs
+      - name: Owner E249 Web3317 exact-source release preflight (no deploy)
+        run: |
+          python3 tools/d173_e249_web3317_release_gate.py --component worker --preflight
+          python3 tools/d173_e249_web3317_release_gate.py --component web --preflight
       - name: Source-only boundary
         run: echo "D173_E247_WEB3317_CODE_ONLY__NO_PRODUCTION_RELEASE__D172_HOLD"
