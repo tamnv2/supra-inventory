@@ -7625,18 +7625,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e246-web3316-production-receipt-20261113",
-    "pr": 966,
-    "latest_checkpoint_id": "D173-E246",
+    "working_branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
+    "pr": 968,
+    "latest_checkpoint_id": "D173-E247",
     "checkpoint_date_vn": "2026-11-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "E246_WEB3316_RELEASE_TECH_PASS_DOCS_ONLY_FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 966,
-    "active_working_branch": "docs/d173-e246-web3316-production-receipt-20261113",
-    "working_pr_lifecycle": "PR966_OPEN_DOCS_ONLY_AFTER_WEB3316_PRODUCTION_TECH_PASS"
+    "working_pr": 968,
+    "active_working_branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
+    "working_pr_lifecycle": "PR968_DRAFT_OPEN__WEB3317_CODE_CANDIDATE__CI_PENDING_RELEASE_HOLD"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14380,5 +14380,37 @@
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E246_WEB3316_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
     "scope": "DOCS_OPS_RELEASE_RECEIPT_ONLY_NO_RUNTIME_MUTATION"
+  },
+  "d173_e247_web3317_field_fix": {
+    "date_vn": "2026-11-13",
+    "scope": "D173_WEB3317_UI_ACCOUNTS_CONTRACTOR_CATALOG_CODE_ONLY__D172_UNTOUCHED",
+    "based_on": "Web3.3.16 confirmed Production technical receipt E246 / main 648cbe69d4925aa8a61c7ff978b798711d9e9ab3",
+    "owner_request": "Six numbered field fixes; seventh blank not authorized",
+    "branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
+    "pr": 968,
+    "components": [
+      "Web UI/CSS",
+      "Web account API",
+      "InventoryCore new contractor_catalog D173 table"
+    ],
+    "changes": [
+      "Dashboard+Report nested border and spacing/date buttons",
+      "SKU Excel import moved to top",
+      "Contractor CRUD/select and Excel sync catalog registration with in-use conflict guard",
+      "Full account roster loaded in <=200 batched API queries cached only within authorized browser session",
+      "Dense account list, remove visible last-login column but retain contextual title"
+    ],
+    "data_policy": "FULL_ACCOUNT_RECORDS_IN_MEMORY_ONLY__NO_PERSISTENT_LOCAL_PII_ON_SHARED_WORKSTATION__LONG_LIVED_DISK_CACHE_NOT_DONE",
+    "guardrails": "NO_D172_BIZ_DATA_ACCESS_MUTATION__SHARED_DO_SCHEMA_ADDITIVE_NEEDS_D172_CI__NO_AGENT_APK_FIREBASE_STABLE_PRODUCTION_MUTATION",
+    "code": "CANDIDATE_PR968",
+    "ci": "PENDING",
+    "release": "HOLD_OWNER_EXPLICIT_RELEASE_NOT_GIVEN",
+    "field": "PENDING",
+    "owner_pass": "PENDING",
+    "pending": [
+      "CI+security/SQL D172 regression",
+      "Persistent local account cache not enabled pending robust security design",
+      "Owner item7 unspecified"
+    ]
   }
 }
