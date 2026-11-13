@@ -1,3 +1,8 @@
+## D173-E257 — 13/11/2026: Web 3.3.18 FIELD NOT PASS, sửa Tổng quan theo nghiệp vụ Inventory
+Owner bác bỏ cách trình bày chỉ KPI/tổng hợp, yêu cầu một trang hiển thị trực tiếp SKU/đợt đang chờ, thời điểm, thời gian chờ, khu vực lịch sử, dấu hiệu bất thường và so sánh 7 ngày/ngày hôm nay; không cần bấm sang tab khác hoặc hiển thị 5 kết quả gần nhất. D173 CODE sửa, giữ Web3.3.18 Production cho tới khi có lệnh phát hành mới. Không tự kết luận nguyên nhân thiếu hàng, không đưa số liệu không chứng minh được; chấp nhận tối đa 6 ca chờ lâu nhất và ghi rõ 6/tổng. Thêm 3 SELECT giới hạn trong API overview hiện có nhưng phải đo Rows Read/CPU trước release; không mở API/DO/polling mới. D172/Agent/Android/Stable bất biến. Xem docs/D173_E257_WEB_OVERVIEW_LIVE_TRIAGE_FIELD_REPAIR_2026-11-13.md.
+
+---
+
 ## D173-E253 — 13/11/2026: Owner duyệt code và phát hành Web 3.3.18
 Owner phản hồi header Web3.3.17 đôi lúc mất nửa trên và duyệt triển khai lại tab Tổng quan theo phương án D173-E252, đồng thời yêu cầu chạy code, phát hành Web mới. Mục số 3 để trống, không cấp thêm nghiệp vụ. Phạm vi Web D173 + một đường GET read-only gom ba read model sẵn có trong Worker/DO hiện hữu; giữ dữ liệu đúng, phân biệt ticket với batch, SLA chưa cấu hình, biểu đồ giờ/ngày 7 ngày, khu vực as-of và cảnh báo có bằng chứng. Header ghim tránh trượt khỏi viewport. Không mở thêm provider hoặc sửa nghiệp vụ D172/Agent/Android/Firebase/Stable. Owner duyệt release **có điều kiện**: source CI, D172 độc lập, protected merge, exact SHA Production; FIELD/OWNER PASS chờ thực tế. Xem docs/D173_E253_WEB3318_RELEASE_AUTHORIZATION_2026-11-13.md, PR970.
 
