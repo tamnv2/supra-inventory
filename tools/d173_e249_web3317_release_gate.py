@@ -27,7 +27,7 @@ ALLOWED = RUNTIME | {
     ".github/workflows/deploy-beta.yml",
     "tools/d173_e249_web3317_release_gate.py",
     "ops/d173-e249-web3317-release-authorization.json",
-    "ops/authority-manifest.json", "ops/project-state.json",
+    "ops/authority-manifest.json", "ops/project-state.json", "ops/current-context.json",
     "ops/change-continuity/D173.json", "docs/OWNER_DECISIONS.md",
     "docs/D173_E249_WEB3317_RELEASE_AUTHORIZATION_2026-11-13.md",
 }
