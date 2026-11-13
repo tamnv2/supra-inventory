@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import org.json.JSONObject;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,7 @@ final class TestSessionStore {
     private static volatile String workerIdToken;
     private static volatile String relayCustomToken;
     private static volatile boolean handoffConsumed;
+    private static volatile boolean logoutPending;
 
     interface Callback { void completed(boolean success, String reason); }
     static boolean isValidFormat(String code) {
@@ -57,6 +59,10 @@ final class TestSessionStore {
     }
 
     static void login(Context context, String username, String password, Callback callback) {
+        if (logoutPending) {
+            complete(callback, false, "Đang kết thúc phiên QA trước đó.");
+            return;
+        }
         if (!PocFirebase.configured() || !BuildConfig.TEST_QA_USERNAME.equals(username)) {
             complete(callback, false, "Chỉ cho phép tài khoản QA đã đăng ký; không xác thực user Production.");
             return;
@@ -122,14 +128,40 @@ final class TestSessionStore {
     }
 
     static void logout(Context context) {
-        String token = workerIdToken;
-        String device = deviceId(context);
-        clear(context);
+        if (logoutPending) return;
+        final String earlier = workerIdToken;
+        final String device = deviceId(context);
+        final FirebaseAuth firebase = PocFirebase.configured() ? PocFirebase.auth(context) : null;
+        final FirebaseUser account = firebase == null ? null : firebase.getCurrentUser();
+        logoutPending = true;
+        // Lock both test APKs immediately, but retain Firebase Auth temporarily to obtain
+        // a fresh, generation-bound ID token for reliable server-side logout.
+        workerIdToken = null;
+        relayCustomToken = null;
+        handoffConsumed = true;
+        prefs(context).edit().remove(CODE).remove(SESSION).remove(GENERATION)
+            .remove(UID).commit();
         signalClient(context);
-        if (token != null) new Thread(() -> {
-            try { PocFirebase.post("/api/auth/logout",
-                    new JSONObject().put("device_id", device), token); }
-            catch (Exception ignored) { /* Client stays locked; field must check server receipt. */ }
+        new Thread(() -> {
+            try {
+                String fresh = earlier;
+                if (account != null) {
+                    try {
+                        String updated = Tasks.await(account.getIdToken(true),
+                            12, TimeUnit.SECONDS).getToken();
+                        if (updated != null && !updated.isEmpty()) fresh = updated;
+                    } catch (Exception ignored) { /* Initial Worker ID token is fallback. */ }
+                }
+                if (fresh != null) {
+                    PocFirebase.post("/api/auth/logout",
+                        new JSONObject().put("device_id", device), fresh);
+                }
+            } catch (Exception ignored) {
+                // FIELD must verify server revocation. Never report server logout PASS here.
+            } finally {
+                if (firebase != null) firebase.signOut();
+                logoutPending = false;
+            }
         }, "d173-live-qa-logout").start();
     }
 
