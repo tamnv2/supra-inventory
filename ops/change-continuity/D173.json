@@ -4,9 +4,18 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
-  "pr": null,
+  "pr": 968,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D173-E247",
+  "last_checkpoint": {
+    "id": "D173-E247",
+    "date_vn": "2026-11-13",
+    "summary": "Owner requested six Web3316 field UI/account fixes; Web3317 candidate on PR968. Contractor directory isolated D173; full roster RAM only; CI/Release/FIELD/Owner pending.",
+    "status": "OWNER_APPROVED_SOURCE_IMPLEMENTATION__PR968_DRAFT_CODE_CANDIDATE__CI_PENDING__RELEASE_HOLD",
+    "source": "Web3.3.16 field screenshot evidence (2026-11-13) and PR968 source",
+    "branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
+    "pr": 968,
+    "source_head_sha": "64e95591fd7a070537dddbd1c9920cae759b258c"
+  },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
@@ -4965,8 +4974,8 @@
       "date_vn": "2026-11-13",
       "topic": "Owner Web3.3.16 field corrections: Dashboard/Reports spacing, date buttons, SKU Excel import position, contractor catalog CRUD, all-account unpaginated local roster, compact account management",
       "kind": "OWNER_COMMAND",
-      "status": "OWNER_REQUESTED__SOURCE_REVIEW__CODE_ONLY_RELEASE_NOT_AUTHORIZED",
-      "owner_approval": "OWNER_REQUESTS_CODE_CHANGES__NO_EXPLICIT_PRODUCTION_RELEASE_IN_THIS_TURN",
+      "status": "OWNER_APPROVED_SOURCE_IMPLEMENTATION__PR968_DRAFT_CODE_CANDIDATE__CI_PENDING__RELEASE_HOLD",
+      "owner_approval": true,
       "facts": [
         "Owner supplied authenticated Web3.3.16 browser screenshots and six numbered requirements; seventh item contains no defined request.",
         "Main HEAD 648cbe69d4925aa8a61c7ff978b798711d9e9ab3; PR965/966 verified merged; Web3.3.16 technical release run 43353567258 SUCCESS; FIELD visual corrections requested.",
@@ -4983,19 +4992,8 @@
         "Determine whether persistent on-device full account cache is acceptable for shared workstations; fail-closed on long-term sensitive local storage and implement safe RAM scoped cache first.",
         "Contractor rename/delete when in use must not silently rewrite Picker ownership or disrupt Excel imports."
       ],
-      "next_action": [
-        "Implement scoped Web UI and unpaginated roster on isolated D173 branch, verify source and tests.",
-        "Review contractor directory API/SQLite security and affected behavior before any shared-schema mutation.",
-        "Create D173 PR + source/CI proof; no automatic Production release."
-      ],
-      "evidence": [
-        "https://github.com/tamnv2/supra-inventory/pull/965",
-        "https://github.com/tamnv2/supra-inventory/pull/966",
-        "https://github.com/tamnv2/supra-inventory/actions/runs/43353567258",
-        "web/src/operational-app.ts",
-        "web/src/d173-tabler.css",
-        "service/src/user-management-core.ts"
-      ]
+      "next_action": "Complete scoped Web3317 source CI, Web/Worker TypeScript builds, contractor CRUD and D172 shared-schema regressions; NO production release before separate Owner command.",
+      "evidence": "Owner Web3.3.16 screenshots 2026-11-13 ; https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/pull/965 ; https://github.com/tamnv2/supra-inventory/actions/runs/43353567258"
     }
   ],
   "resume": {
@@ -5134,7 +5132,8 @@
       "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes.",
       "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending.",
       "D173-E216 Owner Web339 search returns all, date-right, selected tab visibility; PR950 Web-only source candidate CI pending, Production unchanged.",
-      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization."
+      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization.",
+      "D173-E247 Web3317 PR968 CODE ONLY candidate: report density, SKU import position, contractor catalog, roster RAM cache; require scoped CI/D172 regression."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -5161,6 +5160,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
+      "D173-E247 PR968: CI+types+cross-module isolation guard before proposing gated release.",
       "E168: filter PASS/cancelled backlog from any current D173 report.",
       "D173-E167 owner-approved four components, PR868 source updated; require CI/release/field receipts; 05:30 full Drive-log correlation unverified.",
       "E165 latest log proposal: 2h from 05:00 VN (05/07/09/11/13/15/17/19/21/23/01/03), not the earlier 06:00 anchor. Pending Owner approval, no log code.",
