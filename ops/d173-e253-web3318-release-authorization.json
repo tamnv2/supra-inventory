@@ -28,20 +28,20 @@
   "worker_typecheck_pass": true,
   "d172_isolation_pass": true,
   "authority_guard_pass": true,
-  "source_ci_sha": "6041dc6b87fdd1438dffc331a06a80a1b53c1afa",
+  "source_ci_sha": "b03621fd68f591754a32b718fae5c92ff82442e0",
   "required_ci_failed": 0,
   "required_ci_success": 8,
   "required_ci_run_ids": [
-    43374808090,
-    43374808042,
-    43374808210,
-    43374808157,
-    43374807975,
-    43374808067,
-    43374808121,
-    43374808085
+    43375507520,
+    43375507508,
+    43375507547,
+    43375507459,
+    43375507403,
+    43375507481,
+    43375507405,
+    43375507318
   ],
   "field_pass": false,
   "owner_pass": false,
-  "release": "PASS_SOURCE_CI_8_OF_8__OWNER_APPROVED__MERGE_DEPLOY_PENDING"
+  "release": "PASS_SOURCE_CI_8_OF_8_EXACT_HEAD__RELEASE_WORKFLOW_GUARDS_UPDATED__PROTECTED_MERGE_PENDING"
 }
