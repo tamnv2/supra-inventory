@@ -5386,3 +5386,9 @@ Owner yêu cầu rõ: **“phát hành đi. yêu cầu là chạy code và tri�
 ## D173-E244 — Owner phê duyệt phát hành Web 3.3.16 (13/11/2026)
 
 Owner yêu cầu done code và phát hành ứng viên Web3.3.16 PR965. Phê duyệt scoped merge và Production Web qua Worker hiện hữu sau khi CI/guard đạt; không sửa nghiệp vụ Worker, D172, Agent/APK, Firebase/Stable. FIELD/OWNER PASS độc lập. Xem `docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md`.
+
+## D173-E247 — Owner yêu cầu chỉnh Web 3.3.16 từ FIELD ngày 13/11/2026
+
+Owner yêu cầu sáu chỉnh sửa: thu gọn viền/khoảng cách Tổng quan & Báo cáo và cụm nút ngày; đưa nhập danh mục SKU từ Excel lên đầu; thêm tab quản lý nhà thầu (thêm/sửa/xóa, select khi tạo Picker); hiển thị toàn bộ nhân sự không phân trang và tái sử dụng bộ nhớ tại Web/máy; tối ưu toàn bộ bố cục Danh sách tài khoản, lược thông tin thừa. Mục 7 không có nội dung nên không mở scope.
+
+Ủy quyền **triển khai CODE**, chưa có lệnh merge/phát hành Production Web3.3.17. PR #968 Draft, Web + API/Core D173, bổ sung bảng contractor_catalog cùng InventoryCore hiện hữu, bảo vệ dữ liệu Picker khi nhà thầu đang sử dụng; mọi D172 business data giữ độc lập, cần test regression. Quyết định kỹ thuật tạm thời về bản sao danh sách nhân sự: chỉ giữ **RAM theo phiên/quyền**, không tự lưu lâu dài dữ liệu định danh xuống máy dùng chung khi chưa thiết kế cơ chế bảo mật thực tế. CI/RELEASE/FIELD/OWNER PASS đều chưa được suy diễn.
