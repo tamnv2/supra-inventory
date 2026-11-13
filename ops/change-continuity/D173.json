@@ -7,14 +7,14 @@
   "pr": 970,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E252",
+    "id": "D173-E253",
     "date_vn": "2026-11-13",
-    "summary": "Owner review-only Inventory dashboard redesign sourced from Web 3.3.17; 7-day aggregate/usage tradeoff proposed; no app/provider changes authorized.",
-    "status": "REVIEW_ONLY_UNAPPROVED__NO_CODE_NO_RELEASE__D172_HOLD",
-    "source": "docs/D173_E252_DASHBOARD_REVIEW_ONLY_2026-11-13.md",
+    "summary": "Owner approves Web3318 code+conditional release for dashboard and header; scoped source PR970 CI pending, D172 holds.",
+    "status": "OWNER_APPROVED_SOURCE_STAGED_CI_PENDING_RELEASE_PENDING",
+    "source": "docs/D173_E253_WEB3318_RELEASE_AUTHORIZATION_2026-11-13.md",
     "branch": "docs/d173-e252-dashboard-review-20261113",
     "pr": 970,
-    "source_main_sha": "d8aa54cfbff78b5480f7fb17c4489ae06f6d9181"
+    "source_main_sha": "4ecb4cfebbddac1fc90f4aa29f2cd89e17f42a33"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5129,6 +5129,30 @@
       "source_main_sha": "d8aa54cfbff78b5480f7fb17c4489ae06f6d9181",
       "pr": 970,
       "branch": "docs/d173-e252-dashboard-review-20261113",
+      "code_pass": false,
+      "ci_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E253",
+      "date_vn": "2026-11-13",
+      "topic": "Owner approved code and guarded Production Web3.3.18 for intermittently clipped header and redesigned D173 Inventory overview",
+      "kind": "OWNER_IMPLEMENT_RELEASE_APPROVAL",
+      "owner_approval": "OWNER_20261113_HEADER_DASHBOARD_WEB3318_CODE_RELEASE",
+      "status": "OWNER_APPROVED_CODE_AND_RELEASE_CONDITIONED_ON_CI__NO_RELEASE_YET__D172_HOLD",
+      "facts": [
+        "Production base from PR969 docs MERGED main 4ecb4cf, Web3.3.17 Worker release run43362731384 PASS; Owner screenshot confirms header partially lost, cause hypothesized CSS relative scrolling.",
+        "Draft PR970 continues E252 redesign, now authorized D173-E253: Web3.3.18 overview, sticky header, one new read-only auth WEB management API combining existing dashboard/insights/area handlers in one DO invocation.",
+        "Correct data grains ticket vs batch; SLA unconfigured unavailable; last 7d daily / selected day hourly; no new provider resource, SQL schema or D172 mutations.",
+        "Owner explicitly requests code + Production release after tests; empty item 3 not a requirement. Code source candidate and release gate staged but exact CI/release/field/Owner NOT PASS.",
+        "New GET route touches shared Worker/Core; independent D172 and role/auth regression, quota/Rows Read comparison, protected two-parent PR merge and runtime /health required before technical PASS."
+      ],
+      "next_action": "Run pinned Web build/Worker TS/source/D172 tests, fix failures, pin exact CI, protected merge with D173-E253 marker, verify existing Worker production release; FIELD/Owner acceptance separately.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/970 ; docs/D173_E253_WEB3318_RELEASE_AUTHORIZATION_2026-11-13.md",
+      "branch": "docs/d173-e252-dashboard-review-20261113",
+      "pr": 970,
       "code_pass": false,
       "ci_pass": false,
       "release_pass": false,
