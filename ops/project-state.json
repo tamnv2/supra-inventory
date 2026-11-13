@@ -2569,7 +2569,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E261_WEB3320_RUNTIME_SHA_MATCH__DEPLOY_WORKFLOW_D166_POSTSECRET_FAIL__E262_RECOVERY_CANDIDATE__D172_HOLD",
+    "current_change_status": "D173_E262_WEB3320_POSTSECRET_RECOVERY_CODE_CI_4_OF_4_PASS__RELEASE_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -14741,13 +14741,20 @@
     "independent_exact_readback_run_id": 43421512675,
     "independent_exact_readback_sha": "099d01571399cf57615f6efbbf34f61c03d265ec",
     "source_code_sha": "4d77795d65b9541aa950d70e41521eac74814b3b",
-    "code": "CANDIDATE",
-    "ci": "PENDING",
-    "release": "TECH_RECOVERY_NOT_RELEASED",
+    "code": "PASS_SCOPED",
+    "ci": "PASS_4_OF_4",
+    "release": "PENDING_PROTECTED_MERGE",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "doc": "docs/D173_E262_WEB3320_POSTSECRET_RELEASE_RECOVERY_2026-11-13.md"
+    "doc": "docs/D173_E262_WEB3320_POSTSECRET_RELEASE_RECOVERY_2026-11-13.md",
+    "ci_run_ids": [
+      43422648020,
+      43422647955,
+      43422647870,
+      43422648009
+    ],
+    "source_ci_sha": "1f57d0a40371d15289b8cabbf510b2d79a569df5"
   }
 }
