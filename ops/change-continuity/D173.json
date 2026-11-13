@@ -6236,5 +6236,44 @@
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED"
+  },
+  "d173_launcher_session_owner_clarification_20261113_quality_logout_sso": {
+    "date_vn": "2026-11-13",
+    "change_id": "D173",
+    "kind": "OWNER_DESIGN_PRIORITY_AND_REVIEW_REQUEST",
+    "branch": "docs/d173-launcher-central-session-proposal-20261113",
+    "pr": 963,
+    "owner_approved_design_constraint": "USAGE_MAY_INCREASE; REALTIME_SPEED_STABILITY_MUST_NOT_DEGRADE_FOR_QUOTA_SAVINGS",
+    "owner_requested_analysis": [
+      "Launcher logout must log out Báo hàng and assess RAM cleanup",
+      "Launcher login allows Báo hàng SSO same user without second password; Picklist confirm must use same account"
+    ],
+    "verified_source": [
+      "android InventoryApi.login/logoutInteractive AppSession id/refresh tokens",
+      "android MainActivity.logoutWithNotificationCleanup stops operational clients and retains pending logs",
+      "android RelayPocClient.sendProbe includes Firebase UID and numeric session generation with ACK identity fences",
+      "Launcher Accessibility GuardService is not DPC/Device Owner",
+      "Android 14+ third-party killBackgroundProcesses cannot kill other apps"
+    ],
+    "proposal": [
+      "Backend D173 authoritative PDA session with UID/device_key/generation and realtime invalidation",
+      "Silent one-time secure session exchange on Báo hàng open, not background force-open",
+      "Backend revoke before logout local cleanup; no global RAM purge, retain durable logs/config/cache",
+      "Confirm Picklist uses Android AppSession correct Picker UID/generation, keep existing ACK/HA",
+      "Shared Firebase UID does not imply cross-logout D172"
+    ],
+    "pending_owner_decisions": [
+      "exact technical authorization for CODE/RELEASE and launcher repo scope",
+      "device kiosk protection capability",
+      "approval and policy for overtime extension"
+    ],
+    "code": "NOT_STARTED",
+    "ci": "NOT_RUN",
+    "release": "NOT_DEPLOYED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "document": "docs/D173_LAUNCHER_CENTRAL_PDA_SESSION_PROPOSAL_2026-11-13.md"
   }
 }
