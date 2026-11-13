@@ -1,8 +1,8 @@
 /* D173-E252: standalone Web Inventory overview and navbar viewport guard. */
 .d173-tabler-shell > .d173-tabler-navbar {
-  position: sticky !important;
-  top: 0 !important;
-  align-self: start;
+  position: relative !important;
+  top: auto !important;
+  align-self: stretch;
   z-index: 100 !important;
   height: auto !important;
   overflow: visible !important;
@@ -217,10 +217,11 @@
 
 /* D173-E257: one-page, issue-first Inventory triage (never styles D172). */
 .d173-dashboard-triage .d173-overview-content { gap: 8px; padding-top: 5px; }
-.d173-dashboard-triage .d173-overview-title { padding: 2px 0; }
-.d173-dashboard-triage .d173-overview-title h2 { font-size: 17px; }
-.d173-dashboard-triage .d173-overview-updated,
-.d173-dashboard .d173-overview-mode {
+.d173-dashboard-triage .d173-report-toolbar .d173-overview-updated {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 4px 0;
   color: var(--pro-muted,#66758a);
   font-size: 11px;
   white-space: nowrap;
