@@ -15,6 +15,7 @@ import "./legacy-transplant/d167-sku-provenance.css";
 import "./legacy-transplant/d167-web-compact-accounts.css";
 import "./legacy-transplant/d167-web-ux-recovery.css";
 import "./d173-tabler.css";
+import "./d173-overview.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -2317,9 +2318,9 @@ function renderDashboard(): string {
   const recent = dashboardData?.recent_resolutions || [];
   const areas = d167DashboardAreas?.areas || [];
   const top = dashboardData?.top_skus || [];
-  const num = (n) => Number(n || 0).toLocaleString("vi-VN");
-  const count = (status) => Number(outcomes.find(row => row.status === status)?.count || 0);
-  const sourceCount = (status, source) => Number(sources.find(row => row.status === status && row.resolution_source === source)?.count || 0);
+  const num = (n: unknown) => Number(n || 0).toLocaleString("vi-VN");
+  const count = (status: string) => Number(outcomes.find(row => row.status === status)?.count || 0);
+  const sourceCount = (status: string, source: string) => Number(sources.find(row => row.status === status && row.resolution_source === source)?.count || 0);
   const hasStock = count("HAS_STOCK");
   const skip = count("SKIP_ALLOWED");
   const withdrawn = count("CLOSED");
@@ -2327,7 +2328,7 @@ function renderDashboard(): string {
   const dayEndSkip = sourceCount("SKIP_ALLOWED", "SYSTEM_DAY_END");
   const humanSkip = Math.max(0, skip - timeoutSkip - dayEndSkip);
   const completed = hasStock + skip + withdrawn;
-  const pct = (v, base) => base ? Math.round(v * 1000 / base) / 10 : 0;
+  const pct = (v: number, base: number) => base ? Math.round(v * 1000 / base) / 10 : 0;
   const pending = Number(k?.pending_batch_count || 0);
   const affected = Number(k?.pending_picker_count || 0);
   const slaConfigured = insights?.sla?.configured === true;
@@ -2350,7 +2351,7 @@ function renderDashboard(): string {
       ? `<div class="d173-overview-bar" title="${hint}">${chartItem}</div>`
       : `<button class="d173-overview-bar" type="button" data-dashboard-day="${esc(date)}" title="${hint} · Chọn để xem theo giờ">${chartItem}</button>`;
   }).join("") : `<p class="d173-overview-empty">Chưa có dữ liệu theo thời gian trong kỳ.</p>`;
-  const notices = [];
+  const notices: Array<{ tone: string; title: string; detail: string; status?: string; sku?: string }> = [];
   if (escalated !== null && escalated > 0) notices.push({tone:"danger", title:`${num(escalated)} đợt quá hạn`, detail:"Theo cấu hình SLA hiện hành · ưu tiên kiểm tra tồn đọng", status:"PENDING"});
   if (pending > 0) notices.push({tone:"warning", title:`${num(pending)} đợt còn chờ`, detail:`Đang ảnh hưởng ${num(affected)} lượt Picker mở · tồn đọng hiện tại, không giới hạn theo ngày`, status:"PENDING"});
   if (warning !== null && warning > 0) notices.push({tone:"warning", title:`${num(warning)} đợt gần tới hạn`, detail:"Cảnh báo theo chính sách SLA đã cấu hình", status:"PENDING"});
@@ -2373,7 +2374,7 @@ function renderDashboard(): string {
     ["Skip tự động quá hạn", timeoutSkip, "timeout"],
     ["Skip tự động cuối ngày", dayEndSkip, "dayend"],
     ["Picker thu hồi", withdrawn, "withdraw"]
-  ].map(([label,value,tone]) => `<div class="d173-overview-outcome"><span>${esc(label)}</span><b>${num(value)}</b><span class="d173-overview-track"><i class="${tone}" style="width:${pct(value,completed)}%"></i></span><small>${pct(value,completed)}%</small></div>`).join("");
+  ].map(([label,value,tone]) => `<div class="d173-overview-outcome"><span>${esc(label)}</span><b>${num(value)}</b><span class="d173-overview-track"><i class="${tone}" style="width:${pct(Number(value),completed)}%"></i></span><small>${pct(Number(value),completed)}%</small></div>`).join("");
   const recurrenceMarkup = recurrence.length
     ? recurrence.slice(0,6).map(row => `<button type="button" class="d173-overview-sku" data-dashboard-sku="${esc(row.sku)}"><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span><b>${num(row.recurrence_count)} lần</b><small>Lần báo mới: ${esc(fmt(row.latest_first_report_at))}</small></button>`).join("")
     : `<p class="d173-overview-empty">Chưa ghi nhận SKU tái phát trong kỳ.</p>`;
@@ -5799,6 +5800,14 @@ function bindSection(): void {
       reportDetailLoads.clear();
       void run(loadReports);
     }
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-dashboard-day]").forEach((button) => button.addEventListener("click", () => {
+    const day = button.dataset.dashboardDay || "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day < dashboardFrom || day > dashboardTo) return;
+    dashboardFrom = day;
+    dashboardTo = day;
+    syncVisibleDateRange("dashboard", day, day);
+    void run(async () => { await persistDashboardRangeForUser(); await loadDashboard(); });
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-dashboard-status], [data-dashboard-sku]").forEach((button) => button.addEventListener("click", () => {
     reportFrom = dashboardFrom;
