@@ -709,7 +709,7 @@ checks = {
     "web_d089_tools_dark_completion": all(token in WEB_UNIFIED for token in ["D089 — Tools dark-theme completion", ".tool-icon-image", ".tools-workspace .tool-facts > div"]) and 'body[data-theme="dark"] .tools-workspace .tool-facts > div' in WEB_UNIFIED,
     "web_d107_professional_identity": all(token in WEB_APP for token in ['class="login-brand-lockup"', '/app-icon.png', "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN", "Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}"]) and all(token not in WEB_APP for token in ['<div class="brand">1291</div>', "<h1>Web nghiệp vụ</h1>", "Đăng nhập bằng tài khoản Báo hàng 1291."]),
     "web_d107_professional_layer": './legacy-transplant/web-professional-v2.css' in WEB_APP and all(token in WEB_PRO for token in ["D107 — professional Web refinement", ".login-brand-lockup", ".business-summary-grid-6", ".pro-trend-chart", ".pro-report-analysis", 'body[data-theme="dark"]']),
-    "web_d107_richer_reporting": all(token in WEB_APP for token in ["affectedInPeriod", "trendRows", "pro-trend-chart", "data-dashboard-sku", "reportWarningCount", "reportOverdueCount", "open_ticket_count", "pro-report-analysis"]),
+    "web_d107_richer_reporting": all(token in WEB_APP for token in ["d173-overview-pending-table", "d173-overview-chart-daily", "d173-overview-chart-hourly", "reportWarningCount", "reportOverdueCount", "open_ticket_count", "pro-report-analysis"]),
     "authority_d108_picker_resolution_refinement": "D108" in DECISIONS and "D108" in DESIGN_SPEC,
     "authority_d109_audit_pda_compact_tabs": "D109" in DECISIONS and "D109 Web audit/PDA tools and Android compact tabs" in DESIGN_SPEC,
     "authority_d110_reporter_pinned_workflow": "D110" in DECISIONS and "D110 Android Reporter visual baseline" in DESIGN_SPEC,
