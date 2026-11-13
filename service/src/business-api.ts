@@ -156,6 +156,7 @@ function requiredRolesForBusinessRoute(key: string): AppRole[] | undefined {
   if ([
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
+    "GET /api/admin/overview",
     "GET /api/admin/reporting",
     "GET /api/admin/reporting-detail",
     "GET /api/admin/dashboard-preference",
@@ -468,6 +469,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "POST /api/reporter/batches/correct",
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
+    "GET /api/admin/overview",
     "GET /api/admin/reporting",
     "GET /api/admin/reporting-detail",
     "GET /api/admin/audit-history",
@@ -572,6 +574,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     ? url.pathname.slice("/api/admin/".length) : "";
   const adminReadParams: Record<string, string[]> = {
     dashboard: ["from", "to", "status", "query", "limit", "offset", "batch_id"],
+    overview: ["from", "to", "day_from", "day_to"],
     reporting: ["from", "to", "status", "query", "limit", "offset", "batch_id"],
     "reporting-detail": ["from", "to", "status", "query", "limit", "offset", "batch_id"],
     reports: ["limit", "status"], "audit-history": ["role", "query", "limit", "offset"],
