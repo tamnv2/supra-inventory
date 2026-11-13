@@ -2407,19 +2407,19 @@ function renderDashboard(): string {
         <article class="d173-overview-panel"><header><h3>Biến động theo ${isHourly ? "giờ" : "ngày"}</h3><span>${isHourly ? "Giờ Việt Nam" : "Chọn cột ngày để mở dữ liệu từng giờ"}</span></header>
           <div class="d173-overview-legend"><span><i class="d173-overview-reports"></i>Lượt Picker báo thiếu</span><span><i class="d173-overview-resolved"></i>Đợt xử lý xong</span></div>
           <div class="d173-overview-chart">${chart}</div>
-          <p class="d173-overview-note">Hai chuỗi có đơn vị khác nhau (ticket và đợt), không lấy hiệu hai cột làm số tồn đọng. Hôm nay là dữ liệu chưa kết thúc.</p>
+          <p class="d173-overview-note">Báo thiếu: lượt Picker; xử lý xong: đợt. Không lấy hiệu làm tồn đọng.</p>
         </article>
         <article class="d173-overview-panel"><header><h3>Vấn đề cần kiểm tra</h3><span>Dấu hiệu có căn cứ dữ liệu</span></header><div class="d173-overview-alerts">${noticeMarkup}</div>
-          <p class="d173-overview-note">Dấu hiệu không đồng nghĩa nguyên nhân vật lý đã xác minh. Không suy luận vị trí tồn kho hoặc lỗi nhân sự.</p>
+          <p class="d173-overview-note">Dấu hiệu cần kiểm tra; chưa xác minh nguyên nhân vật lý.</p>
         </article>
       </div>
       <div class="d173-overview-cols">
         <article class="d173-overview-panel"><header><h3>LTA / Shelving tại thời điểm báo thiếu</h3><span>${esc(rangeText)}</span></header>
           <div class="d173-overview-table-wrap"><table class="d173-overview-area-table"><thead><tr><th>Khu vực</th><th>Đợt</th><th>Lượt báo</th><th>Đang chờ</th><th>Có hàng</th><th>Skip</th><th>Thu hồi</th></tr></thead><tbody>${d167DashboardAreas ? areaMarkup : '<tr><td colspan="7">Chưa tải được bằng chứng phân loại khu vực.</td></tr>'}</tbody></table></div>
-          <p class="d173-overview-note">Khu vực được gán theo dữ liệu có hiệu lực tại lần báo đầu, không phải vị trí SKU hiện tại. Tỷ lệ Skip tính trên số đợt cùng khu vực.</p>
+          <p class="d173-overview-note">Khu vực tại lần báo đầu; % Skip theo số đợt, không phải tồn kho hiện tại.</p>
         </article>
         <article class="d173-overview-panel"><header><h3>Kết quả xử lý</h3><span>${num(completed)} đợt có kết quả trong nhóm phát sinh kỳ</span></header><div class="d173-overview-outcomes">${outcomeMarkup}</div>
-          <p class="d173-overview-note">Mẫu số phần trăm là tổng đợt có kết quả, không bao gồm đang chờ. “Nguồn khác” chưa đủ chứng cứ để phân loại thủ công.</p>
+          <p class="d173-overview-note">% theo đợt có kết quả. Nguồn khác chưa xác minh.</p>
         </article>
       </div>
       <div class="d173-overview-cols">
