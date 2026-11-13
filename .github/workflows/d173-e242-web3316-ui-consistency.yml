@@ -34,6 +34,9 @@ jobs:
         run: |
           npm install --ignore-scripts --no-audit --no-fund
           npm run build
+      - name: Install existing service test dependencies (no deployment)
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: D172 isolation and source guard
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
