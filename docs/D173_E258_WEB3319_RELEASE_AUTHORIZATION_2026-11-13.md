@@ -20,3 +20,9 @@
 
 ## PASS độc lập
 CODE, scoped CI, protected merge, exact-source Production release, FIELD trình duyệt HD/HD+/dark/light, OWNER PASS tách biệt. D172 luôn PENDING/HOLD độc lập; Stable OWNER-GATED.
+
+## Source CI đã xác minh (13/11/2026)
+- Đã sửa lỗi Web TypeScript TS2322 browser timer; nguồn app cuối cùng `b462215cda2255864f727cf47c441d103bf568ff`.
+- **Scoped source CI SHA** `aa2b50323993246e082824d38518b2d2b9cd139d`: **8/8 SUCCESS** gồm [E257 Web build/Worker/D172/preflight](https://github.com/tamnv2/supra-inventory/actions/runs/43406500044), [Repo Authority](https://github.com/tamnv2/supra-inventory/actions/runs/43406500258), [Project State/continuity](https://github.com/tamnv2/supra-inventory/actions/runs/43406500349), [D173/D172 isolation](https://github.com/tamnv2/supra-inventory/actions/runs/43406500411), [D172 backend](https://github.com/tamnv2/supra-inventory/actions/runs/43406500302), [D169 Web RBAC](https://github.com/tamnv2/supra-inventory/actions/runs/43406499981), [E123 D172 safety](https://github.com/tamnv2/supra-inventory/actions/runs/43406500407), [D167 predeploy product](https://github.com/tamnv2/supra-inventory/actions/runs/43406500649).
+- Một số workflow **lịch sử/khác phạm vi** vẫn FAIL (E032 Web version pin 3.3.9, legacy UI guard, Agent/hibernate assertions). Không tuyên bố full-repo CI PASS hoặc sửa chéo Agent/D172; guard phát hành E258 chỉ tính đúng 8 kiểm thử đã đọc log.
+- Tại mốc ghi nhận này: CODE scoped PASS; CI scoped PASS; **merge/release/field/owner chưa PASS**. Chỉ triển khai nếu protected PR + exact SHA production guard SUCCESS.
