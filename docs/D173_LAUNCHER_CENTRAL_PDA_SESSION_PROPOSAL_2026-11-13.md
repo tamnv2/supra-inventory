@@ -42,4 +42,32 @@
 5. Gia hạn chỉ hợp lệ sau server approval; không ảnh hưởng lịch cắt phiên mặc định, không khóa công việc đang được backend cho phép.
 6. Đo p95 latency, realtime/HA và Cloudflare Request/Row Read, Firebase usage trước/sau theo cùng tải thực tế; không chấp nhận regressions hoặc phát sinh chi phí thiếu kiểm soát.
 
-**Trạng thái:** REVIEW_ONLY, NO_CODE, NO_RELEASE, Owner approval pending. 
+**Trạng thái:** REVIEW_ONLY, NO_CODE, NO_RELEASE, Owner approval pending.
+
+## Owner bổ sung 13/11/2026 — ưu tiên chất lượng, logout đồng bộ, SSO xác nhận đơn
+
+**Owner chốt nguyên tắc đánh đổi:** usage có thể tăng; không giảm realtime, tốc độ, độ ổn định để tiết kiệm request/row read. Tối ưu theo bằng chứng và chỉ chấp nhận khi các tiêu chí vận hành không suy giảm. **Không đồng nghĩa Owner cấp lệnh CODE/RELEASE**.
+
+**Owner nêu yêu cầu cần phân tích kỹ thuật**:
+1. Đăng xuất Launcher phải kéo Báo hàng logout đồng bộ; hỏi khả năng dọn RAM PDA.
+2. Đăng nhập Launcher phải cho Báo hàng đăng nhập sẵn; mở Báo hàng vào ngay cùng user; xác nhận Picklist bằng đúng tài khoản đó.
+
+### Source mới đã kiểm tra
+- Android `InventoryApi.login(username,password,deviceId)` hiện tạo Android AppSession gồm `id_token`, `refresh_token`, `userId`, quyền, và mốc `picker_shift_logout_at_ms`; `InventoryApi.logoutInteractive()` gọi `POST /api/auth/logout` và xóa session.
+- `MainActivity.logoutWithNotificationCleanup()` dọn overlay, stopOperationalClients, giữ/flush pending session-end runtime log, unregister notification, gọi logout.
+- `RelayPocClient.sendProbe()` lấy session Picker và gửi `picker_uid`, `picker_user_id`, `picker_session_generation` vào Firestore; ACK xác minh UID/generation/request_id. Chỉ truyền username không đủ bảo đảm confirm đúng danh tính.
+- Launcher `GuardService` là Accessibility, **không phải** Device Owner; thiết bị Android 14+ không cho app thường kill background processes của package khác (Android official ActivityManager reference). Không thể cam kết 'clear RAM toàn máy' bằng Launcher.
+
+### Phương án chi tiết để Owner review — chưa triển khai
+- Launcher xác thực Backend, tạo phiên PDA authoritative với Firebase UID, `device_key`, session generation và hạn dùng. Agent/PDA nhận thay đổi qua event/stream hiện hữu, reconnect có resync. Có thể tăng usage để giữ realtime; không thay thế event bằng polling chậm vì mục tiêu quota.
+- Khi mở Báo hàng, app chủ động nhận handoff one-time mã sống rất ngắn từ Launcher, exchange với Backend sau khi xác thực UID, `device_key`, phiên hợp lệ, package/signature và one-time nonce; Backend cấp Android AppSession + Firebase custom token tương thích. Không đặt mật khẩu/refresh token trong Intent, clipboard, log. Đây là **silent SSO lúc app được mở**, không ép mở Báo hàng chạy ngầm lúc người dùng login Launcher.
+- Tất cả báo hàng, hồi đáp và Confirm Picklist tiếp tục đi từ đúng `AppSession.userId` và Firebase UID/session generation; không tự đổi API/contract `ANDROID_CONFIRM_V1`, ACK/HA.
+- Logout Launcher: backend revoke **phiên PDA thuộc D173** trước; báo hàng nhận revocation → dừng realtime/FCM/overlay/in-flight new request, xóa credential/temporary session state, trở về Launcher. Giữ SKU cache hợp lệ, file config, log chưa gửi và durable ACK evidence; không clear toàn RAM hay clear app data. Server vẫn reject phiên cũ nếu app bị force-stop/mất mạng. Khi đang confirm phải giữ idempotency và reconcile kết quả terminal, không tạo duplicate hoặc nhầm success/failure.
+- D172 dùng chung identity nhưng **không** bị logout/kick chỉ vì revoke D173 PDA session; không revoke Firebase global user nếu không có quyền D172 liên quan.
+- Nếu chi tiết sản phẩm muốn **phiên đã khởi tạo trước khi mở Báo hàng**, chỉ backend phiên launcher tồn tại trước; Android AppSession thực tế khởi tạo silent tại lần mở app. Điều này vẫn đạt kỳ vọng 'mở ra dùng ngay', cần đo độ trễ exchange trên thiết bị thực.
+
+### Tiêu chí kiểm thử bổ sung
+- Login Launcher là duy nhất; mở APK không đòi nhập user/password; `userId`, Firebase UID, `device_key`, `session_generation` đúng và có thể xác nhận đơn bằng identity đó.
+- Logout/kick Launcher trong lúc Báo hàng foreground/background hoặc offline: Backend ngay lập tức từ chối tác vụ mới; APK local clear khi nhận lệnh hoặc ở lần resume/reconnect; không lộ dữ liệu user trước cho người sau.
+- Dùng lại realtime/ACK hiện hữu; đo p50/p95 SSO login, request↔ACK, event→lock, RAM app, bộ nhớ trước/sau logout, Cloudflare DO Requests/Rows Read và Firebase usage. Không khẳng định PASS cho đến khi thực đo trên PDA/Agent thực.
+- Trên Android 14+ không kỳ vọng Launcher kill process Báo hàng bằng `killBackgroundProcesses`; dùng self-cleanup trong Báo hàng, không giết tiến trình hệ thống.
