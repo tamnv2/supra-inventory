@@ -2363,7 +2363,7 @@ function renderDashboard(): string{
     return `<tr><td><strong>${esc(item.sku)}</strong><small>${esc(item.product_name)}</small></td>
       <td>${esc(d167AreaLabel(item.area_at_first_report))}</td>
       <td>${esc(fmt(item.first_report_at))}</td>
-      <td class="d173-overview-elapsed">${esc(label)}</td>
+      <td class="d173-overview-elapsed" data-overview-wait-since="${esc(item.first_report_at)}">${esc(label)}</td>
       <td class="d173-overview-number">${num(item.open_picker_count)}</td></tr>`;
   }).join("") : `<tr><td colspan="5">${pending ? "Chưa tải được danh sách đợt mở; không suy diễn đã hết tồn đọng." : "Không có đợt đang chờ xử lý."}</td></tr>`;
   const issues: Array<{ tone: string; title: string; detail: string }> = [];
@@ -2398,7 +2398,7 @@ function renderDashboard(): string{
       <div class="d173-overview-kpis d173-overview-kpis-triage">
         <div class="d173-overview-kpi critical"><span>Đợt chờ xử lý</span><strong>${num(pending)}</strong><small>Toàn hệ thống, không lọc ngày</small></div>
         <div class="d173-overview-kpi"><span>Ticket Picker đang chờ</span><strong>${num(pickerOpen)}</strong><small>Không phải số Picker duy nhất</small></div>
-        <div class="d173-overview-kpi ${oldestMinutes != null && oldestMinutes > 30 ? "critical" : ""}"><span>Chờ lâu nhất</span><strong>${oldestMinutes == null ? (pending ? "—" : "0 phút") : oldestMinutes < 60 ? num(oldestMinutes)+" phút" : `${Math.floor(oldestMinutes/60)}g ${oldestMinutes%60}p`}</strong><small>Từ lúc báo đầu của đợt còn mở</small></div>
+        <div class="d173-overview-kpi ${oldestMinutes != null && oldestMinutes > 30 ? "critical" : ""}"><span>Chờ lâu nhất</span><strong data-overview-wait-since="${esc(pendingItems[0]?.first_report_at || "")}">${oldestMinutes == null ? (pending ? "—" : "0 phút") : oldestMinutes < 60 ? num(oldestMinutes)+" phút" : `${Math.floor(oldestMinutes/60)}g ${oldestMinutes%60}p`}</strong><small>Từ lúc báo đầu của đợt còn mở</small></div>
         <div class="d173-overview-kpi"><span>Skip tự động hôm nay</span><strong>${num(systemSkip)}</strong><small>Quá hạn / cuối ngày</small></div>
         <div class="d173-overview-kpi"><span>SLA cảnh báo / quá hạn</span><strong>${slaConfigured ? `${num(warning || 0)} / ${num(overdue || 0)}` : "—"}</strong><small>${slaConfigured ? "Đợt đang cần giám sát" : "Chưa cấu hình SLA"}</small></div>
       </div>
@@ -6198,7 +6198,21 @@ initWebRuntimeLogging(() => ({
   current_notice: notice,
 }));
 
-window.setInterval(updateQueueClockDom, 15_000);
+function updateDashboardWaitingClocks(): void {
+  if (activeSection !== "dashboard") return;
+  document.querySelectorAll<HTMLElement>("[data-overview-wait-since]").forEach((node) => {
+    const since = Date.parse(node.dataset.overviewWaitSince || "");
+    if (!Number.isFinite(since)) return;
+    const minutes = Math.max(0, Math.floor((Date.now() - since) / 60_000));
+    node.textContent = node.classList.contains("d173-overview-elapsed")
+      ? (minutes >= 60 ? `${Math.floor(minutes / 60)} giờ ${minutes % 60} phút` : `${minutes} phút`)
+      : (minutes >= 60 ? `${Math.floor(minutes / 60)}g ${minutes % 60}p` : `${minutes} phút`);
+  });
+}
+window.setInterval(() => {
+  updateQueueClockDom();
+  updateDashboardWaitingClocks();
+}, 15_000);
 window.setInterval(() => {
   if (themeMode === "AUTO") applyTheme();
 }, 60_000);
