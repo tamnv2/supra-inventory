@@ -43,8 +43,14 @@ jobs:
           "$aapt" dump badging "$client" | grep -q "package: name='vn.supra.identitytest'"
           "$apksigner" verify "$launcher"
           "$apksigner" verify "$client"
-          cert_l="$("$apksigner" verify --print-certs "$launcher" | awk '/Signer #1 certificate SHA-256 digest/ {print $NF}')"
-          cert_c="$("$apksigner" verify --print-certs "$client" | awk '/Signer #1 certificate SHA-256 digest/ {print $NF}')"
+          launcher_report="$("$apksigner" verify --print-certs "$launcher" 2>&1)"
+          client_report="$("$apksigner" verify --print-certs "$client" 2>&1)"
+          echo "Launcher signer report (public debug certificate fields):"
+          printf '%s\n' "$launcher_report" | grep -E "Signer|certificate|digest" || true
+          echo "Client signer report (public debug certificate fields):"
+          printf '%s\n' "$client_report" | grep -E "Signer|certificate|digest" || true
+          cert_l="$(printf '%s\n' "$launcher_report" | awk '/SHA-256 digest/ {print $NF}')"
+          cert_c="$(printf '%s\n' "$client_report" | awk '/SHA-256 digest/ {print $NF}')"
           test -n "$cert_l" || { echo "::error::Launcher certificate fingerprint missing"; exit 1; }
           test -n "$cert_c" || { echo "::error::Client certificate fingerprint missing"; exit 1; }
           test "$cert_l" = "$cert_c" || { echo "::error::Debug signing certificates differ"; exit 1; }
