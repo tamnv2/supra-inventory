@@ -4,6 +4,7 @@ import { sendFcmNotifications } from "./fcm";
 
 export interface BusinessEnv {
   FIREBASE_PROJECT_ID: string;
+  APP_ENV?: string;
   INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_RUNTIME_SA_JSON?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
@@ -482,6 +483,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "PUT /api/admin/alert-window",
   ]);
   if (!supported.has(key)) return null;
+  if (key === "GET /api/admin/overview" && env.APP_ENV !== "beta") return json({ error: "D173_BETA_ONLY" }, 404);
 
 
   // D171 E047: verified Firebase identity + DO-authoritative session/role +
