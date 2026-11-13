@@ -21,13 +21,18 @@
   "firebase_mutation": false,
   "new_provider_resources": false,
   "source_code_sha": "4d77795d65b9541aa950d70e41521eac74814b3b",
-  "source_ci_sha": "",
-  "ci_scoped_pass": false,
-  "authority_guard_pass": false,
-  "d172_isolation_pass": false,
-  "required_ci_failed": null,
-  "required_ci_run_ids": [],
+  "source_ci_sha": "1f57d0a40371d15289b8cabbf510b2d79a569df5",
+  "ci_scoped_pass": true,
+  "authority_guard_pass": true,
+  "d172_isolation_pass": true,
+  "required_ci_failed": 0,
+  "required_ci_run_ids": [
+    43422648020,
+    43422647955,
+    43422647870,
+    43422648009
+  ],
   "field_pass": false,
   "owner_pass": false,
-  "release": "TECHNICAL_RECOVERY_CANDIDATE_NO_PRODUCTION_UNTIL_CI"
+  "release": "CODE_AND_SCOPED_CI_4_OF_4_PASS__PROTECTED_RECOVERY_MERGE_PENDING"
 }
