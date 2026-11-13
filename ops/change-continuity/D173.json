@@ -7,15 +7,14 @@
   "pr": 965,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E243",
+    "id": "D173-E244",
     "date_vn": "2026-11-13",
-    "summary": "Web3.3.16 PR965 exact source df757f43: scoped Web regression, build, D172, authority, continuity and scope CI PASS; historical unrelated CI FAIL; release/field/owner HOLD.",
-    "status": "PASS_SCOPED_SOURCE_AND_CI__RELEASE_FIELD_OWNER_PENDING",
-    "source": "docs/D173_E242_WEB3316_UI_FIELD_CORRECTIONS_2026-11-13.md",
+    "summary": "Owner authorizes Web3.3.16 PR965 scoped Production release; exact source pinned; release guard and CI pending.",
+    "status": "OWNER_RELEASE_APPROVED__CI_PENDING",
+    "source": "docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md",
     "branch": "fix/d173-e242-web3316-ui-consistency-20261113",
     "pr": 965,
-    "source_sha": "df757f4302613b6a0448e9d8ed1c8cde1077e6e1",
-    "web_source_ci_run": 43351325372
+    "source_sha": "a1fb84e3a8e9209ce6915a4ad4e35b82325bbeb6"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4879,6 +4878,32 @@
       "code": "PASS_SCOPED",
       "ci": "PASS_SCOPED",
       "release": "HOLD",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E244",
+      "date_vn": "2026-11-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly commands completion and Production release of Web3.3.16 UI PR965",
+      "status": "OWNER_RELEASE_APPROVED_WEB3316__CI_GUARD_PENDING",
+      "owner_approval": true,
+      "owner_release_approved": true,
+      "pr": 965,
+      "branch": "fix/d173-e242-web3316-ui-consistency-20261113",
+      "source_sha": "a1fb84e3a8e9209ce6915a4ad4e35b82325bbeb6",
+      "facts": [
+        "Owner explicitly authorizes done code and release Web3.3.16 PR965",
+        "Current Production Web 3.3.15 remains until verified new release",
+        "Only scoped Web UI/static Worker deployment, no D172/Agent/APK/Stable or Worker business mutation"
+      ],
+      "evidence": "PR965; docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md; source pin a1fb84e3a8e9209ce6915a4ad4e35b82325bbeb6",
+      "next_action": "Run exact source guard and CI, pin verified SHA, merge two-parent release marker, confirm Production /health and Web and write receipt",
+      "code": "PASS_SCOPED",
+      "ci": "PENDING_GUARD",
+      "release": "OWNER_APPROVED_GATED",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",

@@ -14311,5 +14311,26 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E242_WEB3316_UI_FIELD_CORRECTIONS_2026-11-13.md"
+  },
+  "d173_e244_web3316_release_authorization": {
+    "date_vn": "2026-11-13",
+    "change_id": "D173",
+    "subchange": "E244",
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "source_pr": 965,
+    "branch": "fix/d173-e242-web3316-ui-consistency-20261113",
+    "base_main_sha": "bbd922e2f5873586aaa7264038b464b16be0c597",
+    "web_source_pin": "a1fb84e3a8e9209ce6915a4ad4e35b82325bbeb6",
+    "web_version": "3.3.16",
+    "scope": "WEB_UI_ONLY_EXISTING_WORKER_STATIC_ASSETS__D172_AGENT_APK_FIREBASE_STABLE_UNCHANGED",
+    "code": "PASS_SCOPED",
+    "ci": "PENDING_GUARD_HEAD",
+    "release": "OWNER_AUTHORIZED_GATED_PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "auth": "ops/d173-e244-web3316-release-authorization.json",
+    "doc": "docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md",
+    "release_marker": "D173-E244_WEB3316_PRODUCTION_RELEASE:"
   }
 }

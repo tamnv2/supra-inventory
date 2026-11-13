@@ -28,3 +28,6 @@
 - <https://github.com/tamnv2/supra-inventory/actions/runs/43351325405> — Source SQL/Auth/D172 PASS.
 - Các kiểm tra Agent/history legacy không thuộc scope còn FAIL với assertion UI Agent và pin Web phiên bản cũ; **không gọi toàn bộ CI PASS**.
 - D173-E243 ghi trạng thái **CODE/CI PASS theo phạm vi**, RELEASE HOLD, FIELD và OWNER PASS chưa có. Việc bổ sung checkpoint docs/state sau source pin không làm thay đổi Web runtime.
+
+## E244 — Owner cho phép phát hành (13/11/2026)
+Lệnh mới thay thế trạng thái "chưa duyệt phát hành" trước đó: hoàn thiện và phát hành Web3.3.16 sau khi CI/guard PASS, tham chiếu `docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md`. Không mở rộng D172/Agent/APK/Stable.

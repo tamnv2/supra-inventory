@@ -5382,3 +5382,7 @@ Owner nhận xét Web 3.3.14 “ok” và yêu cầu ba cập nhật: (1) lấy 
 
 ## D173-E239 — 12/11/2026: Owner lệnh hoàn thành phát hành Web 3.3.15
 Owner yêu cầu rõ: **“phát hành đi. yêu cầu là chạy code và triển khai done mới hoàn thành.”** Đây là quyền CODE + CI + protected merge + Production Web cho đúng ba yêu cầu D173-E237 đã ghi trong PR #961, sau source-pinned CI, D172 isolation, release gate và health xác thực. Chỉ dùng `inventory.supra.cc.cd` / Worker hiện hữu, không sửa nghiệp vụ/DB/Agent/Android/Firebase/D172 hay Stable. Không được báo DONE nếu workflow deploy và postdeploy chưa PASS; FIELD/Owner PASS đòi bằng chứng riêng. Tài liệu `docs/D173_E239_WEB3315_RELEASE_AUTHORIZATION_2026-11-12.md`.
+
+## D173-E244 — Owner phê duyệt phát hành Web 3.3.16 (13/11/2026)
+
+Owner yêu cầu done code và phát hành ứng viên Web3.3.16 PR965. Phê duyệt scoped merge và Production Web qua Worker hiện hữu sau khi CI/guard đạt; không sửa nghiệp vụ Worker, D172, Agent/APK, Firebase/Stable. FIELD/OWNER PASS độc lập. Xem `docs/D173_E244_WEB3316_RELEASE_AUTHORIZATION_2026-11-13.md`.
