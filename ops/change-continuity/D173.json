@@ -6336,5 +6336,42 @@
     "owner_pass": false,
     "doc": "docs/D173_E221_WEB_DAILY_LOCAL_SEARCH_IMPLEMENTATION_2026-11-12.md",
     "source_ci_sha": "1cb83f32da0e8c1d4b3f56528e0d3cbdd17c8db0"
+  },
+  "d173_existing_firebase_qa_launcher_sso_test_owner_20261113": {
+    "change_id": "D173",
+    "date_vn": "2026-11-13",
+    "kind": "OWNER_APPROVED_EXISTING_FIREBASE_AUTH_QA_TEST_CODE_ONLY",
+    "owner_latest_request": "Use current Báo hàng / Confirm Picklist Firebase Auth project for real login/logout test rather than provisioning new Firebase; no disruption to active Production users.",
+    "verified_source": {
+      "firebase_project_id": "supra-inventory-beta",
+      "current_official_worker": "https://inventory.supra.cc.cd",
+      "api": [
+        "POST /api/auth/login",
+        "POST /api/auth/logout",
+        "GET /api/auth/me"
+      ],
+      "critical_risk": "Existing /api/auth/login activates ANDROID session generation and may displace same-user active session, is not read-only; /api/auth/logout ends session and updates presence."
+    },
+    "constraints": [
+      "Only explicitly pinned, non-operational Picker QA account with no live PDA session",
+      "force:false only; treat 409 as failure, never replace active user",
+      "same project, existing endpoints; no Worker/Firestore changes or new provider resources",
+      "all secrets/passwords remain runtime-only; do not hardcode shared password",
+      "signed Launcher/test-client APK pair; separate package IDs; no Production Báo hàng APK or D172 changes"
+    ],
+    "branch": "feat/d173-existing-firebase-qa-sso-test-20261113",
+    "scope": "experiments/d173-launcher-session-poc plus narrow PR CI and decision/state/continuity docs",
+    "base_main": "648cbe69d4925aa8a61c7ff978b798711d9e9ab3",
+    "qa_account_approved": "NOT_VERIFIED",
+    "qa_build_variables": "NOT_VERIFIED",
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "NOT_DEPLOYED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "superseded_pr": 964,
+    "source_doc": "experiments/d173-launcher-session-poc/FIREBASE_REAL_TEST_SCOPE.md"
   }
 }

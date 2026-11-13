@@ -14380,5 +14380,23 @@
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E246_WEB3316_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
     "scope": "DOCS_OPS_RELEASE_RECEIPT_ONLY_NO_RUNTIME_MUTATION"
+  },
+  "d173_existing_firebase_qa_launcher_sso_test_owner_20261113": {
+    "change_id": "D173",
+    "date_vn": "2026-11-13",
+    "branch": "feat/d173-existing-firebase-qa-sso-test-20261113",
+    "mode": "ISOLATED_EXISTING_FIREBASE_PROJECT_QA_TEST_CODE_ONLY",
+    "source_project": "supra-inventory-beta",
+    "target": "EXISTING_AUTH_LOGIN_AND_CUSTOM_TOKEN_HO_ONLY",
+    "source_base": "648cbe69d4925aa8a61c7ff978b798711d9e9ab3",
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "production": "UNCHANGED",
+    "qa_user": "UNVERIFIED",
+    "qa_artifact": "NOT_YET_CONFIGURED",
+    "release": "NOT_DEPLOYED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_SEPARATE"
   }
 }

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <permission android:name="vn.supra.pdalauncher.identitytest.permission.SESSION_CONTROL" android:protectionLevel="signature" />
+    <uses-permission android:name="vn.supra.pdalauncher.identitytest.permission.SESSION_CONTROL" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/supra_logo"
+        android:roundIcon="@drawable/supra_logo"
+        android:label="Launcher SSO TEST"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar"
+        android:usesCleartextTraffic="false">
+
+        <activity
+            android:name=".MainActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".AdminActivity" android:enabled="false" android:exported="false" />
+        <activity android:name=".HandoffActivity" android:exported="true" />
+        <receiver android:name=".SessionCommandReceiver" android:exported="true" android:permission="vn.supra.pdalauncher.identitytest.permission.SESSION_CONTROL" />
+
+        <receiver android:name=".LauncherLogAlarmReceiver"
+                  android:enabled="false"
+                  android:exported="false" />
+        <service
+            android:name=".LauncherDiagnosticJobService"
+            android:enabled="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+
+        <service
+            android:name=".GuardService"
+            android:enabled="false"
+            android:exported="true"
+            android:label="Launcher PDA - Chống lách"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <receiver
+            android:name=".BatteryAlertReceiver"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BATTERY_LOW" />
+                <action android:name="android.intent.action.BATTERY_OKAY" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

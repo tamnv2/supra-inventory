@@ -1,0 +1,33 @@
+plugins {
+    id 'com.android.application'
+}
+// Explicit D173-only test Firebase configuration, absent by default.
+def pocCfg = { key -> (project.findProperty(key) ?: System.getenv(key) ?: '').toString() }
+def pocQuote = { value -> '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"' }
+
+android {
+    buildFeatures { buildConfig true }
+    namespace 'vn.supra.identitytest'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'vn.supra.identitytest'
+        buildConfigField 'String', 'TEST_FIREBASE_PROJECT_ID', pocQuote('supra-inventory-beta')
+        buildConfigField 'String', 'TEST_FIREBASE_API_KEY', pocQuote(pocCfg('D173_POC_FIREBASE_API_KEY'))
+        buildConfigField 'String', 'TEST_FIREBASE_APP_ID', pocQuote('1:572322098890:android:3e483937876cbcc0400e33')
+        buildConfigField 'String', 'TEST_QA_USERNAME', pocQuote(pocCfg('D173_POC_TEST_USERNAME'))
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '0.1-session-test'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:34.19.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+}
