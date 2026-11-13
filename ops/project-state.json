@@ -2569,7 +2569,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E264_WEB3320_FIELD_UI_FIX_CODE_ONLY_PR977__CI_FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E264_WEB3320_FIELD_UI_SCOPED_CODE_CI_PASS_PR977__GLOBAL_LEGACY_CI_FAIL__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -14798,14 +14798,20 @@
     "owner_code_approved": true,
     "owner_merge_release_approved": false,
     "scope": "WEB_PRESENTATION_CSS_ONLY_SHARED_GEOMETRY__NO_WORKER_API_FIRE_AGENT_ANDROID_D172",
-    "code": "SOURCE_CANDIDATE_PENDING_EXACT_CI",
-    "ci": "PENDING",
-    "release": "HOLD_OWNER_GATE",
+    "code": "PASS_SCOPED_GEOMETRY_SOURCE_TESTS_AND_WEB_BUILD",
+    "ci": "PASS_SCOPED_E264_D172_AUTHORITY_CONTINUITY__GLOBAL_LEGACY_FAILED",
+    "release": "HOLD_OWNER_GATE__WEB3320_PRODUCTION_UNCHANGED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md",
-    "test": "tests/d173-e264-web-global-ui-rhythm.test.mjs"
+    "test": "tests/d173-e264-web-global-ui-rhythm.test.mjs",
+    "source_ci_sha": "56d2ce390bb19019f230be8185a765b1959f08a0",
+    "scoped_ci_run_id": 43427296326,
+    "authority_run_id": 43427296544,
+    "continuity_run_id": 43427296397,
+    "d172_cross_guard_run_id": 43427296290,
+    "global_ci_pass": false
   }
 }
