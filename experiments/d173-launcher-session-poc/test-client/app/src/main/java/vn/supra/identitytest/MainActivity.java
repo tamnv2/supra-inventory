@@ -28,6 +28,7 @@ public final class MainActivity extends Activity {
     private boolean pending;
     private long lastCheckedElapsed;
     private ListenerRegistration observer;
+    private FirebaseAuth.AuthStateListener authListener;
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -76,6 +77,15 @@ public final class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         render();
+        if (PocFirebase.configured()) {
+            authListener = auth -> {
+                if (auth.getCurrentUser() == null && !local.getString("session_id", "").isEmpty()) {
+                    clearLocal();
+                    runOnUiThread(this::render);
+                }
+            };
+            PocFirebase.auth(this).addAuthStateListener(authListener);
+        }
         observeSession();
         if (!pending && SystemClock.elapsedRealtime() - lastCheckedElapsed > 1500L) {
             requestSession();
@@ -84,6 +94,10 @@ public final class MainActivity extends Activity {
 
     @Override protected void onPause() {
         if (observer != null) { observer.remove(); observer = null; }
+        if (authListener != null) {
+            PocFirebase.auth(this).removeAuthStateListener(authListener);
+            authListener = null;
+        }
         super.onPause();
     }
 

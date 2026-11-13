@@ -13,7 +13,7 @@ android {
         applicationId 'vn.supra.identitytest'
         buildConfigField 'String', 'TEST_FIREBASE_PROJECT_ID', pocQuote(pocCfg('D173_POC_FIREBASE_PROJECT_ID'))
         buildConfigField 'String', 'TEST_FIREBASE_API_KEY', pocQuote(pocCfg('D173_POC_FIREBASE_API_KEY'))
-        buildConfigField 'String', 'TEST_FIREBASE_APP_ID', pocQuote(pocCfg('D173_POC_FIREBASE_APP_ID'))
+        buildConfigField 'String', 'TEST_FIREBASE_APP_ID', pocQuote(pocCfg('D173_POC_CLIENT_APP_ID'))
         minSdk 23
         targetSdk 35
         versionCode 1
