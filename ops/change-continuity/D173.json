@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E260",
     "date_vn": "2026-11-13",
-    "summary": "Owner Web3.3.19 FIELD 5 UI defects; PR974 scoped code/test candidate and no Production authorization; CI/FIELD/OWNER pending.",
-    "status": "WEB3319_FIELD_NOT_PASS__E260_WEB_CODE_ONLY_PR974_CI_PENDING__PRODUCTION_UNCHANGED__D172_HOLD",
+    "summary": "Owner Web3.3.19 FIELD 5 UI defects; PR974 source code-only PASS E260/D172 at SHA5FB02BE4 run43415335127; global UI guard FAIL; release/FIELD/OWNER pending.",
+    "status": "WEB3319_FIELD_NOT_PASS__E260_SCOPED_CODE_CI_PASS__GLOBAL_UI_GUARD_FAIL__NO_NEW_RELEASE__D172_HOLD",
     "source": "docs/D173_E260_WEB3319_FIELD_LAYOUT_CODE_ONLY_2026-11-13.md",
     "branch": "fix/d173-e260-web3319-header-density-zoom-20261113",
     "pr": 974,
@@ -18,11 +18,18 @@
     "production_web_version": "3.3.19",
     "owner_code_approved": true,
     "owner_release_approved": false,
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
-    "owner_pass": false
+    "owner_pass": false,
+    "ci_global_pass": false,
+    "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
+    "source_ci_run_id": 43415335127,
+    "repo_authority_run_id": 43415335037,
+    "project_state_run_id": 43415334786,
+    "d172_isolation_run_id": 43415335354,
+    "global_ui_design_run_id": 43415335385
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5377,12 +5384,14 @@
       "kind": "OWNER_COMMAND",
       "topic": "Five Web3.3.19 UI fixes: header, Quá hạn, dashboard guidance, font zoom reflow and shared insets",
       "owner_approval": true,
-      "status": "WEB_UI_SCOPED_CODE_CANDIDATE__CI_PENDING__NO_PRODUCTION_RELEASE__D172_HOLD",
+      "status": "WEB_UI_CODE_CI_SCOPED_PASS__GLOBAL_LEGACY_UI_GUARD_FAIL__NO_PRODUCTION_RELEASE__D172_HOLD",
       "facts": [
         "Owner screenshots on Web3.3.19 show header partially clipped, misaligned overdue tab, owner-guidance text cluttering dashboard, A± resize obscuring bottom, inconsistent page insets.",
         "Source inspection: global body.zoom 70–140% with 1.05 base; legacy fixed desktop shell 100vh overflow hidden; navbar sticky within first measured grid row; dashboard timestamp and guidance embedded in render markup.",
         "Branch restricts edits to D173 Web markup/CSS and tests, plus sanitized journal/state/decision/CI. No API/Worker/DO, Agent/Android, authentication, data, realtime scheduler, D172 or Stable mutation.",
-        "CODE CANDIDATE in Draft PR974; source-only workflow added for Web build and D172 isolation. No CI PASS or physical visual results yet; Production Web3.3.19 original SHA remains deployed."
+        "CODE CANDIDATE in Draft PR974; source-only workflow added for Web build and D172 isolation. No CI PASS or physical visual results yet; Production Web3.3.19 original SHA remains deployed.",
+        "Exact source SHA 5fb02be48d21317187383e5c0ea424a3f30e98d1: scoped Actions 43415335127 SUCCESS including Web TypeScript/Vite and D172 regression/isolation. Repo Authority 43415335037, Project State 43415334786, D173/D172 independent 43415335354 SUCCESS.",
+        "Global UI Design Guard 43415335385 FAILED on legacy global invariants; at least obsolete D107 chart-token assertions absent from main source before E260, so global CI NOT PASS. No unrelated guard changes kept in E260."
       ],
       "inference": [
         "Fixed viewport height under body.zoom can clip header/bottom at higher font sizes; source supports risk but physical root-cause confirmation remains pending."
@@ -5396,15 +5405,17 @@
       "pr": 974,
       "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
       "source_workflow": ".github/workflows/d173-e260-web-ui-code-only.yml",
-      "code": "CANDIDATE",
-      "ci": "PENDING",
+      "code": "PASS_SCOPED_SOURCE",
+      "ci": "SCOPED_PASS_GLOBAL_FAIL",
       "release": "UNCHANGED_WEB3319",
       "field": "NOT_PASS_OWNER_SCREENSHOT",
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED",
       "privacy_safe": true,
-      "next_action": "Run exact-head source-only Web/D172 CI, repair scoped failures; keep PR draft and Production Web3.3.19 untouched until new Owner release command. FIELD retest required."
+      "next_action": "Keep PR974 Draft/Production unchanged. Resolve remaining global UI legacy guard separately if Owner approves; physical Web field test cross zoom/resolutions, then explicit Owner release gate.",
+      "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
+      "source_ci_run_id": 43415335127
     }
   ],
   "resume": {
@@ -6784,11 +6795,14 @@
     "base_main_sha": "c4e6dca074cf0a73369c659a4e90e83f929b119f",
     "approved_scope": "WEB_UI_ONLY",
     "owner_release_approved": false,
-    "code": "CANDIDATE",
-    "ci": "PENDING",
+    "code": "PASS_SCOPED_SOURCE",
+    "ci": "PASS_SCOPED__GLOBAL_LEGACY_UI_GUARD_FAIL",
     "release": "WEB3319_UNCHANGED",
     "field_pass": false,
     "owner_pass": false,
-    "d172": "INDEPENDENT_PENDING_HOLD"
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "source_ci_sha": "5fb02be48d21317187383e5c0ea424a3f30e98d1",
+    "source_ci_run_id": 43415335127,
+    "global_ci_pass": false
   }
 }
