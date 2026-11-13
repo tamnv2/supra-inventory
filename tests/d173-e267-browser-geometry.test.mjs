@@ -128,3 +128,34 @@ test("E267: browser-computed spacing matches across users, shift and overview on
     await browser.close();
   }
 });
+
+test("E267: other authenticated routes and dark mode share the same desktop rhythm", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const routes = [
+      "sku-workspace", "sla-workspace", "logs-workspace",
+      "reset-workspace", "system-workspace", "account-workspace",
+    ];
+    const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    for (const role of ["ADMIN", "ADMIN_INVENT"]) {
+      for (const route of routes) {
+        const markup = '<section class="ops-route ' + route + '">' +
+          '<article class="ops-panel">Thẻ A</article>' +
+          '<article class="ops-panel">Thẻ B</article></section>';
+        await page.setContent(shell(markup).replace('data-role="ADMIN"', 'data-role="' + role + '"'));
+        const g = await geometry(page, "." + route);
+        assert.equal(round(g.paddingLeft), 6, role + " " + route + " inset");
+        assert.equal(round(g.gap), 6, role + " " + route + " gap");
+        assert.ok(g.between.every(value => Math.abs(value - 6) < 1), role + " " + route + " content gap");
+      }
+    }
+    await page.setContent(shell(users).replace('data-theme="light"', 'data-theme="dark"'));
+    const dark = await geometry(page, ".users-workspace");
+    assert.equal(round(dark.paddingLeft), 6);
+    assert.equal(round(dark.gap), 6);
+    assert.ok(dark.between.every(value => Math.abs(value - 6) < 1));
+    await page.close();
+  } finally {
+    await browser.close();
+  }
+});
