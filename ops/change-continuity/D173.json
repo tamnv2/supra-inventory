@@ -7,14 +7,13 @@
   "pr": 968,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E248",
+    "id": "D173-E249",
     "date_vn": "2026-11-13",
-    "summary": "PR968 Web3.3.17 SOURCE 1d537ad: Web+Worker+RBAC+isolation CI PASS; longterm local account storage not implemented; no Production release/FIELD/OWNER PASS.",
-    "status": "PASS_SCOPED_CODE_CI_WEB_WORKER_D172_RBAC_AUTHORITY__PRODUCTION_NOT_RELEASED__FIELD_OWNER_PENDING",
-    "source": "https://github.com/tamnv2/supra-inventory/pull/968 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257730 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257667 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257471 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257589 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257741 ; https://github.com/tamnv2/supra-inventory/actions/runs/43360257861",
+    "summary": "Owner approved Web3.3.17 PR968 source CI, protected two-parent merge and official existing Worker/Web Production; D172 regression mandatory; FIELD/OWNER pending.",
+    "status": "OWNER_CODE_AND_PRODUCTION_RELEASE_APPROVED__EXACT_SOURCE_CI_PENDING__D172_HOLD",
+    "source": "https://github.com/tamnv2/supra-inventory/pull/968 ; docs/D173_E249_WEB3317_RELEASE_AUTHORIZATION_2026-11-13.md ; ops/d173-e249-web3317-release-authorization.json ; tools/d173_e249_web3317_release_gate.py",
     "branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
-    "pr": 968,
-    "source_ci_sha": "1d537ad178dd3deb42d84d832248fe78c4c52fe9"
+    "pr": 968
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5019,6 +5018,34 @@
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false
+    },
+    {
+      "id": "D173-E249",
+      "date_vn": "2026-11-13",
+      "topic": "Owner explicitly orders completion and protected Production release Web3.3.17 PR968 with D173-only contractor catalog",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "OWNER_CODE_AND_PRODUCTION_RELEASE_APPROVED__EXACT_SOURCE_CI_PENDING__D172_HOLD",
+      "facts": [
+        "Owner directs DONE code and RELEASE Web3.3.17 after E247/E248 candidate PR968; prior Web3.3.16 Production technical receipt remains release baseline.",
+        "PR968 Web+Worker D173 account/contractor source includes additive contractor_catalog table, registered API, manual Picker select and unpaginated roster; D172 business resources remain independent.",
+        "Shared DO schema preflight improved: create contractor catalog before existing-schema readiness and seed once to avoid full D172 migration on a ready core.",
+        "User roster local memory is scoped per authenticated role/user and TTL 120 sec; no unencrypted persistent staff data on shared machines; long-term disk cache not claimed done.",
+        "Dedicated E249 source-pinned release gate, authorization receipt, source CI workflow preflight and deploy main marker changes must all PASS before Production."
+      ],
+      "next_action": "Verify post-gate exact-source CI and D172 isolation, pin required 5+ authoritative runs; protected merge PR968 two-parent with D173-E249_WEB3317_PRODUCTION_RELEASE marker, verify official Worker/Web source /health and write release receipt; physical FIELD/Owner pass separate.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/968 ; docs/D173_E249_WEB3317_RELEASE_AUTHORIZATION_2026-11-13.md ; ops/d173-e249-web3317-release-authorization.json ; tools/d173_e249_web3317_release_gate.py",
+      "branch": "fix/d173-e247-web3317-density-contractors-roster-20261113",
+      "pr": 968,
+      "approved_components": [
+        "worker",
+        "web"
+      ],
+      "code_pass": false,
+      "ci_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
@@ -5158,7 +5185,8 @@
       "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes.",
       "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending.",
       "D173-E216 Owner Web339 search returns all, date-right, selected tab visibility; PR950 Web-only source candidate CI pending, Production unchanged.",
-      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization."
+      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization.",
+      "D173-E249 Web3317 owner-authorized Production on existing Worker after source CI, protected merge and /health."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -5185,7 +5213,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
-      "D173-E248 PR968 code CI PASS: hold Production release until explicit Owner command; FIELD/OWNER independent.",
+      "E249: finish PR968 exact-source CI, pin verified receipt, merge with Owner marker, confirm Worker/Web Production /health, FIELD/Owner separate.",
       "E168: filter PASS/cancelled backlog from any current D173 report.",
       "D173-E167 owner-approved four components, PR868 source updated; require CI/release/field receipts; 05:30 full Drive-log correlation unverified.",
       "E165 latest log proposal: 2h from 05:00 VN (05/07/09/11/13/15/17/19/21/23/01/03), not the earlier 06:00 anchor. Pending Owner approval, no log code.",
