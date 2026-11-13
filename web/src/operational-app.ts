@@ -5807,6 +5807,8 @@ function bindSection(): void {
     void run(async () => { await persistDashboardRangeForUser(); await loadDashboard(); });
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-dashboard-status], [data-dashboard-sku]").forEach((button) => button.addEventListener("click", () => {
+    // Pending is global live inventory: the period-filtered report can hide older open batches.
+    if (button.dataset.dashboardStatus === "PENDING") { navigateToSection("operations", "push"); return; }
     reportFrom = dashboardFrom;
     reportTo = dashboardTo;
     reportStatus = button.dataset.dashboardStatus || "";
