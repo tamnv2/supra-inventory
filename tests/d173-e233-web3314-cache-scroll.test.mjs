@@ -60,7 +60,7 @@ test("E233: final SKU remains rendered, existing local suffix and version advanc
   assert.doesNotMatch(result, /\.slice\(0,\s*200\)/);
   assert.match(web, /row\.dataset\.opsSkuRow \|\| ""\)\.endsWith\(suffix\)/);
   assert.match(version, /WEB_VERSION = "3\.3\.16"/);
-  assert.equal(pkg.version, "3.3.16");
+  assert.equal(pkg.version, "3.3.17");
 });
 
 import { runInNewContext } from "node:vm";
