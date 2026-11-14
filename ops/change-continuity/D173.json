@@ -5662,7 +5662,7 @@
     {
       "id": "D173-E268",
       "date_vn": "2026-11-14",
-      "kind": "OWNER_COMMAND_AND_VERIFIED_FINDING",
+      "kind": "OWNER_COMMAND",
       "topic": "Web3.3.21 FIELD FAIL spacing, owner code and release approved for Web3.3.22",
       "status": "SOURCE_SHA_PINNED__CI_PENDING__NO_RELEASE__FIELD_OWNER_NOT_PASS",
       "owner_approval": true,
@@ -5681,7 +5681,8 @@
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
-      "d172": "INDEPENDENT_PENDING_HOLD"
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "evidence": "Owner 2026-11-14 supplied nine Web3.3.21 FIELD screenshots and authorized scoped Web UI code+deploy; PR979 E267 browser RED CI43436784898 and Green CI43437477996; prior Web3.3.21 Production receipt run43430031505."
     }
   ],
   "resume": {

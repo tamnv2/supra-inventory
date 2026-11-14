@@ -32,9 +32,9 @@ test("E264: unified tabs and controls are aligned without changing existing scro
   assert.match(css, /\.d173-tabler-shell \.ops-business-workspace \.fast-list/);
 });
 
-test("E264: only CSS presentation changes; existing business and Web3.3.21 source contracts stay intact", () => {
+test("E264: only CSS presentation changes; existing business and Web3.3.22 source contracts stay intact", () => {
   for (const token of ["renderOperationalTabs", "renderDashboard", "renderShiftOperations", "renderSla", "renderTools"]) {
     assert.ok(view.includes(token), token);
   }
-  assert.ok(read("web/src/web-version.ts").includes('WEB_VERSION = "3.3.21"'));
+  assert.ok(read("web/src/web-version.ts").includes('WEB_VERSION = "3.3.22"'));
 });
