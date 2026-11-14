@@ -92,8 +92,6 @@ body[data-role="ADMIN_INVENT"] .content,
   box-shadow: var(--ui-shadow) !important;
 }
 
-.ops-panel { padding: 16px !important; }
-.ops-panel-title { margin-bottom: 12px !important; }
 .ops-panel-title h3,
 .ops-setting-card h3,
 .report-section-title h3 {

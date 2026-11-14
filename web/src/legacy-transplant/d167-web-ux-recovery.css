@@ -1,9 +1,9 @@
 /* D167 NOT PASS: user-facing coherent layouts, not owner/AI explanatory copy. */
 .users-workspace [hidden],.sla-workspace [hidden] { display:none !important; }
-.users-workspace .users-mode-tabs { display:flex; flex-wrap:wrap; gap:3px; margin:0 0 12px; padding:4px; width:max-content; max-width:100%; }
+.users-workspace .users-mode-tabs { display:flex; flex-wrap:wrap; gap:3px; margin:0; padding:4px; width:max-content; max-width:100%; }
 .users-workspace .users-mode-tabs .workspace-tab { min-height:35px; padding:7px 13px; }
 .users-workspace .business-summary-grid { margin:0 0 10px !important; }
-.users-workspace .users-top-grid { display:block !important; margin:0 0 10px !important; }
+.users-workspace .users-top-grid { display:block !important; margin:0 !important; }
 .users-workspace .users-create-panel { max-width:900px; }
 .users-workspace .users-create-panel,.users-workspace .users-filter-panel { padding:13px 15px !important; }
 .users-workspace .users-create-form { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }

@@ -310,11 +310,11 @@ body {
   box-shadow: var(--pro-shadow-sm) !important;
 }
 
-.ops-panel { padding: 17px 18px !important; }
+.ops-panel { padding: 8px 10px !important; }
 
 .ops-panel-title {
   gap: 14px;
-  margin-bottom: 13px !important;
+  margin-bottom: 6px !important;
 }
 
 .ops-panel-title h3 {
