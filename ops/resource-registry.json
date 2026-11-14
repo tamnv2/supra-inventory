@@ -3144,5 +3144,20 @@
     "phase1": "READY_FOR_SEPARATE_SOURCE_INTEGRATION",
     "official_smoke": "WEB_STATIC_PDA_AGENT_MANIFEST_OAUTH_START_PASS",
     "release_status": "TECHNICAL_PROVIDER_PASS__FIELD_OWNER_PENDING"
+  },
+  "d173_e269_web3322_production_receipt": {
+    "date_vn": "2026-11-14",
+    "source_pr": 979,
+    "receipt_pr": 980,
+    "version": "3.3.22",
+    "host": "inventory.supra.cc.cd",
+    "existing_worker": true,
+    "source_main_sha": "974f213ea99c5e33dd114146e83f12a035982744",
+    "release_run_id": 43542070127,
+    "health": "HTTP200_EXACT_SHA_SQLITE17_17_OPS7_7_AUTH_OK",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_HOLD",
+    "doc": "docs/D173_E269_WEB3322_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md"
   }
 }
