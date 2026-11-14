@@ -26,7 +26,7 @@
     "docs/D173_E266_WEB3321_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
     "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md",
     "docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md",
-    "docs/D173_E269_WEB3322_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md"
+    "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -176,7 +176,8 @@
     "current_d173_e267_web_spacing_field_fail": "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md",
     "current_d173_e268_owner_release": "docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md",
     "current_d173_e268_release_gate": "ops/d173-e268-web3322-release-authorization.json",
-    "current_d173_web3322_production_receipt": "docs/D173_E269_WEB3322_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md"
+    "current_d173_web3322_production_receipt": "docs/D173_E269_WEB3322_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md",
+    "current_d173_web3323_production_receipt": "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -263,9 +264,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 981,
-    "ref_rule": "D173_E270_WEB3323_SOURCE_PINNED_CI_PENDING__PR981_OPEN__WEB3322_FIELD_FAIL__D172_HOLD",
-    "freshness": "2026_11_14_WEB3322_EXACT_PRODUCTION_RELEASE_RECEIPT",
+    "active_working_pr": 982,
+    "ref_rule": "D173_E273_WEB3323_PRODUCTION_TECH_PASS__PR982_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_11_14_WEB3323_EXACT_PRODUCTION_RELEASE_RECEIPT",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -395,7 +396,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
+    "active_working_branch": "docs/d173-e273-web3323-production-receipt-20261114",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,
@@ -474,7 +475,7 @@
       "stable": "OWNER_GATED",
       "owner_command": "2026-11-10_YEU_CAU_PHAT_HANH"
     },
-    "working_pr_lifecycle": "PR979_MERGED_MAIN_974F213E_WEB3322_PRODUCTION_RUN43542070127_SUCCESS__PR980_DOCS_ONLY"
+    "working_pr_lifecycle": "PR981_MERGED_MAIN_70BD1F12_WEB3323_PRODUCTION_RUN43548451337_SUCCESS__PR982_DOCS_ONLY"
   },
   "bootstrap_read_policy": {
     "mode": "CURRENT_ESSENTIALS_ONLY__HISTORY_ON_DEMAND",
