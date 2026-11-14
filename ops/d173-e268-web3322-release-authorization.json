@@ -23,16 +23,22 @@
   "firebase_mutation": false,
   "stable_mutation": false,
   "new_provider_resources": false,
-  "source_ci_verified": false,
-  "web_build_pass": false,
-  "d172_isolation_pass": false,
-  "authority_guard_pass": false,
-  "continuity_guard_pass": false,
-  "source_ci_sha": "",
-  "required_ci_failed": null,
-  "required_ci_success": 0,
-  "required_ci_run_ids": [],
+  "source_ci_verified": true,
+  "web_build_pass": true,
+  "d172_isolation_pass": true,
+  "authority_guard_pass": true,
+  "continuity_guard_pass": true,
+  "source_ci_sha": "1544a79136fd6e31352b4a59eb241c628c106b12",
+  "required_ci_failed": 0,
+  "required_ci_success": 5,
+  "required_ci_run_ids": [
+    43541584543,
+    43541584559,
+    43541584672,
+    43541584580,
+    43541584527
+  ],
   "field_pass": false,
   "owner_pass": false,
-  "release": "SOURCE_CODE_CANDIDATE__CI_PENDING__NO_PRODUCTION_DEPLOY"
+  "release": "SCOPED_CI_5_OF_5_PASS__EXACT_SOURCE_PIN__PROTECTED_MERGE_PENDING__FIELD_OWNER_PENDING"
 }

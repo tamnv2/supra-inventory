@@ -10,17 +10,18 @@
     "id": "D173-E268",
     "date_vn": "2026-11-14",
     "summary": "Owner Web3.3.21 FIELD FAIL from nine screenshots; E267 root cause verified by Chromium RED/GREEN; approved Web3.3.22 code and production scoped release. New source pin, scoped CI pending.",
-    "status": "CODE_SHA_PINNED__CI_PENDING__PRODUCTION_3321_UNCHANGED__FIELD_OWNER_FAIL_OPEN",
+    "status": "SOURCE_AND_CI_SCOPED_PASS_5_OF_5__PRODUCTION_3321_UNCHANGED__FIELD_OWNER_FAIL_OPEN",
     "source": "docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md",
     "branch": "fix/d173-e267-web3321-field-spacing-20261113",
     "pr": 979,
     "source_code_sha": "1e778186e586b0607d8d31c27f550f1057877f88",
     "source_base_main_sha": "6f74a954e49da65582946df6bff0b2a29f6e6ab1",
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
-    "owner_pass": false
+    "owner_pass": false,
+    "source_ci_sha": "1544a79136fd6e31352b4a59eb241c628c106b12"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5664,7 +5665,7 @@
       "date_vn": "2026-11-14",
       "kind": "OWNER_COMMAND",
       "topic": "Web3.3.21 FIELD FAIL spacing, owner code and release approved for Web3.3.22",
-      "status": "SOURCE_SHA_PINNED__CI_PENDING__NO_RELEASE__FIELD_OWNER_NOT_PASS",
+      "status": "SOURCE_AND_CI_SCOPED_PASS_5_OF_5__NO_RELEASE_YET",
       "owner_approval": true,
       "source_pr": 979,
       "source_code_sha": "1e778186e586b0607d8d31c27f550f1057877f88",
@@ -5673,16 +5674,25 @@
       "facts": [
         "Web3.3.21 Production technical receipt run43430031505 SUCCESS; 9 new FIELD screenshots reveal page/card/tab spacing inconsistent.",
         "Chromium E267 RED reproduced 12px page inset vs required6px caused by E237 legacy CSS specificity; E267 geometry repaired, prior scoped CI43437477996 PASS source.",
-        "New Owner instruction 2026-11-14 explicitly authorizes D173 Web CSS code and Production release with safeguards. No backend, Agent, Android or D172 changes authorized."
+        "New Owner instruction 2026-11-14 explicitly authorizes D173 Web CSS code and Production release with safeguards. No backend, Agent, Android or D172 changes authorized.",
+        "Web3.3.22 exact PR head 1544a79136fd6e31352b4a59eb241c628c106b12: 5/5 scoped workflows SUCCESS: E268 browser/Web build/D172 43541584543, D173 E123 43541584559, continuity 43541584672, authority 43541584580, E267 source/browser 43541584527. No Production release or Owner FIELD PASS inferred; historical global checks are separate."
       ],
       "next_action": "Run scoped CI on source-locked Web3.3.22 PR979; pin exact CI SHA; guarded two-parent merge then verify Production; FIELD Owner acceptance separate.",
-      "code_pass": false,
-      "ci_pass": false,
+      "code_pass": true,
+      "ci_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "evidence": "Owner 2026-11-14 supplied nine Web3.3.21 FIELD screenshots and authorized scoped Web UI code+deploy; PR979 E267 browser RED CI43436784898 and Green CI43437477996; prior Web3.3.21 Production receipt run43430031505."
+      "evidence": "Owner 2026-11-14 supplied nine Web3.3.21 FIELD screenshots and authorized scoped Web UI code+deploy; PR979 E267 browser RED CI43436784898 and Green CI43437477996; prior Web3.3.21 Production receipt run43430031505. Exact Web3.3.22 CI source 1544a79136fd6e31352b4a59eb241c628c106b12; workflows 43541584543,43541584559,43541584672,43541584580,43541584527.",
+      "source_ci_sha": "1544a79136fd6e31352b4a59eb241c628c106b12",
+      "ci_run_ids": [
+        43541584543,
+        43541584559,
+        43541584672,
+        43541584580,
+        43541584527
+      ]
     }
   ],
   "resume": {

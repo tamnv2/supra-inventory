@@ -10,7 +10,7 @@
     "checkpoint_id": "D173-E268",
     "pr": 979,
     "branch": "fix/d173-e267-web3321-field-spacing-20261113",
-    "status": "WEB3321_FIELD_FAIL__OWNER_WEB3322_RELEASE_APPROVED__CI_PENDING",
+    "status": "WEB3322_OWNER_APPROVED__CODE_CI_SCOPED_5_5_PASS__PROTECTED_MERGE_PENDING__FIELD_OWNER_FAIL_OPEN",
     "owner_merge_approved": true,
     "owner_release_approved": true,
     "source_doc": "docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md",
@@ -19,13 +19,13 @@
     "field_pass": false,
     "owner_pass": false,
     "source_main_sha": "6f74a954e49da65582946df6bff0b2a29f6e6ab1",
-    "code_scoped_pass": false,
-    "ci_scoped_pass": false,
+    "code_scoped_pass": true,
+    "ci_scoped_pass": true,
     "release_technical_pass": false,
     "ci_global_pass": false,
     "source_sha": "56d2ce390bb19019f230be8185a765b1959f08a0",
     "source_ci_run_id": 43437477996,
-    "source_ci_sha": "e0f8c7c248e111db2f38d571bcdc478e569aaca5",
+    "source_ci_sha": "1544a79136fd6e31352b4a59eb241c628c106b12",
     "source_code_pin": "1e778186e586b0607d8d31c27f550f1057877f88",
     "release_main_sha": "1784c76db7be2327ebf47e41ff1c7fe7825ed1cb",
     "release_run_id": 43430031505
@@ -215,10 +215,11 @@
     "target_version": "3.3.22",
     "source_code_pin": "1e778186e586b0607d8d31c27f550f1057877f88",
     "owner_release_approved": true,
-    "source_ci": "PENDING",
-    "release": "PENDING",
+    "source_ci": "PASS_SCOPED_5_OF_5",
+    "release": "PROTECTED_MERGE_PENDING",
     "field_pass": false,
     "owner_pass": false,
-    "d172": "HOLD"
+    "d172": "HOLD",
+    "source_ci_sha": "1544a79136fd6e31352b4a59eb241c628c106b12"
   }
 }

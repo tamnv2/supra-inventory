@@ -15,3 +15,8 @@ Owner gửi 9 ảnh Web3.3.21, báo lỗi không đồng nhất khoảng cách t
 
 ## Trạng thái tại checkpoint
 Owner code+release approved; Web3.3.22 source pin `1e778186e586b0607d8d31c27f550f1057877f88`; scoped CI/pin và Production release **chưa xác minh**. Không phải phát hành đã hoàn tất.
+
+## Exact-head scoped CI PASS (14/11/2026)
+- Web3.3.22 source code pin `1e778186e586b0607d8d31c27f550f1057877f88`; final source CI PR head `1544a79136fd6e31352b4a59eb241c628c106b12`.
+- 5/5 scoped SUCCESS: E268 Chromium/Web TypeScript/Vite + D172 [43541584543](https://github.com/tamnv2/supra-inventory/actions/runs/43541584543), D173 E123 Worker/SQL/Auth/D172 [43541584559](https://github.com/tamnv2/supra-inventory/actions/runs/43541584559), Change Continuity [43541584672](https://github.com/tamnv2/supra-inventory/actions/runs/43541584672), Repo Authority [43541584580](https://github.com/tamnv2/supra-inventory/actions/runs/43541584580), E267 Chromium/source [43541584527](https://github.com/tamnv2/supra-inventory/actions/runs/43541584527).
+- Global historical CI not claimed all PASS; exact scoped release gate pins 5 required successful workflows. Production 3.3.21 still live before protected merge; FIELD/OWNER FAIL/PENDING.

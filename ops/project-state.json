@@ -14913,11 +14913,19 @@
     "source_code_sha": "1e778186e586b0607d8d31c27f550f1057877f88",
     "target_version": "3.3.22",
     "scope": "WEB_D173_CSS_ONLY",
-    "code": "SOURCE_PINNED_CI_PENDING",
-    "ci": "PENDING",
-    "release": "NOT_YET",
+    "code": "PASS_SCOPED_SOURCE",
+    "ci": "PASS_SCOPED_5_OF_5",
+    "release": "AWAITING_PROTECTED_MERGE",
     "field_pass": false,
     "owner_pass": false,
-    "d172": "INDEPENDENT_HOLD"
+    "d172": "INDEPENDENT_HOLD",
+    "source_ci_sha": "1544a79136fd6e31352b4a59eb241c628c106b12",
+    "required_ci_run_ids": [
+      43541584543,
+      43541584559,
+      43541584672,
+      43541584580,
+      43541584527
+    ]
   }
 }
