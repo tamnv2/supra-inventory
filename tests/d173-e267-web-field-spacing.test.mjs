@@ -50,5 +50,5 @@ test("E267: preserve fixed Operations/Report scrolling, shell zoom, field status
   assert.doesNotMatch(scoped, /(?:^|[;{]\s*)height\s*:/m);
   assert.match(css, /\.ops-business-workspace \.fast-list/);
   assert.match(css, /height:\s*calc\(100dvh \/ var\(--supra-ui-zoom-factor, 1\)\) !important/);
-  assert.match(read("web/src/web-version.ts"), /WEB_VERSION = "3\.3\.21"/);
+  assert.match(read("web/src/web-version.ts"), /WEB_VERSION = "3\.3\.22"/);
 });

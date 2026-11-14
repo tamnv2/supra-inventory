@@ -1,0 +1,46 @@
+name: D173 E268 Web3.3.22 Field UI Scoped Release Gate
+on:
+  pull_request:
+    paths:
+      - 'web/src/d173-tabler.css'
+      - 'web/src/web-version.ts'
+      - 'web/package.json'
+      - 'tests/d173-e267-*.mjs'
+      - 'tests/d173-e268-web3322-release.test.mjs'
+      - '.github/workflows/deploy-beta.yml'
+      - '.github/workflows/d173-e268-web3322-release.yml'
+      - 'tools/d173_e268_web3322_release_gate.py'
+      - 'ops/d173-e268-web3322-release-authorization.json'
+      - 'ops/change-continuity/D173.json'
+      - 'docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md'
+permissions:
+  contents: read
+jobs:
+  web-build-browser-and-d172:
+    if: contains(github.head_ref, 'd173-e267-web3321-field-spacing')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/d173-e268-web3322-release.test.mjs tests/d173-e267-web-field-spacing.test.mjs tests/d173-e264-web-global-ui-rhythm.test.mjs tests/d173-e260-web-ui-layout.test.mjs tests/d173-e252-web3318-overview.test.mjs tests/d173-e237-web3315-global-layout.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e242-web3316-ui-consistency.test.mjs
+      - working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run build
+      - working-directory: web
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          npx playwright install chromium
+      - run: node --test tests/d173-e267-browser-geometry.test.mjs
+      - working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - run: python3 tools/d173_e268_web3322_release_gate.py --component web --preflight
