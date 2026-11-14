@@ -25,5 +25,5 @@
 ## D173-E270A — Owner code + Production approved (14/11/2026)
 - Owner explicitly requests to apply Smart Lazy, fix the Web UI and deploy Production after passing safeguards.
 - Candidate Web3.3.23 changes existing owning CSS rules in-place: panel padding 8×10, title gap6, Users/Shift duplicate margins removed, Dashboard top inset0, E260 one page padding authority; no extra CSS import/stylesheet. Operations preserves dedicated compact panel and scrolling.
-- Measured Chromium nine-route fixture PASS on initial source branch; further CI and authenticated Production field verification are separate. Source code immutable pin `58a45204c05efab2b6643f160b3c5236e859b7a0` for guarded release. Scope Worker static asset repack only, no business/shared/D172 mutation.
+- Measured Chromium nine-route fixture PASS on initial source branch; further CI and authenticated Production field verification are separate. Source code immutable pin `d06116f85e65bbb3539e62fa679fd7ac365bc9d1` for guarded release. Scope Worker static asset repack only, no business/shared/D172 mutation.
 - CODE candidate; CI final pending; RELEASE not deployed; FIELD/OWNER PASS false; D172 HOLD.
