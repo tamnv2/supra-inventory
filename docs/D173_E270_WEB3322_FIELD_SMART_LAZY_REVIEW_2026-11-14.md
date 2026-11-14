@@ -27,3 +27,8 @@
 - Candidate Web3.3.23 changes existing owning CSS rules in-place: panel padding 8×10, title gap6, Users/Shift duplicate margins removed, Dashboard top inset0, E260 one page padding authority; no extra CSS import/stylesheet. Operations preserves dedicated compact panel and scrolling.
 - Measured Chromium nine-route fixture PASS on initial source branch; further CI and authenticated Production field verification are separate. Source code immutable pin `d06116f85e65bbb3539e62fa679fd7ac365bc9d1` for guarded release. Scope Worker static asset repack only, no business/shared/D172 mutation.
 - CODE candidate; CI final pending; RELEASE not deployed; FIELD/OWNER PASS false; D172 HOLD.
+
+## D173-E272 — exact-source CI, chuẩn bị release (14/11/2026)
+- Source Web3.3.23 pin `d06116f85e65bbb3539e62fa679fd7ac365bc9d1`; CI branch `d11e3a489f1e95c599790436475dde9f2316bae3`, 5/5 scoped PASS: `43548017033`, `43548017034`, `43548017064`, `43548017125`, `43548017121`.
+- Chromium 9 nhóm trang + Web build + D172 regression/isolation + Authority + Continuity thành công. No authenticated FIELD proof; no new Production deployment at this checkpoint.
+- Production merge phải qua owner marker và exact-source gated two-parent; giữ nguyên D172 và Stable.

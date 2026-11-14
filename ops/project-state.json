@@ -14,9 +14,9 @@
     "field": "FAIL_OWNER_NINE_PAGE_SCREENSHOTS",
     "finding": "18_CSS_IMPORTS_TABLER_PLUS_17_LOCAL__LOCAL_7303_LINES_1392_IMPORTANTS__PRIOR_E267_CASCADE_RED_12PX_EXPECTED_6PX",
     "proposed": "SMART_LAZY_MEASURE_REAL_COMPUTED_LAYOUT_THEN_REMOVE_PROVEN_DUPLICATE_OWNING_RULES_WITH_RED_GREEN__NO_NEW_OVERRIDE_LAYER",
-    "code": "SOURCE_CANDIDATE__SCOPED_CI_PENDING",
-    "ci": "PENDING_AT_PIN",
-    "release": "OWNER_AUTHORIZED__GATED_PRECI__NO_DEPLOY",
+    "code": "PASS_SCOPED_SOURCE_AND_CHROMIUM_BUILD",
+    "ci": "PASS_SCOPED_5_OF_5_RUNS_43548017033_43548017034_43548017064_43548017125_43548017121",
+    "release": "OWNER_GATED_PROTECTED_MERGE_PENDING_NO_DEPLOY",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -25,7 +25,15 @@
     "owner_code_approved": true,
     "owner_production_release_approved": true,
     "target_version": "3.3.23",
-    "source_code_pin": "d06116f85e65bbb3539e62fa679fd7ac365bc9d1"
+    "source_code_pin": "d06116f85e65bbb3539e62fa679fd7ac365bc9d1",
+    "source_ci_sha": "d11e3a489f1e95c599790436475dde9f2316bae3",
+    "source_ci_run_ids": [
+      43548017033,
+      43548017034,
+      43548017064,
+      43548017125,
+      43548017121
+    ]
   },
   "d173_e242_web3316_ui": {
     "date_vn": "2026-11-13",
@@ -7654,11 +7662,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
     "pr": 981,
-    "latest_checkpoint_id": "D173-E271",
+    "latest_checkpoint_id": "D173-E272",
     "checkpoint_date_vn": "2026-11-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E268_WEB3322_PRODUCTION_TECH_PASS__RUN43542070127__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E270_WEB3323_CI_5_OF_5_PASS__PROTECTED_MERGE_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 981,

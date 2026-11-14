@@ -7,16 +7,24 @@
   "pr": 981,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E271",
+    "id": "D173-E272",
     "date_vn": "2026-11-14",
-    "summary": "Owner expressly authorizes Smart Lazy UI code and guarded Web3.3.23 Production after exact CI. Source candidate exact pin d06116f; nine-route Chromium regression and legacy CSS deletion; release not yet performed, FIELD/OWNER FAIL/PENDING.",
-    "status": "SOURCE_PINNED__SCOPED_CI_PENDING__PRODUCTION_NOT_DEPLOYED__FIELD_FAIL_WEB3322__D172_HOLD",
+    "summary": "E270 Web3.3.23 source-pinned CI 5/5 SUCCESS at d11e3a; Chromium nine-route, Web build, D172, Authority, Continuity; guarded release pending, FIELD/OWNER not PASS.",
+    "status": "CODE_SCOPED_PASS__CI_SCOPED_5_5_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
     "source": "docs/D173_E270_WEB3322_FIELD_SMART_LAZY_REVIEW_2026-11-14.md",
     "branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
     "pr": 981,
     "source_code_sha": "d06116f85e65bbb3539e62fa679fd7ac365bc9d1",
-    "source_code_pass": false,
-    "ci_scoped_pass": false,
+    "source_ci_sha": "d11e3a489f1e95c599790436475dde9f2316bae3",
+    "ci_run_ids": [
+      43548017033,
+      43548017034,
+      43548017064,
+      43548017125,
+      43548017121
+    ],
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false
@@ -5768,6 +5776,37 @@
       "field_pass": false,
       "owner_pass": false,
       "owner_approval": true
+    },
+    {
+      "id": "D173-E272",
+      "date_vn": "2026-11-14",
+      "kind": "TEST",
+      "topic": "Web3.3.23 Smart Lazy final scoped CI 5/5 SUCCESS with exact code pin, ready for guarded merge",
+      "status": "CODE_AND_CI_SCOPED_PASS__PROTECTED_PRODUCTION_MERGE_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Exact source pin d06116f85e65bbb3539e62fa679fd7ac365bc9d1; no business code, D172, Agent, Android, Firebase, shared Worker logic or Stable changed.",
+        "Five SUCCESS checks on exact source-equivalent branch SHA d11e3a489f1e95c599790436475dde9f2316bae3: E270 Web/Chromium/D172 run 43548017033, E123 Worker/SQL/Auth/D172 run 43548017034, Repo Authority 43548017064, Project State/Continuity 43548017125, D172 Business Isolation 43548017121.",
+        "9-route browser fixtures cover ADMIN/ADMIN_INVENT, light/dark, 1280/1366/1920 viewport; UI actual authenticated FIELD not measured on deployed Web3.3.23.",
+        "Release guard pins exact source+CI, requires two-parent protected main merge, no source drift, approved D173 E270 marker and existing Worker repackage only; no new resource."
+      ],
+      "next_action": "Protected merge PR981 after exact head/CI/source verification, monitor existing Production Worker/Web deploy; check health and record actual release receipt. Owner FIELD acceptance separately.",
+      "evidence": "PR981 HEAD d11e3a489f1e95c599790436475dde9f2316bae3, Actions runs 43548017033,43548017034,43548017064,43548017125,43548017121; tests/d173-e270-web-smart-lazy.test.mjs; tools/d173_e270_web3323_release_gate.py",
+      "source_code_sha": "d06116f85e65bbb3539e62fa679fd7ac365bc9d1",
+      "source_ci_sha": "d11e3a489f1e95c599790436475dde9f2316bae3",
+      "ci_run_ids": [
+        43548017033,
+        43548017034,
+        43548017064,
+        43548017125,
+        43548017121
+      ],
+      "code_pass": true,
+      "ci_scoped_pass": true,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD"
     }
   ],
   "resume": {
