@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "d08526b9fb549e3b8413659437d2ff2ee08a7b5a"
 MARKER = "D173-E270_WEB3323_PRODUCTION_RELEASE:"
-AUTH = ROOT / "ops/d173-e268-web3323-release-authorization.json"
+AUTH = ROOT / "ops/d173-e270-web3323-release-authorization.json"
 ALLOWED = {
     ".github/workflows/d173-e270-web3323-smart-lazy.yml",
     ".github/workflows/deploy-beta.yml",
@@ -109,7 +109,7 @@ def main():
     if changed - ALLOWED:
         deny("OUT_OF_SCOPE:" + ",".join(sorted(changed - ALLOWED))[:230])
     required_code = {"web/src/d173-tabler.css", "web/src/web-version.ts", "web/package.json",
-                     ".github/workflows/deploy-beta.yml", "tools/d173_e268_web3323_release_gate.py"}
+                     ".github/workflows/deploy-beta.yml", "tools/d173_e270_web3323_release_gate.py"}
     if not required_code.issubset(changed):
         deny("REQUIRED_SOURCE_MISSING")
     if any(path.startswith(prefix) for path in changed for prefix in PROTECTED):

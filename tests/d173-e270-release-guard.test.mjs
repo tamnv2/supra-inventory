@@ -25,6 +25,8 @@ test("E270: exact-source pinned, two-parent guarded release with D172 isolation"
     "SOURCE_DRIFT_AFTER_PIN", "CODE_DRIFT_AFTER_CI", "PROTECTED_MODULE_MUTATION", "CI_NOT_PINNED", "REQUIRED_CI_STATUS"])
     assert.ok(gate.includes(token), token);
   assert.match(workflow, /D173-E270_WEB3323_PRODUCTION_RELEASE:\*/);
+  assert.match(gate, /ops\/d173-e270-web3323-release-authorization\.json/);
+  assert.match(gate, /tools\/d173_e270_web3323_release_gate\.py/);
   assert.match(workflow, /d173_e270_web3323_release_gate\.py --component worker/);
   assert.match(workflow, /d173_e270_web3323_release_gate\.py --component web/);
   assert.match(workflow, /D173_E270_EXISTING_WORKER_GATEWAY_D172_UNCHANGED__WEB_UI_ONLY/);
