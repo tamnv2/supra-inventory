@@ -7654,7 +7654,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
     "pr": 981,
-    "latest_checkpoint_id": "D173-E270A",
+    "latest_checkpoint_id": "D173-E271",
     "checkpoint_date_vn": "2026-11-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",

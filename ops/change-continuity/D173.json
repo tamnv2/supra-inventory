@@ -7,7 +7,7 @@
   "pr": 981,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E270A",
+    "id": "D173-E271",
     "date_vn": "2026-11-14",
     "summary": "Owner expressly authorizes Smart Lazy UI code and guarded Web3.3.23 Production after exact CI. Source candidate exact pin 7e18ff0; nine-route Chromium regression and legacy CSS deletion; release not yet performed, FIELD/OWNER FAIL/PENDING.",
     "status": "SOURCE_PINNED__SCOPED_CI_PENDING__PRODUCTION_NOT_DEPLOYED__FIELD_FAIL_WEB3322__D172_HOLD",
@@ -5722,7 +5722,7 @@
     {
       "id": "D173-E270",
       "date_vn": "2026-11-14",
-      "kind": "OWNER_FIELD_FAIL_AND_REVIEW",
+      "kind": "STATUS",
       "topic": "Web3.3.22 remains visually inconsistent; Smart Lazy minimization instead of additional CSS overrides",
       "status": "FIELD_FAIL_WEB3322__DOCS_ONLY_REVIEW__NO_NEW_RELEASE",
       "owner_approval": false,
@@ -5746,9 +5746,9 @@
       "pr": 981
     },
     {
-      "id": "D173-E270A",
+      "id": "D173-E271",
       "date_vn": "2026-11-14",
-      "kind": "OWNER_COMMAND_AND_CODE_CANDIDATE",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner approves Smart Lazy scoped CSS repair and guarded Web3.3.23 Production deployment after CI",
       "status": "SOURCE_CODE_PINNED_CI_PENDING__PRODUCTION_NOT_DEPLOYED",
       "owner_code_approved": true,
@@ -5766,7 +5766,8 @@
       "evidence": "Owner 2026-11-14 explicit code+production request; source PR981; version3.3.23; recorded previous test failure related to outdated hard-coded 3.3.22 assertions repaired.",
       "release_pass": false,
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "owner_approval": true
     }
   ],
   "resume": {

@@ -44,5 +44,6 @@ test("D173-E230: exact suffix-search instruction and Web candidate version", () 
   assert.match(web, /placeholder="Tìm SKU tối thiểu 3 chữ số cuối"/);
   assert.match(web, /opsSkuSuffix\.length < 3 \|\| row\.sku\.endsWith\(opsSkuSuffix\)/);
   assert.match(version, /WEB_VERSION = "3\.3\.(?:2[2-9]|[3-9]\d+)"/);
-  assert.equal(pkg.version, "3.3.22");
+  assert.ok(Number(pkg.version.split(".")[2]) >= 22, "Web patch version must not regress");
+  assert.ok(version.includes('WEB_VERSION = "' + pkg.version + '"'), "Source/package version mismatch");
 });
