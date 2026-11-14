@@ -502,3 +502,48 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
 .d173-tabler-shell .d173-tabler-sidebar .nav-button {
   border-radius: var(--d173-ui-card-radius) !important;
 }
+
+/* D173-E267: FIELD 3.3.21 spacing repair.
+   E264 aligned grid gaps/radii but left legacy section margins, title
+   spacing, form gaps and role-scoped page padding unchanged. */
+@media (min-width: 781px) {
+  body .d173-tabler-shell > .d173-page-content,
+  body .d173-tabler-shell > .d173-page-content:not(:has(.ops-business-workspace)) {
+    padding: 4px 6px 24px !important;
+  }
+}
+.d173-tabler-shell .d173-page-content .ops-route:is(
+  .users-workspace, .tools-workspace, .sku-workspace, .sla-workspace,
+  .logs-workspace, .reset-workspace, .system-workspace, .account-workspace
+) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--d173-ui-gap) !important;
+}
+.d173-tabler-shell .d173-page-content .ops-route:is(
+  .users-workspace, .tools-workspace, .sku-workspace, .sla-workspace,
+  .logs-workspace, .reset-workspace, .system-workspace, .account-workspace
+) > :is(.business-summary-grid, .business-page-head, .workspace-tabs, .users-top-grid, .users-list-summary, .ops-panel) {
+  margin: 0 !important;
+}
+.d173-tabler-shell .d173-page-content .ops-route:is(
+  .users-workspace, .tools-workspace, .sku-workspace, .sla-workspace,
+  .logs-workspace, .reset-workspace, .system-workspace, .account-workspace
+) > .business-page-head {
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+.d173-tabler-shell .d173-page-content .ops-panel-title {
+  margin-bottom: var(--d173-ui-gap) !important;
+}
+.d173-tabler-shell .d173-page-content .tools-workspace :is(.d167-meal-card, .shift-history-panel),
+.d173-tabler-shell .d173-page-content .users-workspace :is(.ops-users-panel, .users-top-grid .users-filter-panel, .users-top-grid .users-create-panel) {
+  padding: 8px 10px !important;
+}
+.d173-tabler-shell .d173-page-content .tools-workspace :is(.d167-meal-form, .d167-meal-edit) {
+  margin-top: var(--d173-ui-gap) !important;
+  gap: var(--d173-ui-gap) !important;
+}
+.d173-tabler-shell .d173-page-content .users-workspace .users-filter-form .ops-form-actions {
+  padding: 0 !important;
+}

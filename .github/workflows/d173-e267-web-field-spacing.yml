@@ -1,0 +1,50 @@
+name: D173 E267 Web 3.3.21 Field Spacing Code Only
+on:
+  pull_request:
+    paths:
+      - 'web/src/d173-tabler.css'
+      - 'tests/d173-e267-web-field-spacing.test.mjs'
+      - 'tests/d173-e267-browser-geometry.test.mjs'
+      - 'docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md'
+      - 'ops/change-continuity/D173.json'
+      - 'ops/project-state.json'
+      - '.github/workflows/d173-e267-web-field-spacing.yml'
+permissions:
+  contents: read
+jobs:
+  field-spacing-source-and-isolation:
+    if: contains(github.head_ref, 'd173-e267-web3321-field-spacing')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduced legacy margins and repaired Web field geometry
+        run: |
+          node --test tests/d173-e267-web-field-spacing.test.mjs tests/d173-e264-web-global-ui-rhythm.test.mjs tests/d173-e260-web-ui-layout.test.mjs tests/d173-e252-web3318-overview.test.mjs tests/d173-e237-web3315-global-layout.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e242-web3316-ui-consistency.test.mjs
+      - name: Web TypeScript and production asset build
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run build
+      - name: Install isolated headless Chromium for computed CSS geometry
+        working-directory: web
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          npx playwright install chromium
+      - name: Measure Web layout in Chromium (1280 / 1366 / 1792 / 1920)
+        run: node --test tests/d173-e267-browser-geometry.test.mjs
+      - name: Existing service TypeScript for isolated D172 regressions
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: D172 independent guard and regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: CSS only; Web Production 3.3.21 unchanged
+        run: echo 'D173_E267_FIELD_FAIL_REPAIR_CODE_ONLY__NOT_VISUAL_FIELD_PASS__NO_PRODUCTION_DEPLOY'

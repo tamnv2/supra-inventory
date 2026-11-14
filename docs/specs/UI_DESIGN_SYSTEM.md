@@ -1,3 +1,13 @@
+## D173-E268 — Chuẩn hoá spacing thực tế cho Web3.3.22 (14/11/2026)
+
+Dùng mật độ Xử lý báo hàng: desktop inset 4px 6px 24px, root spacing6px không cộng thêm margin cũ, form gap/margin6px, Shift/Users card padding 8×10; bảo toàn scroll, breakpoints và nghiệp vụ. CSS specificity cần Chromium computed-style/bounding-box regression trên các role và màn hình, không chỉ static token test. Owner đã cho phép code+deploy Web3.3.22 theo release guard; FIELD/OWNER nghiệm thu riêng. Không thay backend, D172 và Stable.
+
+## D173-E267 — FIELD FAIL và phép đo thực tế của nhịp khoảng cách Web
+
+Web3.3.21 FIELD FAIL vì 3 nhóm chưa đồng nhất: margin giữa các section và tiêu đề, padding panel Users/Shift, form inline 12–14px cùng role-inset không thắng specificity. Quy tắc ứng viên: inset desktop 4px dọc / 6px ngang, khoảng cách giữa các khối cấp trang 6px, tiêu đề panel đến nội dung 6px, form nghỉ margin/gap 6px, Users/Shift panel padding 8px 10px; không đụng viewport scroll đặc thù Operations/Report. Đo bằng Chromium CSS gốc 1280/1366/1792/1920 và regression source; **không tính FIELD PASS** khi chưa so sánh thật đủ chín trang sau triển khai. Release 3.3.21 giữ nguyên; không mặc nhiên cho phép release phiên bản mới. `docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md`.
+
+---
+
 ## D173-E264 — Đồng nhất khoảng cách / bo viền / tab Web (13/11/2026)
 
 Web dùng thống nhất mật độ hình học dựa trên Xử lý báo hàng: `6px` grid gap, `5px` bo góc card, `4px` bo góc panel / bảng / tab bar / form control; KPI card `8px 10px` padding; tab `35px` tối thiểu, căn dọc trung tâm cho nhãn và số đếm. Chỉ tác động lớp `.d173-tabler-shell` của Web đã đăng nhập; giữ nguyên đường viền có ý nghĩa trạng thái, bố cục responsive, các vùng cuộn và mật độ đặc thù của bảng SKU. Không thay đổi nghiệp vụ, API, quyền, realtime, usage, D172 hoặc Stable. Owner yêu cầu sửa FIELD sau Web3.3.20; phiên bản Production vẫn 3.3.20, chưa có quyền release mới. Nguồn: `docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md`.
