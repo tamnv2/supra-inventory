@@ -26,7 +26,7 @@
     "source_sha": "56d2ce390bb19019f230be8185a765b1959f08a0",
     "source_ci_run_id": 43437477996,
     "source_ci_sha": "e0f8c7c248e111db2f38d571bcdc478e569aaca5",
-    "source_code_pin": "02e6bc0d514575968f328cb17eecae97410d9e48",
+    "source_code_pin": "1e778186e586b0607d8d31c27f550f1057877f88",
     "release_main_sha": "1784c76db7be2327ebf47e41ff1c7fe7825ed1cb",
     "release_run_id": 43430031505
   },
@@ -213,7 +213,7 @@
     "pr": 979,
     "branch": "fix/d173-e267-web3321-field-spacing-20261113",
     "target_version": "3.3.22",
-    "source_code_pin": "02e6bc0d514575968f328cb17eecae97410d9e48",
+    "source_code_pin": "1e778186e586b0607d8d31c27f550f1057877f88",
     "owner_release_approved": true,
     "source_ci": "PENDING",
     "release": "PENDING",

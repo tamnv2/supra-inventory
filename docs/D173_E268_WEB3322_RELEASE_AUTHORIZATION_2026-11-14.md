@@ -3,7 +3,7 @@
 ## Phạm vi Owner phê duyệt
 Owner gửi 9 ảnh Web3.3.21, báo lỗi không đồng nhất khoảng cách toàn Web; yêu cầu tìm nguyên nhân, sửa code và **triển khai** nếu phạm vi rõ. Lệnh mới cho phép CODE và Production release **Web D173 UI** đúng phạm vi này. Không cho phép thay Worker nghiệp vụ, Auth, DO/SQLite, Firebase, Agent/Android, Gateway, D172 OBPP hoặc Stable.
 - Base main mới nhất tại thời điểm sửa: `6f74a954e49da65582946df6bff0b2a29f6e6ab1` (main docs-only E266 sau Web3.3.21 run43430031505 SUCCESS).
-- Mã CSS E267 nhánh PR979 đã kiểm thử Chromium RED/GREEN. Source Web3.3.22 gate commit `02e6bc0d514575968f328cb17eecae97410d9e48`. Production vẫn Web3.3.21 cho tới khi merge guarded PR.
+- Mã CSS E267 nhánh PR979 đã kiểm thử Chromium RED/GREEN. Source Web3.3.22 gate commit `1e778186e586b0607d8d31c27f550f1057877f88`. Production vẫn Web3.3.21 cho tới khi merge guarded PR.
 - Nguyên nhân từ mã và Chromium: E264 chỉ thống nhất grid gap/radius; margin/padding cũ tồn tại; selector E237 specificity cao hơn rule mới, RED đo inset12px thay vì 6px. Sửa scoped tại d173-tabler.css; không thay đổi TS nghiệp vụ.
 
 ## DoD và rủi ro
@@ -14,4 +14,4 @@ Owner gửi 9 ảnh Web3.3.21, báo lỗi không đồng nhất khoảng cách t
 - D172 độc lập PENDING/HOLD, Stable OWNER-GATED.
 
 ## Trạng thái tại checkpoint
-Owner code+release approved; Web3.3.22 source pin `02e6bc0d514575968f328cb17eecae97410d9e48`; scoped CI/pin và Production release **chưa xác minh**. Không phải phát hành đã hoàn tất.
+Owner code+release approved; Web3.3.22 source pin `1e778186e586b0607d8d31c27f550f1057877f88`; scoped CI/pin và Production release **chưa xác minh**. Không phải phát hành đã hoàn tất.
