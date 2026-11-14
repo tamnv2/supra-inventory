@@ -1,3 +1,7 @@
+## D173-E268 — Owner yêu cầu sửa triệt để spacing Web3.3.21 và triển khai Web mới (14/11/2026)
+
+Owner nhận định Web3.3.21 đã phát hành nhưng khoảng cách giữa tab, card, nội dung, các trang vẫn chưa đồng nhất (9 ảnh). Yêu cầu xác minh nguyên nhân, sửa và triển khai nếu rõ phạm vi. Cho phép CODE + Production release Web D173 UI scoped Web3.3.22 sau exact-source CI/guard; không đổi API, DO, SQLite, RBAC, Firebase, Agent, Android, Gateway, D172 hay Stable. FIELD/OWNER vẫn phải nghiệm thu riêng. Tham chiếu D173-E267 CSS/browser geometry và D173-E268 guarded release.
+
 ## D173-E267 — 13/11/2026: Owner phản hồi FIELD FAIL khoảng cách Web3.3.21
 
 Owner xác nhận Web3.3.21 **chưa đồng nhất khoảng cách** qua bốn ảnh trang Xử lý báo hàng, Ca vận hành, Tổng quan và Nhân sự. Release kỹ thuật E266 PASS không đồng nghĩa giao diện đạt nghiệm thu. Rà source xác minh khoảng cách margin/title/form từ CSS legacy còn 10–14px trong khi E264 chỉ thống nhất gap của một số nhóm; role-specific padding còn xung đột. Tạo E267 CSS-only PR #979, bổ sung Chromium computed-geometry guard cùng test Web/D172; giữ Web Production 3.3.21, D172 HOLD, FIELD/OWNER PASS false. **Chưa có lệnh phát hành Web mới**. Xem `docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md`.

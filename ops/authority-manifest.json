@@ -26,7 +26,8 @@
     "docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md",
     "docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md",
     "docs/D173_E266_WEB3321_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
-    "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md"
+    "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md",
+    "docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -173,7 +174,9 @@
     "current_d173_e264_web_global_ui": "docs/D173_E264_WEB_GLOBAL_UI_RHYTHM_2026-11-13.md",
     "current_d173_e265_web3321_release": "docs/D173_E265_WEB3321_RELEASE_AUTHORIZATION_2026-11-13.md",
     "current_d173_e266_web3321_release_receipt": "docs/D173_E266_WEB3321_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
-    "current_d173_e267_web_spacing_field_fail": "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md"
+    "current_d173_e267_web_spacing_field_fail": "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md",
+    "current_d173_e268_owner_release": "docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md",
+    "current_d173_e268_release_gate": "ops/d173-e268-web3322-release-authorization.json"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -261,8 +264,8 @@
     ],
     "active_working_change_id": "D173",
     "active_working_pr": 979,
-    "ref_rule": "D173_E267_WEB3321_OWNER_FIELD_SPACING_FAIL__PR979_DRAFT_CSS_CODE_ONLY__NO_NEW_RELEASE_AUTH__D172_HOLD",
-    "freshness": "2026_11_13_E267_WEB3321_FIELD_SPACING_FAIL",
+    "ref_rule": "D173_E268_WEB3321_FIELD_FAIL__OWNER_WEB3322_RELEASE_APPROVED__SOURCE_CI_PENDING__PR979_DRAFT__D172_HOLD",
+    "freshness": "2026_11_14_OWNER_WEB3322_UI_RELEASE_AUTHORIZED",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -471,7 +474,7 @@
       "stable": "OWNER_GATED",
       "owner_command": "2026-11-10_YEU_CAU_PHAT_HANH"
     },
-    "working_pr_lifecycle": "PR977_MERGED_WEB3321_RELEASE_PASS__PR978_RECEIPT_MERGED__PR979_DRAFT_CODE_ONLY"
+    "working_pr_lifecycle": "PR978_MERGED_MAIN_6F74A954__PR979_DRAFT_E267_E268"
   },
   "bootstrap_read_policy": {
     "mode": "CURRENT_ESSENTIALS_ONLY__HISTORY_ON_DEMAND",

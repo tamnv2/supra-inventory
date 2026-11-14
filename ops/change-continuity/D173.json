@@ -7,23 +7,17 @@
   "pr": 979,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E267",
-    "date_vn": "2026-11-13",
-    "summary": "Web3.3.21 Owner FIELD spacing FAIL reproduced by Chromium Users inset12px; E237 CSS specificity root corrected. E267 scoped code/Chromium/D172 CI4/4 PASS at e0f8c7c248e111db2f38d571bcdc478e569aaca5; PR979 Draft/no new release authorization, D172 HOLD.",
-    "status": "WEB3321_FIELD_FAIL_REPRODUCED_CHROMIUM__E267_CODE_CI_SCOPED_PASS__NO_RELEASE_PERMISSION__D172_HOLD",
-    "source": "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md",
+    "id": "D173-E268",
+    "date_vn": "2026-11-14",
+    "summary": "Owner Web3.3.21 FIELD FAIL from nine screenshots; E267 root cause verified by Chromium RED/GREEN; approved Web3.3.22 code and production scoped release. New source pin, scoped CI pending.",
+    "status": "CODE_SHA_PINNED__CI_PENDING__PRODUCTION_3321_UNCHANGED__FIELD_OWNER_FAIL_OPEN",
+    "source": "docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md",
     "branch": "fix/d173-e267-web3321-field-spacing-20261113",
     "pr": 979,
-    "source_ci_sha": "e0f8c7c248e111db2f38d571bcdc478e569aaca5",
-    "source_ci_run_ids": [
-      43437477996,
-      43437477909,
-      43437477525,
-      43437478058
-    ],
-    "code_pass": true,
-    "ci_scoped_pass": true,
-    "global_ci_pass": false,
+    "source_code_sha": "3da18fea6b9287661d8034842a12fb93baf00bc2",
+    "source_base_main_sha": "6f74a954e49da65582946df6bff0b2a29f6e6ab1",
+    "code_pass": false,
+    "ci_scoped_pass": false,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false
@@ -5664,6 +5658,30 @@
         43437478058
       ],
       "global_ci_pass": false
+    },
+    {
+      "id": "D173-E268",
+      "date_vn": "2026-11-14",
+      "kind": "OWNER_COMMAND_AND_VERIFIED_FINDING",
+      "topic": "Web3.3.21 FIELD FAIL spacing, owner code and release approved for Web3.3.22",
+      "status": "SOURCE_SHA_PINNED__CI_PENDING__NO_RELEASE__FIELD_OWNER_NOT_PASS",
+      "owner_approval": true,
+      "source_pr": 979,
+      "source_code_sha": "3da18fea6b9287661d8034842a12fb93baf00bc2",
+      "source_base_main_sha": "6f74a954e49da65582946df6bff0b2a29f6e6ab1",
+      "owner_release_approved": true,
+      "facts": [
+        "Web3.3.21 Production technical receipt run43430031505 SUCCESS; 9 new FIELD screenshots reveal page/card/tab spacing inconsistent.",
+        "Chromium E267 RED reproduced 12px page inset vs required6px caused by E237 legacy CSS specificity; E267 geometry repaired, prior scoped CI43437477996 PASS source.",
+        "New Owner instruction 2026-11-14 explicitly authorizes D173 Web CSS code and Production release with safeguards. No backend, Agent, Android or D172 changes authorized."
+      ],
+      "next_action": "Run scoped CI on source-locked Web3.3.22 PR979; pin exact CI SHA; guarded two-parent merge then verify Production; FIELD Owner acceptance separate.",
+      "code_pass": false,
+      "ci_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD"
     }
   ],
   "resume": {

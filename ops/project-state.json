@@ -7627,16 +7627,16 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e267-web3321-field-spacing-20261113",
     "pr": 979,
-    "latest_checkpoint_id": "D173-E267",
-    "checkpoint_date_vn": "2026-11-13",
+    "latest_checkpoint_id": "D173-E268",
+    "checkpoint_date_vn": "2026-11-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E267_FIELD_FAIL_CSS_CODE_ONLY__NO_NEW_WEB_RELEASE_APPROVAL__WEB3321_REMAINS_PRODUCTION__D172_HOLD",
+    "owner_release_gate": "D173_E268_OWNER_WEB3322_CODE_AND_RELEASE_APPROVED__SCOPED_CI_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 979,
     "active_working_branch": "fix/d173-e267-web3321-field-spacing-20261113",
-    "working_pr_lifecycle": "PR977_WEB3321_MERGED_RELEASE_SUCCESS__PR978_RELEASE_RECEIPT_MERGED__PR979_DRAFT_CODE_ONLY_OPEN"
+    "working_pr_lifecycle": "PR978_MERGED_DOCS_ONLY__PR979_DRAFT_E267_E268_SOURCE_CI_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -14901,5 +14901,23 @@
       43437477525,
       43437478058
     ]
+  },
+  "d173_e268_web3322_release": {
+    "date_vn": "2026-11-14",
+    "change_id": "D173-E268",
+    "source_pr": 979,
+    "branch": "fix/d173-e267-web3321-field-spacing-20261113",
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "source_base_main_sha": "6f74a954e49da65582946df6bff0b2a29f6e6ab1",
+    "source_code_sha": "3da18fea6b9287661d8034842a12fb93baf00bc2",
+    "target_version": "3.3.22",
+    "scope": "WEB_D173_CSS_ONLY",
+    "code": "SOURCE_PINNED_CI_PENDING",
+    "ci": "PENDING",
+    "release": "NOT_YET",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_HOLD"
   }
 }
