@@ -22,7 +22,7 @@
 .users-workspace .user-menu-item:hover,.users-workspace .user-menu-item:focus-visible { background:var(--pro-accent-soft,#eaf2fc); }
 .users-workspace .user-menu-danger { color:#af2f22; border-top:1px solid var(--pro-border,#dce2ee); }
 .users-workspace .people-workspace { margin:9px 0; }
-.shift-history-panel { margin-top:12px; padding:14px 16px !important; }
+.shift-history-panel { padding:8px 10px !important; }
 .shift-history-filters { display:flex; gap:6px; flex-wrap:wrap; }
 .shift-history-filters button { padding:5px 9px; min-height:32px; }
 .shift-history-panel table { width:100%; }

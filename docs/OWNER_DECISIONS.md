@@ -1,3 +1,9 @@
+## D173-E270 — Owner duyệt sửa Smart Lazy và Production Web3.3.23 (14/11/2026)
+
+Owner xác nhận Web3.3.22 FIELD FAIL về đồng nhất hình học qua 9 ảnh Production; chốt sửa code theo Smart Lazy và triển khai Production khi đủ guard. Phạm vi: chỉ D173 Web authenticated UI/CSS, bỏ khai báo spacing/padding dư tại nguồn, dùng chung một quyền định nghĩa hình học trong CSS hiện có, không thêm lớp override mới; đổi Web version 3.3.23, kiểm tra 9 route bằng Chromium cùng test Web/D172/Authority/Continuity. Được phép repack Web assets trên **Worker Production hiện hữu**, không đổi Worker nghiệp vụ, Auth, DO/SQLite, Firebase, Agent, Android, Gateway, D172 hoặc Stable, không thêm provider resource/usage logic. Chỉ merge/release sau source-pinned CI, protected two-parent merge marker và live readback. CODE/CI/RELEASE kỹ thuật riêng FIELD/OWNER; không coi test fixture là nghiệm thu 9 trang thật. Nguồn: `docs/D173_E270_WEB3322_FIELD_SMART_LAZY_REVIEW_2026-11-14.md`, PR #981.
+
+---
+
 ## D173-E268 — Owner yêu cầu sửa triệt để spacing Web3.3.21 và triển khai Web mới (14/11/2026)
 
 Owner nhận định Web3.3.21 đã phát hành nhưng khoảng cách giữa tab, card, nội dung, các trang vẫn chưa đồng nhất (9 ảnh). Yêu cầu xác minh nguyên nhân, sửa và triển khai nếu rõ phạm vi. Cho phép CODE + Production release Web D173 UI scoped Web3.3.22 sau exact-source CI/guard; không đổi API, DO, SQLite, RBAC, Firebase, Agent, Android, Gateway, D172 hay Stable. FIELD/OWNER vẫn phải nghiệm thu riêng. Tham chiếu D173-E267 CSS/browser geometry và D173-E268 guarded release.

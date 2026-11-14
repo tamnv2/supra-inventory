@@ -9,18 +9,18 @@ const legacy = read("web/src/legacy-transplant/web-unified-ui.css");
 const legacyAccounts = read("web/src/legacy-transplant/d167-web-ux-recovery.css");
 const scoped = css.slice(css.indexOf("/* D173-E267: FIELD 3.3.21 spacing repair"));
 
-test("E267 RED reproduction: legacy margin and padding values survived the E264 gap-only fix", () => {
-  assert.match(legacy, /min-height:\s*42px;\s*margin:\s*0 0 14px !important;/);
-  assert.match(legacy, /\.ops-panel-title \{ margin-bottom: 12px !important; \}/);
-  assert.match(legacyAccounts, /\.users-workspace \.users-mode-tabs \{[^}]*margin:0 0 12px;/);
-  assert.match(legacyAccounts, /\.users-workspace \.users-top-grid \{[^}]*margin:0 0 10px !important;/);
-  assert.match(view, /class="ops-grid-two" style="display:grid;grid-template-columns:repeat\(auto-fit,minmax\(270px,1fr\)\);gap:14px"/);
-  assert.match(view, /class="d167-meal-form"[^>]*style="[^"]*gap:12px;[^"]*margin-top:14px"/);
+test("E270: eliminate old CSS duplicates rather than add another override", () => {
+  assert.doesNotMatch(legacy, /\.ops-panel \{ padding: 16px !important; \}/);
+  assert.doesNotMatch(legacyAccounts, /\.users-workspace \.users-mode-tabs \{[^}]*margin:0 0 12px;/);
+  assert.doesNotMatch(legacyAccounts, /\.users-workspace \.users-top-grid \{[^}]*margin:0 0 10px !important;/);
+  assert.doesNotMatch(view, /class="ops-grid-two" style="[^"]*gap:14px"/);
+  assert.match(read("web/src/legacy-transplant/web-professional-v2.css"), /\.ops-panel \{ padding: 8px 10px !important; \}/);
 });
 
-test("E267: outer page inset overrides the legacy role-scoped important padding", () => {
-  assert.ok(scoped.startsWith("/* D173-E267:"), "FIELD layout override missing");
-  assert.match(scoped, /body \.d173-tabler-shell > \.d173-page-content:not\(:has\(\.ops-business-workspace\)\)\s*\{[^}]*padding:\s*4px 6px 24px !important;/s);
+test("E270: one E260 desktop inset rule owns all routes", () => {
+  assert.match(css, /body \.d173-tabler-shell > \.d173-page-content:not\(:has\(\.ops-business-workspace\)\)/);
+  assert.match(css, /body \.d173-tabler-shell > \.d173-page-content:has\(\.report-workspace\)/);
+  assert.doesNotMatch(scoped, /padding:\s*4px 6px 24px !important;/);
 });
 
 test("E267: actual workspace roots normalize vertical rhythm, not just nested grid gaps", () => {
@@ -38,7 +38,7 @@ test("E267: actual workspace roots normalize vertical rhythm, not just nested gr
 test("E267: meal controls, form actions and section titles use real compact geometry", () => {
   assert.match(scoped, /\.d167-meal-form, \.d167-meal-edit/);
   assert.match(scoped, /margin-top:\s*var\(--d173-ui-gap\) !important;/);
-  assert.match(scoped, /\.ops-panel-title\s*\{[^}]*margin-bottom:\s*var\(--d173-ui-gap\) !important;/s);
+  assert.match(read("web/src/legacy-transplant/web-professional-v2.css"), /\.ops-panel-title\s*\{[^}]*margin-bottom:\s*6px !important;/s);
   assert.match(scoped, /\.users-top-grid \.users-filter-panel/);
   assert.match(scoped, /padding:\s*8px 10px !important;/);
   assert.match(scoped, /\.users-workspace \.users-filter-form \.ops-form-actions/);
@@ -50,5 +50,5 @@ test("E267: preserve fixed Operations/Report scrolling, shell zoom, field status
   assert.doesNotMatch(scoped, /(?:^|[;{]\s*)height\s*:/m);
   assert.match(css, /\.ops-business-workspace \.fast-list/);
   assert.match(css, /height:\s*calc\(100dvh \/ var\(--supra-ui-zoom-factor, 1\)\) !important/);
-  assert.match(read("web/src/web-version.ts"), /WEB_VERSION = "3\.3\.22"/);
+  assert.match(read("web/src/web-version.ts"), /WEB_VERSION = "3\.3\.23"/);
 });

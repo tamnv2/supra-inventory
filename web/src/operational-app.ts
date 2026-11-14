@@ -3270,7 +3270,7 @@ function renderShiftOperations(): string {
       <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>Thời hạn vận hành</span><strong>${esc(sharedUntil)}</strong></article>
     </section>
     <div class="business-page-head"><div><h2>Giờ nghỉ · tạm dừng tự động Skip</h2></div></div>
-    <div class="ops-grid-two" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">
+    <div class="ops-grid-two" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr))">
       ${renderMealStatusCard("LUNCH")}
       ${renderMealStatusCard("DINNER")}
     </div>

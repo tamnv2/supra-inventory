@@ -1,3 +1,11 @@
+## D173-E270 — Smart Lazy: giảm lớp CSS, thống nhất 9 trang Web3.3.23 (14/11/2026)
+
+Giữ nguyên 18 CSS imports hiện hữu (Tabler + 17 CSS nội bộ); **không thêm import/stylesheet hoặc blanket `!important`**. Dùng E260 làm một nơi định nghĩa desktop page inset 4px dọc / 6px ngang / 24px đáy, tránh E267 khai báo lặp. Nguồn base `web-professional-v2.css` sở hữu panel padding 8×10px và title gap 6px; xóa bản cũ 16px/12px trong `web-unified-ui.css`. Bỏ double margin Users tabs/grid và Shift history, bỏ inline Shift grid gap 14px (dùng token shared 6px); Dashboard top inset 0 và header gap 6px. Operations tiếp tục panel 6×4px theo mật độ riêng, scroll nội bộ giữ nguyên; không ép layout bằng nhau khi khác nghiệp vụ.
+
+Chặn hồi quy bằng computed geometry Chromium trên 9 nhóm trang, tối thiểu 1280/1366/1920, role ADMIN/ADMIN_INVENT và sáng/tối; bảo toàn KPI, tab, responsive, overflow, status accents, RBAC, API/realtime. Test fixture không thay thế Owner FIELD authenticated nhiều zoom/font/kích thước; chưa nghiệm thu trước khi có ảnh đối chiếu. Chỉ có Web3.3.23 release khi exact-source CI + D172 isolation + protected release gate PASS. D172 HOLD/Stable OWNER-GATED.
+
+---
+
 ## D173-E268 — Chuẩn hoá spacing thực tế cho Web3.3.22 (14/11/2026)
 
 Dùng mật độ Xử lý báo hàng: desktop inset 4px 6px 24px, root spacing6px không cộng thêm margin cũ, form gap/margin6px, Shift/Users card padding 8×10; bảo toàn scroll, breakpoints và nghiệp vụ. CSS specificity cần Chromium computed-style/bounding-box regression trên các role và màn hình, không chỉ static token test. Owner đã cho phép code+deploy Web3.3.22 theo release guard; FIELD/OWNER nghiệm thu riêng. Không thay backend, D172 và Stable.

@@ -1,0 +1,52 @@
+name: D173 E270 Web3.3.23 Smart Lazy UI and D172 Guard
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'tests/d173-e270-*.mjs'
+      - 'tests/d173-e267-*.mjs'
+      - 'tests/d173-e264-*.mjs'
+      - 'tests/d173-e260-*.mjs'
+      - 'tests/d173-e268-*.mjs'
+      - 'ops/change-continuity/D173.json'
+      - 'ops/project-state.json'
+      - 'ops/d173-e270-web3323-release-authorization.json'
+      - '.github/workflows/d173-e270-web3323-smart-lazy.yml'
+      - '.github/workflows/deploy-beta.yml'
+      - 'tools/d173_e270_web3323_release_gate.py'
+permissions:
+  contents: read
+jobs:
+  geometry-build-d172:
+    if: contains(github.head_ref, 'd173-e270')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Web and browser test dependencies
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          npx playwright install chromium
+      - name: E270 actual CSS cascade, nine routes, regressions
+        run: |
+          node --test tests/d173-e270-release-guard.test.mjs tests/d173-e270-web-smart-lazy.test.mjs tests/d173-e267-browser-geometry.test.mjs tests/d173-e267-web-field-spacing.test.mjs tests/d173-e264-web-global-ui-rhythm.test.mjs tests/d173-e260-web-ui-layout.test.mjs tests/d173-e268-web3322-release.test.mjs tests/d173-e252-web3318-overview.test.mjs tests/d173-e237-web3315-global-layout.test.mjs tests/d173-e230-web3313-field-density.test.mjs tests/d173-e242-web3316-ui-consistency.test.mjs
+      - name: Web TypeScript and asset build
+        working-directory: web
+        run: npm run build
+      - name: Install service test dependencies
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: D172 firewall and cross-regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs

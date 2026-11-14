@@ -402,9 +402,9 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
 
 /* D173-E260: match the compact dashboard inset on every desktop workspace. */
 @media (min-width: 781px) {
-  .d173-tabler-shell > .d173-page-content,
-  .d173-tabler-shell > .d173-page-content:has(.ops-business-workspace),
-  .d173-tabler-shell > .d173-page-content:has(.report-workspace) {
+  body .d173-tabler-shell > .d173-page-content:not(:has(.ops-business-workspace)),
+  body .d173-tabler-shell > .d173-page-content:has(.ops-business-workspace),
+  body .d173-tabler-shell > .d173-page-content:has(.report-workspace) {
     padding: 4px 6px 24px !important;
     scroll-padding-bottom: 24px;
   }
@@ -506,12 +506,6 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
 /* D173-E267: FIELD 3.3.21 spacing repair.
    E264 aligned grid gaps/radii but left legacy section margins, title
    spacing, form gaps and role-scoped page padding unchanged. */
-@media (min-width: 781px) {
-  body .d173-tabler-shell > .d173-page-content,
-  body .d173-tabler-shell > .d173-page-content:not(:has(.ops-business-workspace)) {
-    padding: 4px 6px 24px !important;
-  }
-}
 .d173-tabler-shell .d173-page-content .ops-route:is(
   .users-workspace, .tools-workspace, .sku-workspace, .sla-workspace,
   .logs-workspace, .reset-workspace, .system-workspace, .account-workspace
@@ -532,9 +526,6 @@ body[data-theme="dark"] .d173-tabler-shell .d173-page-content :is(.report-worksp
 ) > .business-page-head {
   min-height: 0 !important;
   padding: 0 !important;
-}
-.d173-tabler-shell .d173-page-content .ops-panel-title {
-  margin-bottom: var(--d173-ui-gap) !important;
 }
 .d173-tabler-shell .d173-page-content .tools-workspace :is(.d167-meal-card, .shift-history-panel),
 .d173-tabler-shell .d173-page-content .users-workspace :is(.ops-users-panel, .users-top-grid .users-filter-panel, .users-top-grid .users-create-panel) {
