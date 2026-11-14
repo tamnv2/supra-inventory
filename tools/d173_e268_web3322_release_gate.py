@@ -98,7 +98,7 @@ def main():
     if changed - ALLOWED:
         deny("OUT_OF_SCOPE:" + ",".join(sorted(changed - ALLOWED))[:230])
     required_code = {"web/src/d173-tabler.css", "web/src/web-version.ts", "web/package.json",
-                     ".github/workflows/deploy-beta.yml", "tools/d173_e265_web3321_release_gate.py"}
+                     ".github/workflows/deploy-beta.yml", "tools/d173_e268_web3322_release_gate.py"}
     if not required_code.issubset(changed):
         deny("REQUIRED_SOURCE_MISSING")
     if any(path.startswith(prefix) for path in changed for prefix in PROTECTED):
