@@ -9,12 +9,12 @@
   "last_checkpoint": {
     "id": "D173-E271",
     "date_vn": "2026-11-14",
-    "summary": "Owner expressly authorizes Smart Lazy UI code and guarded Web3.3.23 Production after exact CI. Source candidate exact pin 7e18ff0; nine-route Chromium regression and legacy CSS deletion; release not yet performed, FIELD/OWNER FAIL/PENDING.",
+    "summary": "Owner expressly authorizes Smart Lazy UI code and guarded Web3.3.23 Production after exact CI. Source candidate exact pin 58a4520; nine-route Chromium regression and legacy CSS deletion; release not yet performed, FIELD/OWNER FAIL/PENDING.",
     "status": "SOURCE_PINNED__SCOPED_CI_PENDING__PRODUCTION_NOT_DEPLOYED__FIELD_FAIL_WEB3322__D172_HOLD",
     "source": "docs/D173_E270_WEB3322_FIELD_SMART_LAZY_REVIEW_2026-11-14.md",
     "branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
     "pr": 981,
-    "source_code_sha": "7e18ff0e9c41c894ec240e0ddcf49feab48533e4",
+    "source_code_sha": "58a45204c05efab2b6643f160b3c5236e859b7a0",
     "source_code_pass": false,
     "ci_scoped_pass": false,
     "release_pass": false,
@@ -5755,7 +5755,7 @@
       "owner_production_release_approved": true,
       "base_main_sha": "d08526b9fb549e3b8413659437d2ff2ee08a7b5a",
       "source_pr": 981,
-      "source_code_sha": "7e18ff0e9c41c894ec240e0ddcf49feab48533e4",
+      "source_code_sha": "58a45204c05efab2b6643f160b3c5236e859b7a0",
       "facts": [
         "New Owner explicit command to apply Smart Lazy, fix UI and deploy Production when complete; supersedes E270 review-only restriction for this Web-only repair.",
         "Candidate changes only imported Web CSS source, inline layout gap, Web version and scoped tests/workflows. Legacy panel padding 16/17x18px was consolidated to 8x10px; duplicate User/Shift margins and Dashboard top padding removed. No new CSS file.",
