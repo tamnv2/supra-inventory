@@ -53,6 +53,6 @@ test("E260: overdue badge vertical centering and uniform desktop content offsets
   assert.match(operations, /Quá hạn <b data-workspace-count="overdue">/);
   assert.match(tabler, /\.d173-tabler-shell \.d173-ops-toolbar \.workspace-tab\s*\{[^}]*align-items:\s*center;[^}]*justify-content:\s*center;/s);
   assert.match(tabler, /\.d173-tabler-shell \.d173-ops-toolbar \.workspace-tab > b\s*\{[^}]*display:\s*inline-flex;[^}]*align-items:\s*center;/s);
-  assert.match(tabler, /\.d173-tabler-shell > \.d173-page-content:has\(\.ops-business-workspace\),[\s\S]*?\.d173-tabler-shell > \.d173-page-content:has\(\.report-workspace\)\s*\{\s*padding:\s*4px 6px 24px !important;/);
+  assert.match(tabler, /body \.d173-tabler-shell > \.d173-page-content:has\(\.ops-business-workspace\),[\s\S]*?body \.d173-tabler-shell > \.d173-page-content:has\(\.report-workspace\)\s*\{\s*padding:\s*4px 6px 24px !important;/);
   assert.match(tabler, /@media \(max-width:\s*780px\)/);
 });

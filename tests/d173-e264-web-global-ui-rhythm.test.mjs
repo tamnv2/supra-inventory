@@ -36,5 +36,5 @@ test("E264: only CSS presentation changes; existing business and Web3.3.22 sourc
   for (const token of ["renderOperationalTabs", "renderDashboard", "renderShiftOperations", "renderSla", "renderTools"]) {
     assert.ok(view.includes(token), token);
   }
-  assert.ok(read("web/src/web-version.ts").includes('WEB_VERSION = "3.3.22"'));
+  assert.ok(read("web/src/web-version.ts").includes('WEB_VERSION = "3.3.23"'));
 });

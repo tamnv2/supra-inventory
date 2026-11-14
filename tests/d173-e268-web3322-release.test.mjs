@@ -11,8 +11,9 @@ test("E268: Owner production Web3.3.22 scope only", () => {
   assert.deepEqual(a.approved_components,["worker","web"]);
   assert.equal(a.d172_pending_hold,true);
   for(const k of ["agent_mutation","android_mutation","firebase_mutation","stable_mutation","new_provider_resources","field_pass","owner_pass"])assert.equal(a[k],false,k);
-  assert.equal(JSON.parse(read("web/package.json")).version,"3.3.22");
-  assert.match(read("web/src/web-version.ts"),/WEB_VERSION = "3\.3\.22"/);
+  const current = JSON.parse(read("web/package.json")).version;
+  assert.ok(Number(current.split(".")[2]) >= 22, "Web version must not roll back below 3.3.22");
+  assert.ok(read("web/src/web-version.ts").includes('WEB_VERSION = "' + current + '"'));
 });
 test("E268: protected source CI and D172 release gate", () => {
   assert.equal(w.split("D173-E268_WEB3322_PRODUCTION_RELEASE:*").length-1,3);
