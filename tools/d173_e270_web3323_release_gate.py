@@ -18,6 +18,8 @@ ALLOWED = {
     "docs/specs/UI_DESIGN_SYSTEM.md",
     "ops/change-continuity/D173.json",
     "ops/project-state.json",
+    "ops/authority-manifest.json",
+    "ops/current-context.json",
     "ops/d173-e270-web3323-release-authorization.json",
     "tools/d173_e270_web3323_release_gate.py",
     "tests/d173-e270-release-guard.test.mjs",
