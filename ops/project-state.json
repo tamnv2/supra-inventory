@@ -1,5 +1,28 @@
 {
   "schema_version": 1,
+  "d173_e270_web3322_field_smart_lazy_review": {
+    "id": "D173-E270",
+    "change_id": "D173",
+    "date_vn": "2026-11-14",
+    "scope": "WEB_UI_GEOMETRY_REVIEW_ONLY",
+    "branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
+    "pr": 981,
+    "base_main_sha": "d08526b9fb549e3b8413659437d2ff2ee08a7b5a",
+    "production_web": "3.3.22",
+    "production_release_main_sha": "974f213ea99c5e33dd114146e83f12a035982744",
+    "production_release_run": 43542070127,
+    "field": "FAIL_OWNER_NINE_PAGE_SCREENSHOTS",
+    "finding": "18_CSS_IMPORTS_TABLER_PLUS_17_LOCAL__LOCAL_7303_LINES_1392_IMPORTANTS__PRIOR_E267_CASCADE_RED_12PX_EXPECTED_6PX",
+    "proposed": "SMART_LAZY_MEASURE_REAL_COMPUTED_LAYOUT_THEN_REMOVE_PROVEN_DUPLICATE_OWNING_RULES_WITH_RED_GREEN__NO_NEW_OVERRIDE_LAYER",
+    "code": "NOT_STARTED_DOCS_ONLY",
+    "ci": "NOT_RUN_FOR_E270",
+    "release": "E269_TECH_PASS_UNCHANGED_NO_NEW_RELEASE",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E270_WEB3322_FIELD_SMART_LAZY_REVIEW_2026-11-14.md"
+  },
   "d173_e242_web3316_ui": {
     "date_vn": "2026-11-13",
     "change_id": "D173",
