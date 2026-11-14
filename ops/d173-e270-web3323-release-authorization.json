@@ -8,7 +8,7 @@
   "owner_production_release_approved": true,
   "source_pr": 981,
   "base_main_sha": "d08526b9fb549e3b8413659437d2ff2ee08a7b5a",
-  "source_code_sha": "",
+  "source_code_sha": "c6e75e5df80225aab3b05442e473061ae8ca55f9",
   "web_target_version": "3.3.23",
   "approved_components": [
     "worker",
@@ -34,5 +34,5 @@
   "required_ci_run_ids": [],
   "field_pass": false,
   "owner_pass": false,
-  "release": "CODE_CANDIDATE__EXACT_SOURCE_SCOPED_CI_PENDING__PRODUCTION_NOT_DEPLOYED"
+  "release": "SOURCE_CODE_PINNED__SCOPED_CI_PENDING__PROTECTED_MERGE_NOT_YET"
 }

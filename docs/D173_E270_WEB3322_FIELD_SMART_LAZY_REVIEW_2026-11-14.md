@@ -21,3 +21,9 @@
 
 ## Status / next gate
 `FIELD_FAIL_3322`; analysis and impact review complete. **CODE NOT STARTED**, CI for new change NOT RUN, **NO NEW RELEASE**. Implementation only after exact scope/impact review and Owner authorization under repo change-control; current Owner message expresses the objective, not a separate versioned release approval. Create a new code-only branch from updated main on approval and test 9 real routes before gated release.
+
+## D173-E270A — Owner code + Production approved (14/11/2026)
+- Owner explicitly requests to apply Smart Lazy, fix the Web UI and deploy Production after passing safeguards.
+- Candidate Web3.3.23 changes existing owning CSS rules in-place: panel padding 8×10, title gap6, Users/Shift duplicate margins removed, Dashboard top inset0, E260 one page padding authority; no extra CSS import/stylesheet. Operations preserves dedicated compact panel and scrolling.
+- Measured Chromium nine-route fixture PASS on initial source branch; further CI and authenticated Production field verification are separate. Source code immutable pin `c6e75e5df80225aab3b05442e473061ae8ca55f9` for guarded release. Scope Worker static asset repack only, no business/shared/D172 mutation.
+- CODE candidate; CI final pending; RELEASE not deployed; FIELD/OWNER PASS false; D172 HOLD.

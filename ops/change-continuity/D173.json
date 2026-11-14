@@ -7,17 +7,15 @@
   "pr": 981,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E270",
+    "id": "D173-E270A",
     "date_vn": "2026-11-14",
-    "summary": "Owner FIELD FAIL Web3.3.22 UI consistency across nine authenticated screenshots; Smart Lazy review verifies 18 CSS imports (Tabler +17 local), local CSS ~7303 lines/1392 !important; docs-only measured incremental-cascade simplification proposal, no code/release.",
-    "status": "FIELD_FAIL_WEB3322__ANALYSIS_DONE__CODE_NOT_STARTED__RELEASE_UNCHANGED__OWNER_PASS_FALSE__D172_HOLD",
+    "summary": "Owner expressly authorizes Smart Lazy UI code and guarded Web3.3.23 Production after exact CI. Source candidate pin c6e75e5; nine-route Chromium regression and legacy CSS deletion; release not yet performed, FIELD/OWNER FAIL/PENDING.",
+    "status": "SOURCE_PINNED__SCOPED_CI_PENDING__PRODUCTION_NOT_DEPLOYED__FIELD_FAIL_WEB3322__D172_HOLD",
     "source": "docs/D173_E270_WEB3322_FIELD_SMART_LAZY_REVIEW_2026-11-14.md",
     "branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
     "pr": 981,
-    "base_main_sha": "d08526b9fb549e3b8413659437d2ff2ee08a7b5a",
-    "production_main_sha": "974f213ea99c5e33dd114146e83f12a035982744",
-    "production_run_id": 43542070127,
-    "code_pass": false,
+    "source_code_sha": "c6e75e5df80225aab3b05442e473061ae8ca55f9",
+    "source_code_pass": false,
     "ci_scoped_pass": false,
     "release_pass": false,
     "field_pass": false,
@@ -5746,6 +5744,29 @@
       "d172": "INDEPENDENT_PENDING_HOLD",
       "branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
       "pr": 981
+    },
+    {
+      "id": "D173-E270A",
+      "date_vn": "2026-11-14",
+      "kind": "OWNER_COMMAND_AND_CODE_CANDIDATE",
+      "topic": "Owner approves Smart Lazy scoped CSS repair and guarded Web3.3.23 Production deployment after CI",
+      "status": "SOURCE_CODE_PINNED_CI_PENDING__PRODUCTION_NOT_DEPLOYED",
+      "owner_code_approved": true,
+      "owner_production_release_approved": true,
+      "base_main_sha": "d08526b9fb549e3b8413659437d2ff2ee08a7b5a",
+      "source_pr": 981,
+      "source_code_sha": "c6e75e5df80225aab3b05442e473061ae8ca55f9",
+      "facts": [
+        "New Owner explicit command to apply Smart Lazy, fix UI and deploy Production when complete; supersedes E270 review-only restriction for this Web-only repair.",
+        "Candidate changes only imported Web CSS source, inline layout gap, Web version and scoped tests/workflows. Legacy panel padding 16/17x18px was consolidated to 8x10px; duplicate User/Shift margins and Dashboard top padding removed. No new CSS file.",
+        "E270 browser 9-route computed geometry PASS at prior source CI, but latest source and required scoped CI/readback pending final pin. Cannot claim FIELD or new RELEASE PASS.",
+        "Existing D172 business code, shared service/SQL, Auth, Agent/Android, Stable and provider resources are not authorized to change."
+      ],
+      "next_action": "Verify exact source CI including browser, Web build, D172 regression and authority/continuity; then pin successful CI and guarded merge/release; independently check Production and await Owner FIELD.",
+      "evidence": "Owner 2026-11-14 explicit code+production request; source PR981; version3.3.23; recorded previous test failure related to outdated hard-coded 3.3.22 assertions repaired.",
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
