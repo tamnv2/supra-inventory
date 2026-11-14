@@ -7,28 +7,28 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E272",
-    "pr": 981,
-    "branch": "docs/d173-e270-web3322-field-smart-lazy-review-20261114",
-    "status": "WEB3323_SOURCE_CI_5_OF_5_PASS__GATED_PRODUCTION_MERGE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "checkpoint_id": "D173-E273",
+    "pr": 982,
+    "branch": "docs/d173-e273-web3323-production-receipt-20261114",
+    "status": "WEB3323_PRODUCTION_TECH_PASS__RUN43548451337__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_merge_approved": true,
     "owner_release_approved": true,
-    "source_doc": "docs/D173_E270_WEB3322_FIELD_SMART_LAZY_REVIEW_2026-11-14.md",
-    "production_web_version": "3.3.22",
+    "source_doc": "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md",
+    "production_web_version": "3.3.23",
     "target_web_version": "3.3.23",
     "field_pass": false,
     "owner_pass": false,
-    "source_main_sha": "974f213ea99c5e33dd114146e83f12a035982744",
+    "source_main_sha": "70bd1f12b142642aafba02f1c9cb71b1d3a14214",
     "code_scoped_pass": true,
     "ci_scoped_pass": true,
-    "release_technical_pass": false,
+    "release_technical_pass": true,
     "ci_global_pass": false,
     "source_sha": "d06116f85e65bbb3539e62fa679fd7ac365bc9d1",
     "source_ci_run_id": 43548017033,
     "source_ci_sha": "d11e3a489f1e95c599790436475dde9f2316bae3",
     "source_code_pin": "d06116f85e65bbb3539e62fa679fd7ac365bc9d1",
-    "release_main_sha": "974f213ea99c5e33dd114146e83f12a035982744",
-    "release_run_id": 43542070127
+    "release_main_sha": "70bd1f12b142642aafba02f1c9cb71b1d3a14214",
+    "release_run_id": 43548451337
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -55,16 +55,16 @@
       "host_build": 14
     },
     "web": {
-      "version": "3.3.22",
-      "worker_web_run": 43542070127,
-      "source_change_id": "D173-E268",
-      "source_main_sha": "974f213ea99c5e33dd114146e83f12a035982744",
-      "ci_release": "PASS_PRODUCTION_WORKER_WEB_ALL_SMOKE_RUN43542070127__FIELD_OWNER_PENDING",
-      "field": "PENDING_NEW_WEB3322_AUTHENTICATED_9_PAGE_VISUAL_REVIEW",
+      "version": "3.3.23",
+      "worker_web_run": 43548451337,
+      "source_change_id": "D173-E270",
+      "source_main_sha": "70bd1f12b142642aafba02f1c9cb71b1d3a14214",
+      "ci_release": "PASS_PRODUCTION_WORKER_WEB_EXACT_SOURCE_RUN43548451337__FIELD_OWNER_PENDING",
+      "field": "PENDING_AUTHENTICATED_9_PAGE_WEB3323_VISUAL_REVIEW",
       "owner_pass": "PENDING",
       "local_user_cache": "AUTHENTICATED_RAM_ONLY_TTL120SEC__NOT_ON_DISK",
-      "runtime_readback_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43542070127",
-      "deploy_push_workflow_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43542070127"
+      "runtime_readback_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43548451337",
+      "deploy_push_workflow_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43548451337"
     },
     "android": {
       "tag": "beta-vc128",
@@ -73,7 +73,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E263_WEB3320_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md"
+    "receipt": "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md"
   },
   "d172": {
     "change_id": "D172",
