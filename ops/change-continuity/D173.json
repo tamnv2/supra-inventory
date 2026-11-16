@@ -7,13 +7,14 @@
   "pr": 983,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E276",
+    "id": "D173-E277",
     "date_vn": "2026-11-16",
-    "summary": "Owner requested proposal for alert email title/body; proposed concise single-template PRIMARY confirm outage notice with status placeholders, accuracy guard and one-mail-per-incident, no recipient value committed.",
-    "status": "CONTENT_PROPOSED__NOT_YET_OWNER_FINAL_APPROVED__DOCS_ONLY",
+    "summary": "Owner approved E276 incident email title/body; asked prospective deployment scope. Plan includes Web functional-readiness repair, bounded recovery and safe Agent HA, one-mail-per-incident Worker alert, tests/release gates; no code/release instruction yet.",
+    "status": "OWNER_EMAIL_COPY_APPROVED__FUTURE_IMPLEMENTATION_PLAN_ONLY__CODE_RELEASE_NOT_AUTHORIZED",
     "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
     "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
     "pr": 983,
+    "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
     "code_pass": false,
     "ci_scoped_pass": false,
     "release_pass": false,
@@ -5903,6 +5904,34 @@
       "release_pass": false,
       "ci_scoped_pass": false,
       "code_pass": false
+    },
+    {
+      "id": "D173-E277",
+      "date_vn": "2026-11-16",
+      "kind": "OWNER_DECISION_AND_PROSPECTIVE_PLAN",
+      "topic": "Owner approves E276 email subject/body; asks which scoped steps would follow a future 'triển khai' command",
+      "status": "OWNER_EMAIL_COPY_APPROVED__FUTURE_IMPLEMENTATION_PLAN_ONLY__CODE_RELEASE_NOT_AUTHORIZED",
+      "owner_approval": true,
+      "owner_code_approved": false,
+      "owner_release_approved": false,
+      "facts": [
+        "Owner explicitly approved prior E276 proposed email subject/body ('Ok chốt'); one Owner failure-only incident mail per confirmed PRIMARY functional Confirm outage remains in scope. Recipient is private and excluded from repo.",
+        "User then requested an explanation of what the assistant would do when subsequently instructed to deploy. The question is not an instruction to edit Agent/Worker or release now.",
+        "Planned scope if separately authorized: reproduce READY_EMPTY with failed SearchMany despite valid Supra session; separate Web login/DOM health from business-confirm health, bounded recovery; ensure failover to proven-ready NEXT_A/NEXT_B within existing request lifetime with lease/generation CAS and anti-duplicate WMS mutation.",
+        "Reuse existing authorized Worker email sending, cross-agent one-incident dedup and approved E276 text; no recovery mail or per-PickList mail; no new provider or cloud polling by default.",
+        "After explicit implementation authorization, perform bug reproduction, surgical code fixes, CI and D172 shared-infrastructure regression, bounded usage checks; signed Agent and guarded Worker release only when release authorization/gates apply, then field proof. Do not mark PASS in advance.",
+        "Underlying WMS data-page zero-row origin remains not verified without WMS request/provider side evidence."
+      ],
+      "owner_decision": "E276 email copy approved only, future deployment plan explanatory. No runtime change authorized by this turn.",
+      "next_action": "Await explicit Owner deployment instruction; re-bootstrap live main and PR head, then implement only authorized code and separately verify production release gates.",
+      "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+      "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+      "pr": 983,
+      "owner_pass": false,
+      "code_pass": false,
+      "ci_scoped_pass": false,
+      "release_pass": false,
+      "field_pass": false
     }
   ],
   "resume": {
