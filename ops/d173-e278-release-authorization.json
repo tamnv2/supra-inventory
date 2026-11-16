@@ -22,28 +22,33 @@
   "field_pass": false,
   "owner_pass": false,
   "source_ci_verified": true,
-  "source_ci_sha": "255a4b52d1fcad356d008433506228459162fbd3",
+  "source_ci_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5",
   "source_ci_run_ids": [
-    43865018302
+    43865018302,
+    43870112335
   ],
-  "required_ci_success": 6,
+  "required_ci_success": 10,
   "required_ci_run_ids": [
     43865018302,
     43865018130,
     43865018216,
     43865018153,
     43865021712,
-    43865018121
+    43865018121,
+    43870112335,
+    43870112184,
+    43870112263,
+    43870112192
   ],
   "native_windows_pass": true,
   "worker_typecheck_pass": true,
   "d172_isolation_pass": true,
   "authority_guard_pass": true,
-  "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-  "source_pr": 984,
-  "production_release_gate": "SIX_SCOPED_CI_PASS__D172_GUARDED__EXCLUSIVE_AGENT194_OTA__PROTECTED_MERGE_READY",
+  "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+  "source_pr": 985,
+  "production_release_gate": "WORKER_RUN43868015330_TECH_PASS__RECOVERY_EXACT_HEAD_CI_43870112335_NATIVE_PASS__PR985_PROTECTED_MERGE_PENDING",
   "required_ci_failed": 0,
-  "source_job_id": 133291230769,
-  "agent_native_job_id": 133292303094,
+  "source_job_id": 133308739233,
+  "agent_native_job_id": 133308970116,
   "global_legacy_checks": "HISTORICAL_UNRELATED_WORKFLOWS_SOME_FAIL__NOT_REQUIRED_E278_SCOPE"
 }
