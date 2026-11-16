@@ -53,7 +53,7 @@ Owner reported field failure on 2026-11-16 and requested log-backed diagnosis an
 
 ## E276 Owner-requested incident email copy proposal (2026-11-16)
 
-**Status:** PROPOSAL_ONLY, not yet approved as final copy; no Agent/Worker code or actual email. Public repository intentionally excludes the private recipient address.
+**Status (updated by E277):** Owner APPROVED the proposed title and complete email body. This is **copy approval only**; no Agent/Worker code or actual email is authorized or sent. Recipient remains protected outside public GitHub. Public repository intentionally excludes the private recipient address.
 
 **Suggested email subject:** `[SUPRA 1291] CẢNH BÁO: Agent chính không thể confirm PickList`
 
@@ -78,6 +78,15 @@ Các lỗi lặp lại trong cùng sự cố sẽ không gửi thêm email.
 ```
 
 **Accuracy:** `Nguyên nhân` must be evidenced by the health classifier; otherwise display `Chưa xác định` rather than inventing an expired session or WMS server outage. Failover status must be derived from actual HA transitions. Single incident mail only; no recovery or per-request spam.
+
+## E277 Owner approval of email copy and forward deployment-scope answer (2026-11-16)
+
+- **Owner approval:** `Ok chốt` explicitly approves the **E276 email subject/body** as final incident-alert copy. Scope remains one mail per confirmed current PRIMARY failure (Supra session expired or session still present but Web business Confirm unusable); no per-PickList/retry/recovery spam. Recipient stays in protected runtime configuration and is deliberately omitted from public GitHub.
+- **Owner's question:** `Vậy giờ anh báo triển khai thì em sẽ làm những gì?` asks for a prospective implementation plan. **No current code-edit or production-release command** is inferred from this question.
+- **Implementation plan when explicitly authorized:** reproduce VPS Web `READY_EMPTY` + persistent failed searches while session remains; distinguish Web authenticated/DOM readiness from functional business-confirm health; bounded local browser recovery and passive diagnostics with minimal additional Cloud traffic; safe HA handoff to verified available NEXT_A/NEXT_B using current generation/lease fencing, in-flight mutation safety and bounded PDA pending; do not replay unknown post-final-click confirms; implement an incident-onset-only notification via existing scoped Worker email service using the approved copy and cross-agent durable dedupe; scoped CI for Agent/Worker, D172 shared-infrastructure isolation, provider usage/rate-limit and no-spam tests; PR review/verified release gate/signed Agent and authorized Worker rollout/actual field checks.
+- **Unverified boundary:** Agent DOM logs prove faulty 0-row Web view and missed HA trigger, but do not isolate WMS internal HTTP/backend/filter origin. Do not claim to fix a WMS upstream defect without specific evidence.
+- **Acceptance criteria (prospective):** correctly identify functional PRIMARY inability while login remains alive; transfer safely only when standby is truly able; no split brain, duplicate final WMS click, lost pending request or false takeover from genuine empty queue; exactly one failure-only email per verified incident; no unnecessary Cloud usage; CODE/CI/RELEASE/FIELD/OWNER PASS independently evidenced.
+- **Status:** `MAIL_COPY_OWNER_APPROVED__DEPLOYMENT_PLAN_DESCRIBED__SOURCE_NOT_AUTHORIZED_YET__NO_PRODUCTION_CHANGE__D172_HOLD`.
 
 ## Status
 
