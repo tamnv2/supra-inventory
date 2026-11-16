@@ -7,19 +7,17 @@
   "pr": 982,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E273",
-    "date_vn": "2026-11-14",
-    "summary": "Web3.3.23 Smart Lazy protected main70bd1f12 and Production Worker/Web run43548451337 SUCCESS exact source; CODE/CI/RELEASE technical PASS, nine-page FIELD & Owner PASS pending, D172 HOLD.",
-    "status": "CODE_PASS__CI_SCOPED_PASS__RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md",
-    "branch": "docs/d173-e273-web3323-production-receipt-20261114",
-    "pr": 982,
-    "source_pr": 981,
-    "release_main_sha": "70bd1f12b142642aafba02f1c9cb71b1d3a14214",
-    "release_run_id": 43548451337,
-    "code_pass": true,
-    "ci_scoped_pass": true,
-    "release_pass": true,
+    "id": "D173-E278",
+    "date_vn": "2026-11-16",
+    "summary": "Owner explicitly authorized D173 Agent194 safe Web Confirm HA repair + one-per-incident email code and protected Production release; source branch created, CI/release/field not yet verified.",
+    "status": "OWNER_CODE_AND_PRODUCTION_APPROVED__SOURCE_BRANCH_IN_PROGRESS__CI_RELEASE_NOT_YET_PASS",
+    "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
+    "branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
+    "pr": null,
+    "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+    "code_pass": false,
+    "ci_scoped_pass": false,
+    "release_pass": false,
     "field_pass": false,
     "owner_pass": false
   },
@@ -5827,6 +5825,46 @@
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E278",
+      "date_vn": "2026-11-16",
+      "kind": "OWNER_APPROVED_CODE_AND_PRODUCTION",
+      "topic": "Agent194 WMS functional Confirm HA/failover and failure-only Owner incident email",
+      "status": "OWNER_CODE_AND_PRODUCTION_APPROVED__SOURCE_BRANCH_IN_PROGRESS__CI_RELEASE_NOT_YET_PASS",
+      "owner_approval": true,
+      "owner_code_approved": true,
+      "owner_production_release_approved": true,
+      "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+      "branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
+      "pr": null,
+      "owner_decision": "Owner explicitly commands 'chạy code, hoàn thiện code sau đó triển khai production' after approving exact failure-only email copy, authorizing both code and guarded Production for D173 only.",
+      "facts": [
+        "VPS logs confirmed repeat READY_EMPTY with zero WMS PickList codes while valid session and repeated WMS_DATA_UNAVAILABLE, with untriggered HA; upstream WMS data-request origin remains unverified.",
+        "Scoped Agent194 code separates DOM-login readiness from business-confirm degraded, re-enables exception-only bounded empty-table recovery, preserves CAS/in-flight/no-retry final WMS mutation and defers pre-click technical ACK for viable standby.",
+        "Scoped existing Worker route verifies Agent user+fresh recent PRIMARY lease, deduplicates incident state via existing shared InventoryCore app_config key and sends only approved one failure mail via existing project-mail sender and recipient constant.",
+        "New SOURCE CI has exact-gated Agent194 native/Worker TypeScript/tests/D172 isolation; protected release Worker must succeed at same SHA before Agent194 OTA. No Stable, Android, D172 business source, WMS backend or new provider resource changes.",
+        "Owner mail recipient is not copied into new public docs or incident source; existing project mail recipient constant reused. No email test or Production release has occurred."
+      ],
+      "risks": [
+        "One-shot local self-heal must not exceed PDA pending; false-positive valid empty queue must not trigger HA; separate degraded recovery from WMS login marker.",
+        "Global durable incident claim prevents duplicate email across Agent switch and restart; failed or ambiguous delivery fail-closed and requires Owner evidence to distinguish send failure.",
+        "Shared Worker changed; D172 isolation regression mandatory and no unapproved D172 business mutation."
+      ],
+      "acceptance": [
+        "Native Windows Agent194 + Host14 build and smoke PASS",
+        "Worker TypeScript and deterministic safety/incident/dedupe regression PASS",
+        "Authority/continuity, D172 isolation and shared Worker SQL regressions PASS",
+        "Exact-source guard and production Workflow receipts",
+        "OTA tag/channel EXE sha readback",
+        "Actual field failover and one Owner email tested before FIELD/OWNER PASS"
+      ],
+      "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
+      "code_pass": false,
+      "ci_scoped_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
