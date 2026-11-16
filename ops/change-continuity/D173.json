@@ -9,21 +9,21 @@
   "last_checkpoint": {
     "id": "D173-E278",
     "date_vn": "2026-11-16",
-    "summary": "Agent194 OTA PowerShell bug fixed but PR985 main e32dd97 had no same-SHA Worker push run due deploy-beta.yml paths filter. PR986 triggers existing Worker and Agent194 OTA at identical merge SHA; source CI and release pending.",
-    "status": "D173_E278_AGENT194_OTA_SAME_SHA_WORKER_TRIGGER_REPAIR_PR986_CI_PENDING",
+    "summary": "PR986 same-SHA Worker push trigger + Agent194 OTA release source/native CI PASS at bb360d / run43871801723; authority/continuity/D172 PASS; previous Worker Production run43868015330 PASS; Agent194 gated protected merge pending.",
+    "status": "D173_E278_PR986_SOURCE_NATIVE_AUTHORITY_D172_CI_PASS__PROTECTED_MERGE_PENDING",
     "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
     "branch": "fix/d173-e278-agent194-worker-trigger-release-20261116",
     "pr": 986,
     "source_main_sha": "e32dd97fa604c0c946a8cc734b470186034b1609",
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
     "worker_release_run_id": 43868015330,
     "failed_agent_run_id": 43868015344,
-    "source_ci_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5",
-    "source_ci_run_id": 43870112335
+    "source_ci_sha": "bb360d8671f3e549c0a6352aee82be99efc7687c",
+    "source_ci_run_id": 43871801723
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5919,7 +5919,7 @@
       "kind": "BLOCKER",
       "owner_approval": null,
       "topic": "Agent194 OTA requires same-SHA Worker push workflow after PR985 recovery",
-      "status": "RELEASE_TRIGGER_SCOPE_REPAIR_PR986_SOURCE_CI_PENDING",
+      "status": "EXACT_SHA_BB360D_SOURCE_NATIVE_D172_AUTHORITY_CI_PASS__PROTECTED_RELEASE_PENDING",
       "next_action": "Validate Worker trigger and Agent native source CI PR986; pin exact SHA; guarded merge then verify Worker and OTA same merge SHA tag/channel.",
       "evidence": "PR985 merged main e32dd97; Agent194 OTA run 43871239718 waiting for push Worker at e32dd97; deploy-beta.yml push.paths did not include changed Agent194 OTA path.",
       "facts": [
@@ -5932,13 +5932,14 @@
       "working_branch": "fix/d173-e278-agent194-worker-trigger-release-20261116",
       "pr": 986,
       "owner_decision": "Existing E278 scoped Production approval remains; this is a release-pipeline repair only, not a new runtime feature.",
-      "ci": "PENDING_EXACT_HEAD",
+      "ci": "PASS_E278_43871801723__AUTHORITY_43871809450__STATE_43871809400__D172_ISOLATION_43871802157",
       "worker_release": "PREVIOUS_MAIN40E4_SUCCESS__NEW_SHA_REQUIRED",
       "agent_release": "PENDING",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "bb360d8671f3e549c0a6352aee82be99efc7687c"
     }
   ],
   "resume": {
