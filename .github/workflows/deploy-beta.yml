@@ -11,6 +11,8 @@ on:
       - "relay-agent/**"
       - "firebase/firestore.rules"
       - ".github/workflows/deploy-beta.yml"
+      # D173-E278: Agent194 OTA release requires a same-SHA Worker push run.
+      - ".github/workflows/d173-e278-agent194-ota.yml"
       # D170: narrowly scoped official-host script/receipt changes must run guarded Worker cutover.
       - "tools/d170_domain_cutover.sh"
       - "ops/d170-release-authorization.json"
