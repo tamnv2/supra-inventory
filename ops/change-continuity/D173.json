@@ -9,18 +9,18 @@
   "last_checkpoint": {
     "id": "D173-E278",
     "date_vn": "2026-11-16",
-    "summary": "Owner approved E278 code/prod. Agent194 and Worker source proven previously; added exact legacy publisher exclusion to preserve Host14, retest scoped CI before production.",
-    "status": "E278_AGENT194_HOST14_EXCLUSIVE_PUBLISHER_GUARD_ADDED__SCOPED_CI_RETEST_REQUIRED__PROD_NOT_RELEASED",
+    "summary": "E278 Agent194 + existing Worker code, native and six scoped CI PASS, SHA 255a4b52; safe exclusive release pending, FIELD/OWNER pending.",
+    "status": "OWNER_CODE_PRODUCTION_APPROVED__E278_SOURCE_CI_6_OF_6_PASS__PROTECTED_RELEASE_PENDING",
     "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
     "branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
     "pr": 984,
     "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
     "code_pass": true,
-    "ci_scoped_pass": false,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
-    "source_ci_sha": "09a3f694fb9706a57075bbc3d6a87b5ef554f33f"
+    "source_ci_sha": "255a4b52d1fcad356d008433506228459162fbd3"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5832,7 +5832,7 @@
       "date_vn": "2026-11-16",
       "kind": "OWNER_COMMAND",
       "topic": "Agent194 WMS functional Confirm HA/failover and failure-only Owner incident email",
-      "status": "E278_AGENT194_HOST14_EXCLUSIVE_PUBLISHER_GUARD_ADDED__SCOPED_CI_RETEST_REQUIRED__PROD_NOT_RELEASED",
+      "status": "OWNER_CODE_PRODUCTION_APPROVED__E278_SOURCE_CI_6_OF_6_PASS__PROTECTED_RELEASE_PENDING",
       "owner_approval": true,
       "owner_code_approved": true,
       "owner_production_release_approved": true,
@@ -5847,7 +5847,8 @@
         "New SOURCE CI has exact-gated Agent194 native/Worker TypeScript/tests/D172 isolation; protected release Worker must succeed at same SHA before Agent194 OTA. No Stable, Android, D172 business source, WMS backend or new provider resource changes.",
         "Owner mail recipient is not copied into new public docs or incident source; existing project mail recipient constant reused. No email test or Production release has occurred.",
         "D173-E278 scoped six same-source CI workflows passed on 09a3f694fb97: Agent194 Windows native/Host14 smoke, strict Worker TS, incident/mail/HA tests, authority/state guards and independent D172 isolation regression. Some historical PR workflows fail outside the scoped E278 release gate; do not claim global CI PASS.",
-        "Review of legacy verify-relay-agent main push revealed an independent generic Agent/Browser Host publisher could run for E278 marker; blocked that generic job only for exact E278 marker and pinned dedicated Agent194 OTA path, requiring full scoped CI retest."
+        "Review of legacy verify-relay-agent main push revealed an independent generic Agent/Browser Host publisher could run for E278 marker; blocked that generic job only for exact E278 marker and pinned dedicated Agent194 OTA path, requiring full scoped CI retest.",
+        "After excluding E278 from generic legacy Agent/Host and Firestore Rules publisher, six E278-related exact-source workflows PASS on SHA 255a4b52: Agent194 native/Host14/Worker TS, D172 independent regressions, scope/authority/state checks; no production deployment or Owner FIELD PASS yet."
       ],
       "risks": [
         "One-shot local self-heal must not exceed PDA pending; false-positive valid empty queue must not trigger HA; separate degraded recovery from WMS login marker.",
@@ -5864,20 +5865,20 @@
       ],
       "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
       "code_pass": true,
-      "ci_scoped_pass": false,
+      "ci_scoped_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "evidence": "Owner 2026-11-16 explicit code+Production command in project chat; main 910bbeb4, scoped code branch fix/d173-e278-agent194-confirm-ha-owner-alert-20261116, source PR #984; docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
       "next_action": "Run PR984 TypeScript/source/native/D172 CI; repair any FAIL; pin CI SHA and guarded merge; verify existing Worker Production and Agent194 OTA release tag+SHA; FIELD check separately.",
-      "source_ci_sha": "09a3f694fb9706a57075bbc3d6a87b5ef554f33f",
+      "source_ci_sha": "255a4b52d1fcad356d008433506228459162fbd3",
       "source_ci_run_ids": [
-        43863564556,
-        43863564970,
-        43863564615,
-        43863564570,
-        43863564785,
-        43863564844
+        43865018302,
+        43865018130,
+        43865018216,
+        43865018153,
+        43865021712,
+        43865018121
       ]
     }
   ],
