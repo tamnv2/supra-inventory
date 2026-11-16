@@ -7,7 +7,7 @@
   "pr": 985,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E278-OTA-RECOVERY",
+    "id": "D173-E278",
     "date_vn": "2026-11-16",
     "summary": "Worker exact main 40e4a498 / run 43868015330 TECH PASS; Agent194 OTA run 43868015344 FAILED before build because PowerShell $Host is read-only; scoped recovery PR985 replaces variable and guards exact recovery parent; CI/release pending.",
     "status": "WORKER_PRODUCTION_TECH_PASS__AGENT194_OTA_FAIL_POWERSHELL_HOST__RECOVERY_PR985_CI_PENDING__FIELD_OWNER_PENDING",
