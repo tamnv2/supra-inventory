@@ -15032,5 +15032,25 @@
       43865021712,
       43865018121
     ]
+  },
+  "d173_e278_agent194_ota_recovery": {
+    "change_id": "D173-E278",
+    "date_vn": "2026-11-16",
+    "previous_main_release_sha": "40e4a498ec7d563049717e9579673e0dee9749bf",
+    "owner_code_production_release_approved": true,
+    "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+    "pr": 985,
+    "scope": "AGENT194_OTA_POWERSHELL_WORKFLOW_VARIABLE__RECOVERY_PARENT_GATE__EXACT_REGRESSION_TEST_ONLY",
+    "worker_release": "PASS_TECHNICAL_RUN_43868015330",
+    "failed_agent_ota_run_id": 43868015344,
+    "verified_failure": "POWERSHELL_READ_ONLY_AUTOMATIC_HOST_VARIABLE__BEFORE_AGENT_BUILD_OR_TAG",
+    "code": "REPAIR_SOURCE_PENDING_RECOVERY_CI",
+    "ci": "PENDING_EXACT_RECOVERY_SOURCE",
+    "agent_release": "NOT_YET_PUBLISHED_OR_OTA_VERIFIED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "regression": "No Agent runtime/WMS/Web/Android/Browser Host14/D172 business/Stable source changes"
   }
 }
