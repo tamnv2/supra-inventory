@@ -7662,7 +7662,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
     "pr": 983,
-    "latest_checkpoint_id": "D173-E275",
+    "latest_checkpoint_id": "D173-E276",
     "checkpoint_date_vn": "2026-11-16",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -15036,5 +15036,19 @@
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD"
+  },
+  "d173_e276_owner_email_copy_proposal": {
+    "date_vn": "2026-11-16",
+    "checkpoint": "D173-E276",
+    "working_pr": 983,
+    "working_branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+    "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+    "status": "EMAIL_COPY_PROPOSED_ONLY__OWNER_FINAL_COPY_APPROVAL_PENDING__CODE_RELEASE_NOT_APPROVED",
+    "proposed_mail_subject": "[SUPRA 1291] CẢNH BÁO: Agent chính không thể confirm PickList",
+    "private_recipient": "PROTECTED_RUNTIME_ONLY__NOT_COMMITTED",
+    "code_pass": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false
   }
 }
