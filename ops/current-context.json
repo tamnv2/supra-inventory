@@ -7,7 +7,7 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E278-OTA-RECOVERY",
+    "checkpoint_id": "D173-E278",
     "pr": 985,
     "branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
     "status": "WORKER_PRODUCTION_TECH_PASS__AGENT194_OTA_POWERSHELL_HOST_FAIL__PR985_RECOVERY_CI_PENDING",
