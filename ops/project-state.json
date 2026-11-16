@@ -7661,7 +7661,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-    "pr": null,
+    "pr": 984,
     "latest_checkpoint_id": "D173-E278",
     "checkpoint_date_vn": "2026-11-16",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -7669,9 +7669,9 @@
     "owner_release_gate": "D173_E278_OWNER_CODE_AND_PRODUCTION_APPROVED__EXACT_CI_REQUIRED__PROD_NOT_YET_DEPLOYED__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null,
+    "working_pr": 984,
     "active_working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-    "working_pr_lifecycle": "PR981_MERGED_MAIN_70BD1F12_RUN43548451337_SUCCESS__PR982_DOCS_ONLY"
+    "working_pr_lifecycle": "PR984_CODE_OPEN__OWNER_CODE_PROD_APPROVED__CI_AND_RELEASE_NOT_YET_PASS"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -15004,7 +15004,7 @@
     "change_id": "D173-E278",
     "date_vn": "2026-11-16",
     "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-    "working_pr": null,
+    "working_pr": 984,
     "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
     "source_doc": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
     "owner_code_approved": true,
