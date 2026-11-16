@@ -141,6 +141,15 @@ def main() -> None:
                 or proof.get("main_merge_sha") != "7cb0037af96d57e650bdad371d9b7ffa663f185e"
                 or proof.get("field_pass") is not False or proof.get("owner_pass") is not False):
             fail("latest verified D173-E208 Agent192 release proof mismatch")
+    elif agent == "relay-agent-v194":
+        proof = state.get("d173_e281_agent194_release_receipt", {}).get("release_evidence", {})
+        if (proof.get("tag") != agent or proof.get("exe_sha256") != production.get("agent", {}).get("sha256")
+                or proof.get("exe_sha256") != "4b7ad70a096d08fa7bebfefa009a4eacd7d1be3f04ca1e9b4acbea4b5ad2beed"
+                or proof.get("host_build") != 14 or proof.get("run_id") != 43873539169
+                or proof.get("worker_run_id") != 43873539040
+                or proof.get("main_merge_sha") != "9ff6560959a14b24a9128b7fdd2e57a5009f1017"
+                or proof.get("field_pass") is not False or proof.get("owner_pass") is not False):
+            fail("latest verified D173-E281 Agent194 signed OTA proof mismatch")
     elif state.get("d173_e185", {}).get("agent_release_tag") != agent:
         fail("latest verified D173-E185 historical Agent release proof mismatch")
     if not web_version or f"WEB_{web_version.replace('.', '_')}" not in cs.get("web", ""):
