@@ -7660,17 +7660,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e273-web3323-production-receipt-20261114",
-    "pr": 982,
-    "latest_checkpoint_id": "D173-E273",
-    "checkpoint_date_vn": "2026-11-14",
+    "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E278",
+    "checkpoint_date_vn": "2026-11-16",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E273_WEB3323_PRODUCTION_TECH_PASS__RUN43548451337__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E278_OWNER_CODE_AND_PRODUCTION_APPROVED__EXACT_CI_REQUIRED__PROD_NOT_YET_DEPLOYED__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 982,
-    "active_working_branch": "docs/d173-e273-web3323-production-receipt-20261114",
+    "working_pr": null,
+    "active_working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
     "working_pr_lifecycle": "PR981_MERGED_MAIN_70BD1F12_RUN43548451337_SUCCESS__PR982_DOCS_ONLY"
   },
   "d167_web_visual_layout_20261012": {
@@ -14999,5 +14999,29 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "receipt_doc": "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md"
+  },
+  "d173_e278_agent194_confirm_ha_mail": {
+    "change_id": "D173-E278",
+    "date_vn": "2026-11-16",
+    "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
+    "working_pr": null,
+    "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+    "source_doc": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "approved_components": [
+      "agent194",
+      "worker-beta"
+    ],
+    "approved_failure_email_copy": "D173-E276",
+    "mail_recipient": "EXISTING_PROJECT_ADMIN_EMAIL_CONSTANT_NO_NEW_PUBLIC_ADDRESS",
+    "required_gates": "WIN_NATIVE_AGENT194__WORKER_TYPECHECK__D172_ISOLATION__CI_PIN__WORKER_SAME_SHA_RELEASE__AGENT194_OTA_SHA_READBACK",
+    "status": "SOURCE_IMPLEMENTED_UNVERIFIED__PR_AND_CI_PENDING__NO_PRODUCTION_CLAIM",
+    "code_pass": false,
+    "ci_scoped_pass": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD"
   }
 }
