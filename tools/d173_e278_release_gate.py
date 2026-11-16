@@ -25,6 +25,7 @@ ALLOWED = {
     ".github/workflows/d173-e278-agent194-confirm.yml",
     ".github/workflows/d173-e278-agent194-ota.yml",
     ".github/workflows/deploy-beta.yml",
+    ".github/workflows/verify-relay-agent.yml",
     "tools/d173_e278_release_gate.py",
     "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
     "ops/d173-e278-release-authorization.json",
@@ -47,6 +48,7 @@ REQUIRED = {
     ".github/workflows/d173-e278-agent194-confirm.yml",
     ".github/workflows/d173-e278-agent194-ota.yml",
     ".github/workflows/deploy-beta.yml",
+    ".github/workflows/verify-relay-agent.yml",
 }
 
 def deny(code):
