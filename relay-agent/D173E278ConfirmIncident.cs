@@ -16,6 +16,7 @@ namespace SupraInventoryRelayAgent
         private volatile bool _e278ConfirmDegraded;
         private int _e278EmptySearchStrikes;
         private long _e278LastEmptySearchMs;
+        private long _e278LastNonEmptyMs;
         private bool _e278IncidentReported;
         private bool _e278RearmReported;
         private long _e278FirstConfirmedHealthyMs;
@@ -41,6 +42,7 @@ namespace SupraInventoryRelayAgent
             if (!hasPendingWork || search == null) return false;
             if (search.PicklistCodeCount > 0)
             {
+                Interlocked.Exchange(ref _e278LastNonEmptyMs, E278NowMs());
                 E278RestoreDataView();
                 return false;
             }
@@ -48,6 +50,8 @@ namespace SupraInventoryRelayAgent
             // PDA Search UI click, then another independent failure within 60s.
             if (!search.SearchClicked) return false;
             var now = E278NowMs();
+            // A legitimately empty WMS queue at startup must not trigger HA or email.
+            if (_e278LastNonEmptyMs <= 0 || now - _e278LastNonEmptyMs > 7200000) return false;
             var activated = false;
             lock (_e278IncidentGate)
             {
@@ -94,7 +98,11 @@ namespace SupraInventoryRelayAgent
         private void E278ObserveWebHealth(SupraBrowserState state)
         {
             if (state == null) return;
-            if (state.Ready && state.PicklistCodeCount > 0) E278RestoreDataView();
+            if (state.Ready && state.PicklistCodeCount > 0)
+            {
+                Interlocked.Exchange(ref _e278LastNonEmptyMs, E278NowMs());
+                E278RestoreDataView();
+            }
             if (state.LoginMarkerDetected) E278AlertPrimary("SESSION_EXPIRED");
             E278MaybeRearm();
         }
