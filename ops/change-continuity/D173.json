@@ -7,14 +7,13 @@
   "pr": 983,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E275",
+    "id": "D173-E276",
     "date_vn": "2026-11-16",
-    "summary": "Owner narrows only failure email to private recipient when PRIMARY Supra session expires or Web session remains but cannot confirm; no per-error/HA/recovery spam. Source proves READY_EMPTY treated ready, PDA SearchMany disables empty self-heal, technical failures durable ACK. WMS-side cause of empty table unverified. Review-only.",
-    "status": "OWNER_SCOPE_RECORDED__WEB_LOG_SOURCE_FINDINGS__PROPOSAL_PENDING_OWNER_CODE_APPROVAL__NO_RUNTIME_CHANGE__D172_HOLD",
+    "summary": "Owner requested proposal for alert email title/body; proposed concise single-template PRIMARY confirm outage notice with status placeholders, accuracy guard and one-mail-per-incident, no recipient value committed.",
+    "status": "CONTENT_PROPOSED__NOT_YET_OWNER_FINAL_APPROVED__DOCS_ONLY",
     "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
     "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
     "pr": 983,
-    "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
     "code_pass": false,
     "ci_scoped_pass": false,
     "release_pass": false,
@@ -5880,6 +5879,30 @@
       "owner_pass": false,
       "release_pass": false,
       "field_pass": false
+    },
+    {
+      "id": "D173-E276",
+      "date_vn": "2026-11-16",
+      "kind": "OWNER_REQUEST_PROPOSAL",
+      "topic": "Proposed Owner email subject/body for confirmed PRIMARY inability to confirm PickList",
+      "status": "CONTENT_PROPOSED__NOT_YET_OWNER_FINAL_APPROVED__DOCS_ONLY",
+      "owner_approval": false,
+      "owner_code_approved": false,
+      "owner_release_approved": false,
+      "facts": [
+        "Owner requested suggested subject and body, no code or email sending authorization.",
+        "Proposed subject: [SUPRA 1291] CẢNH BÁO: Agent chính không thể confirm PickList.",
+        "Body includes alert time, affected PRIMARY Agent name, evidenced cause (Supra session expired vs still signed in but unusable Web), safe error description, actual standby state, incident ID, one-mail-per-incident footer.",
+        "When root cause unverified, use 'Chưa xác định'; never assume Supra session expired from READY_EMPTY. No private recipient email stored in public GitHub."
+      ],
+      "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+      "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+      "pr": 983,
+      "owner_pass": false,
+      "field_pass": false,
+      "release_pass": false,
+      "ci_scoped_pass": false,
+      "code_pass": false
     }
   ],
   "resume": {
