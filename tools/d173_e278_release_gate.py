@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "910bbeb400eebcd499a356d392ae500e2320d885"
-RECOVERY_BASE = "40e4a498ec7d563049717e9579673e0dee9749bf"  # Worker exact-SHA release succeeded
+RECOVERY_BASE = "e32dd97fa604c0c946a8cc734b470186034b1609"  # E278 prior protected recovery main; worker retrigger required
 MARKER = "D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:"
 AUTH = ROOT / "ops/d173-e278-release-authorization.json"
 ALLOWED = {
