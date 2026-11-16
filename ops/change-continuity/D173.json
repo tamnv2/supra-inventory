@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e273-web3323-production-receipt-20261114",
-  "pr": 982,
+  "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
+  "pr": 984,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E278",
@@ -5829,7 +5829,7 @@
     {
       "id": "D173-E278",
       "date_vn": "2026-11-16",
-      "kind": "OWNER_APPROVED_CODE_AND_PRODUCTION",
+      "kind": "OWNER_COMMAND",
       "topic": "Agent194 WMS functional Confirm HA/failover and failure-only Owner incident email",
       "status": "OWNER_CODE_AND_PRODUCTION_APPROVED__SOURCE_BRANCH_IN_PROGRESS__CI_RELEASE_NOT_YET_PASS",
       "owner_approval": true,
@@ -5864,7 +5864,9 @@
       "ci_scoped_pass": false,
       "release_pass": false,
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "evidence": "Owner 2026-11-16 explicit code+Production command in project chat; main 910bbeb4, scoped code branch fix/d173-e278-agent194-confirm-ha-owner-alert-20261116, source PR #984; docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
+      "next_action": "Run PR984 TypeScript/source/native/D172 CI; repair any FAIL; pin CI SHA and guarded merge; verify existing Worker Production and Agent194 OTA release tag+SHA; FIELD check separately."
     }
   ],
   "resume": {
@@ -5894,7 +5896,8 @@
       "D173-E169 Owner 08/11 authorizes additional diagnostic CODE + TEST on current Cloudflare/Firebase Service/Agent paths, zero new provider polling/writes; no Production release approval.",
       "D173-E170 Owner 08/11 authorizes Production updates for existing Worker HMAC daily diagnostics and signed Agent175 error-only log changes after exact-head CI; Web UI/Android/Rules unchanged.",
       "D173-E174 Owner 09/11 approves Agent176-only focus repair and conditional signed OTA; Launcher explicitly deferred backlog.",
-      "D173-E239: Owner explicitly authorizes code/merge/Production release of the three Web3.3.15 UI requirements on PR961 after exact-source scoped CI and D172 isolation; no Stable/D172 mutation."
+      "D173-E239: Owner explicitly authorizes code/merge/Production release of the three Web3.3.15 UI requirements on PR961 after exact-source scoped CI and D172 isolation; no Stable/D172 mutation.",
+      "D173-E278 Owner 2026-11-16 authorized Agent194 functional WMS Confirm HA, one incident mail, guarded existing Worker and Agent Production; D172 remains independent HOLD."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
