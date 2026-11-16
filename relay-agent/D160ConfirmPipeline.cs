@@ -110,7 +110,7 @@ namespace SupraInventoryRelayAgent
             {
                 search = eligible.Count == 0
                     ? new SupraBrowserSearchResult { Result = "NOT_FOUND" }
-                    : _supraBrowser.SearchMany(eligible.Select(work => work.Suffix), true, false, true);
+                    : _supraBrowser.SearchMany(eligible.Select(work => work.Suffix), true, false, true, 4000);
                 if (eligible.Count > 0) MarkD157WmsProof();
             }
             catch (Exception ex)
