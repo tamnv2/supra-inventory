@@ -17,6 +17,7 @@ namespace SupraInventoryRelayAgent
         private int _e278EmptySearchStrikes;
         private long _e278LastEmptySearchMs;
         private long _e278LastNonEmptyMs;
+        private long _e278LoginFirstMs;
         private bool _e278IncidentReported;
         private bool _e278RearmReported;
         private long _e278FirstConfirmedHealthyMs;
@@ -103,7 +104,13 @@ namespace SupraInventoryRelayAgent
                 Interlocked.Exchange(ref _e278LastNonEmptyMs, E278NowMs());
                 E278RestoreDataView();
             }
-            if (state.LoginMarkerDetected) E278AlertPrimary("SESSION_EXPIRED");
+            if (state.LoginMarkerDetected)
+            {
+                var now = E278NowMs();
+                if (_e278LoginFirstMs == 0) _e278LoginFirstMs = now;
+                if (now - _e278LoginFirstMs >= 5000) E278AlertPrimary("SESSION_EXPIRED");
+            }
+            else _e278LoginFirstMs = 0;
             E278MaybeRearm();
         }
 
