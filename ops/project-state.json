@@ -15044,13 +15044,15 @@
     "worker_release": "PASS_TECHNICAL_RUN_43868015330",
     "failed_agent_ota_run_id": 43868015344,
     "verified_failure": "POWERSHELL_READ_ONLY_AUTOMATIC_HOST_VARIABLE__BEFORE_AGENT_BUILD_OR_TAG",
-    "code": "REPAIR_SOURCE_PENDING_RECOVERY_CI",
-    "ci": "PENDING_EXACT_RECOVERY_SOURCE",
-    "agent_release": "NOT_YET_PUBLISHED_OR_OTA_VERIFIED",
+    "code": "PASS_SCOPED_SOURCE",
+    "ci": "PASS_E278_SOURCE_NATIVE_RUN43870112335_PLUS_AUTHORITY_STATE_D172",
+    "agent_release": "PROTECTED_PR985_MERGE_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "regression": "No Agent runtime/WMS/Web/Android/Browser Host14/D172 business/Stable source changes"
+    "regression": "No Agent runtime/WMS/Web/Android/Browser Host14/D172 business/Stable source changes",
+    "source_ci_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5",
+    "source_ci_run_id": 43870112335
   }
 }
