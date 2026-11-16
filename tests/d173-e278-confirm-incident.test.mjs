@@ -96,3 +96,16 @@ test("incident email only after authentication and recent real PRIMARY lease", (
   assert.match(source, /state\.storage\.transactionSync/);
   assert.ok(!source.includes("tam95.supra@gmail.com"), "no duplicate Owner address in new source");
 });
+
+test("transient incident transport failure retries without additional scheduled polls or duplicate mail", () => {
+  const agent = read("relay-agent/D173E278ConfirmIncident.cs");
+  assert.match(agent, /_e278AlertAttempts >= 3/);
+  assert.match(agent, /now - _e278LastAlertAttemptMs < 60000/);
+  assert.match(agent, /E278PostIncident\("FAILED", incidentId, generation, reason, standby, 0L\)/);
+  assert.match(agent, /_e278IncidentReported = false;/);
+  assert.match(agent, /Worker global claim suppresses duplicate sends/);
+  const claimed = decideIncident(null, "FAILED", id1, now);
+  const repeat = decideIncident(claimed.state, "FAILED", id1, now + 61000);
+  assert.equal(repeat.shouldSend, false);
+  assert.equal(repeat.status, "SUPPRESSED_ACTIVE_INCIDENT");
+});
