@@ -9,19 +9,21 @@
   "last_checkpoint": {
     "id": "D173-E278",
     "date_vn": "2026-11-16",
-    "summary": "Worker exact main 40e4a498 / run 43868015330 TECH PASS; Agent194 OTA run 43868015344 FAILED before build because PowerShell $Host is read-only; scoped recovery PR985 replaces variable and guards exact recovery parent; CI/release pending.",
-    "status": "WORKER_PRODUCTION_TECH_PASS__AGENT194_OTA_FAIL_POWERSHELL_HOST__RECOVERY_PR985_CI_PENDING__FIELD_OWNER_PENDING",
+    "summary": "Worker Prod run43868015330 PASS; Agent194 OTA initial PowerShell Host failure run43868015344; PR985 scoped recovery code + Windows native/Worker/D172 CI run43870112335 PASS exact source a50d31; guarded merge and OTA release pending.",
+    "status": "WORKER_RELEASE_PASS__AGENT194_RECOVERY_SOURCE_CI_NATIVE_PASS__OTA_PROTECTED_MERGE_PENDING",
     "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
     "branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
     "pr": 985,
     "source_main_sha": "40e4a498ec7d563049717e9579673e0dee9749bf",
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
     "worker_release_run_id": 43868015330,
-    "failed_agent_run_id": 43868015344
+    "failed_agent_run_id": 43868015344,
+    "source_ci_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5",
+    "source_ci_run_id": 43870112335
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5899,16 +5901,17 @@
       "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
       "pr": 985,
       "repair": "Rename $host to $browserHost; guard automatic-variable regression; permit two-parent protected recovery merge with first parent 40e4a498, preserve original scoped BASE diff and new exact CI pin.",
-      "ci": "PENDING_RECOVERY_SOURCE_RUN",
+      "ci": "PASS_EXACT_SHA_A50D31_RUN_43870112335_WINDOWS_NATIVE_SOURCE__STATE_AUTHORITY_D172_SUCCESS",
       "worker_technical_release": "PASS_RUN_43868015330",
       "agent_technical_release": "FAILED_RUN_43868015344_PENDING_RECOVERY",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED",
-      "status": "AGENT194_OTA_POWERSHELL_HOST_RELEASE_FAILED__SCOPED_RECOVERY_CI_PENDING",
-      "next_action": "Validate recovery source CI + authority/state/D172; pin source SHA and guarded merge PR985; Worker Production re-deploy same SHA then Agent194 OTA SHA readback.",
-      "evidence": "GitHub Worker run 43868015330 SUCCESS; Agent OTA run 43868015344 failure on PowerShell read-only Host; protected main 40e4a498; PR985."
+      "status": "AGENT194_POWERSHELL_RECOVERY_SOURCE_NATIVE_CI_PASS__PROTECTED_RELEASE_PENDING",
+      "next_action": "Protected merge PR985 exact pinned head, then Worker same SHA Production SUCCESS and Agent194 OTA tag+channel SHA readback.",
+      "evidence": "GitHub Worker run 43868015330 SUCCESS; Agent OTA run 43868015344 failure on PowerShell read-only Host; protected main 40e4a498; PR985.",
+      "repair_source_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5"
     }
   ],
   "resume": {
