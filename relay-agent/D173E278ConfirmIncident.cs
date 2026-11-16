@@ -19,6 +19,8 @@ namespace SupraInventoryRelayAgent
         private long _e278LastNonEmptyMs;
         private long _e278LoginFirstMs;
         private bool _e278IncidentReported;
+        private int _e278AlertAttempts;
+        private long _e278LastAlertAttemptMs;
         private bool _e278RearmReported;
         private long _e278FirstConfirmedHealthyMs;
         private long _e278LastRearmAttemptMs;
@@ -111,6 +113,10 @@ namespace SupraInventoryRelayAgent
                 if (now - _e278LoginFirstMs >= 5000) E278AlertPrimary("SESSION_EXPIRED");
             }
             else _e278LoginFirstMs = 0;
+            // No background polling: retry at most three times on existing health updates.
+            // The Worker global claim suppresses duplicate sends even if an HTTP response is lost.
+            if (_e278ConfirmDegraded && !_e278IncidentReported)
+                E278AlertPrimary("WEB_CONFIRM_UNAVAILABLE");
             E278MaybeRearm();
         }
 
@@ -129,18 +135,31 @@ namespace SupraInventoryRelayAgent
             var coordinator = _leaderCoordinator;
             if (coordinator == null || !coordinator.IsLeader) return;
             string incidentId, generation, standby;
+            var now = E278NowMs();
             lock (_e278IncidentGate)
             {
-                if (_e278IncidentReported) return;
+                if (_e278IncidentReported || _e278AlertAttempts >= 3 ||
+                    (_e278LastAlertAttemptMs > 0 && now - _e278LastAlertAttemptMs < 60000)) return;
                 _e278IncidentReported = true;
+                _e278AlertAttempts++;
+                _e278LastAlertAttemptMs = now;
                 _e278FirstConfirmedHealthyMs = 0;
                 incidentId = _e278IncidentId;
                 generation = coordinator.Generation;
                 standby = E278HasReadyStandby() ? "NOT_TRANSFERRED" : "NO_READY_STANDBY";
             }
-            if (string.IsNullOrWhiteSpace(generation)) return;
-            Task.Run(() => E278PostIncident(
-                "FAILED", incidentId, generation, reason, standby, 0L));
+            if (string.IsNullOrWhiteSpace(generation))
+            {
+                lock (_e278IncidentGate) _e278IncidentReported = false;
+                return;
+            }
+            Task.Run(() =>
+            {
+                if (E278PostIncident("FAILED", incidentId, generation, reason, standby, 0L)) return;
+                lock (_e278IncidentGate)
+                    if (string.Equals(_e278IncidentId, incidentId, StringComparison.Ordinal))
+                        _e278IncidentReported = false;
+            });
         }
 
         private void E278MaybeRearm()
@@ -170,6 +189,8 @@ namespace SupraInventoryRelayAgent
                     _e278RearmReported = true;
                     _e278IncidentReported = false;
                     _e278IncidentId = Guid.NewGuid().ToString("N");
+                    _e278AlertAttempts = 0;
+                    _e278LastAlertAttemptMs = 0;
                 }
                 Log("D173_E278 CONFIRM_INCIDENT state=REARMED");
             });
