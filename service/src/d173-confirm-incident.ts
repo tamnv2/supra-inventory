@@ -1,3 +1,37 @@
+import { getServiceAccountAccessToken } from "./hr-source";
+
+// One verified Firestore read only when an incident starts or a long-lived
+// incident is re-armed. A recently relinquished PRIMARY is allowed to report
+// its own fault for 45 seconds; this verifier does not grant WMS mutation rights.
+export async function verifyIncidentReporter(
+  env: { FIREBASE_PROJECT_ID: string; GOOGLE_RUNTIME_SA_JSON?: string },
+  instanceId: string, generation: string,
+): Promise<boolean> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON ||
+      !/^[A-Za-z0-9:_-]{6,150}$/.test(instanceId) ||
+      !/^[A-Za-z0-9-]{16,150}$/.test(generation)) return false;
+  try {
+    const token = await getServiceAccountAccessToken(
+      env.GOOGLE_RUNTIME_SA_JSON, "https://www.googleapis.com/auth/datastore");
+    const target = "https://firestore.googleapis.com/v1/projects/" +
+      encodeURIComponent(env.FIREBASE_PROJECT_ID) +
+      "/databases/(default)/documents/relay_poc_coordination/lease_" +
+      encodeURIComponent(generation);
+    const response = await fetch(target, {
+      headers: { authorization: "Bearer " + token.accessToken, accept: "application/json" },
+    });
+    if (!response.ok) return false;
+    const doc = await response.json() as {
+      fields?: Record<string, { stringValue?: string; integerValue?: string }>;
+    };
+    const fields = doc.fields || {};
+    const heartbeatMs = Number(fields.heartbeat_at_ms?.integerValue || 0);
+    return fields.primary_agent_instance_id?.stringValue === instanceId &&
+      fields.generation?.stringValue === generation &&
+      heartbeatMs > 0 && Math.abs(Date.now() - heartbeatMs) <= 45000;
+  } catch { return false; }
+}
+
 // D173-E278: one email per confirmed PRIMARY outage; no new Worker bindings.
 export type IncidentAction = "FAILED" | "RECOVERED" | "SENT" | "FAILED_SEND";
 export interface IncidentState {
