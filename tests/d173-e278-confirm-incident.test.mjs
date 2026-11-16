@@ -95,7 +95,8 @@ test("Agent194 uses only its protected OTA; generic publisher cannot mutate Host
   assert.match(firestore, /D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:/);
   assert.match(dedicated, /D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:/);
   assert.match(dedicated, /previous.tag -ne 'relay-agent-v193'/);
-  assert.match(dedicated, /host.host_build -ne 14/);
+  assert.match(dedicated, /browserHost\.host_build -ne 14/);
+  assert.doesNotMatch(dedicated, /\$host\s*=/i, "PowerShell $Host is a read-only automatic variable");
   assert.match(dedicated, /E278_WORKER_SAME_SHA_RELEASE_VERIFIED/);
 });
 
