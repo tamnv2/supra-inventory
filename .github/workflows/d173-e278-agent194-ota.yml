@@ -50,8 +50,8 @@ jobs:
           gh release download inventory-channel --repo $env:GITHUB_REPOSITORY --pattern 'agent-latest.json' --pattern 'agent-browser-latest.json' --dir $dir
           if ($LASTEXITCODE -ne 0) { throw 'Previous Agent OTA manifest unavailable' }
           $previous = Get-Content (Join-Path $dir 'agent-latest.json') -Raw | ConvertFrom-Json
-          $host = Get-Content (Join-Path $dir 'agent-browser-latest.json') -Raw | ConvertFrom-Json
-          if ($previous.tag -ne 'relay-agent-v193' -or [int]$host.host_build -ne 14) { throw 'Expected v193/Host14 baseline drift' }
+          $browserHost = Get-Content (Join-Path $dir 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+          if ($previous.tag -ne 'relay-agent-v193' -or [int]$browserHost.host_build -ne 14) { throw 'Expected v193/Host14 baseline drift' }
           $tags = @(gh release list --repo $env:GITHUB_REPOSITORY --limit 400 --json tagName --jq '.[].tagName')
           if ($LASTEXITCODE -ne 0 -or $tags -contains 'relay-agent-v194') { throw 'Tag v194 exists or index unavailable' }
       - name: Inject existing protected Firebase and Apps Script configuration

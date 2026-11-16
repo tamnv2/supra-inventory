@@ -3,24 +3,27 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-  "pr": 984,
+  "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+  "pr": 985,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E278",
     "date_vn": "2026-11-16",
-    "summary": "E278 Agent194 + existing Worker code, native and six scoped CI PASS, SHA 255a4b52; safe exclusive release pending, FIELD/OWNER pending.",
-    "status": "OWNER_CODE_PRODUCTION_APPROVED__E278_SOURCE_CI_6_OF_6_PASS__PROTECTED_RELEASE_PENDING",
+    "summary": "Worker Prod run43868015330 PASS; Agent194 OTA initial PowerShell Host failure run43868015344; PR985 scoped recovery code + Windows native/Worker/D172 CI run43870112335 PASS exact source a50d31; guarded merge and OTA release pending.",
+    "status": "WORKER_RELEASE_PASS__AGENT194_RECOVERY_SOURCE_CI_NATIVE_PASS__OTA_PROTECTED_MERGE_PENDING",
     "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
-    "branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-    "pr": 984,
-    "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+    "branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+    "pr": 985,
+    "source_main_sha": "40e4a498ec7d563049717e9579673e0dee9749bf",
     "code_pass": true,
     "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
-    "source_ci_sha": "255a4b52d1fcad356d008433506228459162fbd3"
+    "worker_release_run_id": 43868015330,
+    "failed_agent_run_id": 43868015344,
+    "source_ci_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5",
+    "source_ci_run_id": 43870112335
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5880,6 +5883,35 @@
         43865021712,
         43865018121
       ]
+    },
+    {
+      "id": "D173-E279",
+      "owner_approval": null,
+      "date_vn": "2026-11-16",
+      "kind": "BLOCKER",
+      "change_id": "D173",
+      "subchange": "E278",
+      "topic": "Agent194 OTA recovery after production Worker PASS",
+      "facts": [
+        "Protected main 40e4a498ec7d563049717e9579673e0dee9749bf merged PR984 with exact E278 marker; existing Worker Production workflow 43868015330 SUCCESS.",
+        "Agent OTA workflow 43868015344 failed before native build or tag publication because its PowerShell $host variable conflicts with automatic read-only $Host.",
+        "No Agent194 release/tag or OTA channel readback verified at failure; recovery does not modify Agent runtime, WMS, D172, Stable, Android or Browser Host14."
+      ],
+      "owner_decision": "Existing D173-E278 Owner-approved Production deployment remains effective; repair is limited to the release script and matching gate/test.",
+      "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+      "pr": 985,
+      "repair": "Rename $host to $browserHost; guard automatic-variable regression; permit two-parent protected recovery merge with first parent 40e4a498, preserve original scoped BASE diff and new exact CI pin.",
+      "ci": "PASS_EXACT_SHA_A50D31_RUN_43870112335_WINDOWS_NATIVE_SOURCE__STATE_AUTHORITY_D172_SUCCESS",
+      "worker_technical_release": "PASS_RUN_43868015330",
+      "agent_technical_release": "FAILED_RUN_43868015344_PENDING_RECOVERY",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "status": "AGENT194_POWERSHELL_RECOVERY_SOURCE_NATIVE_CI_PASS__PROTECTED_RELEASE_PENDING",
+      "next_action": "Protected merge PR985 exact pinned head, then Worker same SHA Production SUCCESS and Agent194 OTA tag+channel SHA readback.",
+      "evidence": "GitHub Worker run 43868015330 SUCCESS; Agent OTA run 43868015344 failure on PowerShell read-only Host; protected main 40e4a498; PR985.",
+      "repair_source_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5"
     }
   ],
   "resume": {

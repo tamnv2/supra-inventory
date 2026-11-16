@@ -7660,18 +7660,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-    "pr": 984,
+    "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+    "pr": 985,
     "latest_checkpoint_id": "D173-E278",
     "checkpoint_date_vn": "2026-11-16",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E278_SOURCE_PIN_255A4B52__SIX_SCOPED_CI_PASS__PROTECTED_WORKER_FIRST_AGENT194_OTA_NEXT__D172_HOLD",
+    "owner_release_gate": "D173_E278_AGENT194_POWERSHELL_OTA_RECOVERY_CI_PENDING__WORKER_PROD_PASS__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 984,
-    "active_working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-    "working_pr_lifecycle": "PR984_CODE_OPEN__OWNER_CODE_PROD_APPROVED__CI_AND_RELEASE_NOT_YET_PASS"
+    "working_pr": 985,
+    "active_working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+    "working_pr_lifecycle": "PR985_OTA_RECOVERY_OPEN__WORKER_MAIN40E4A498_PRODUCTION_PASS__AGENT_OTA_RETRY_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -15032,5 +15032,27 @@
       43865021712,
       43865018121
     ]
+  },
+  "d173_e278_agent194_ota_recovery": {
+    "change_id": "D173-E278",
+    "date_vn": "2026-11-16",
+    "previous_main_release_sha": "40e4a498ec7d563049717e9579673e0dee9749bf",
+    "owner_code_production_release_approved": true,
+    "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+    "pr": 985,
+    "scope": "AGENT194_OTA_POWERSHELL_WORKFLOW_VARIABLE__RECOVERY_PARENT_GATE__EXACT_REGRESSION_TEST_ONLY",
+    "worker_release": "PASS_TECHNICAL_RUN_43868015330",
+    "failed_agent_ota_run_id": 43868015344,
+    "verified_failure": "POWERSHELL_READ_ONLY_AUTOMATIC_HOST_VARIABLE__BEFORE_AGENT_BUILD_OR_TAG",
+    "code": "PASS_SCOPED_SOURCE",
+    "ci": "PASS_E278_SOURCE_NATIVE_RUN43870112335_PLUS_AUTHORITY_STATE_D172",
+    "agent_release": "PROTECTED_PR985_MERGE_PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "regression": "No Agent runtime/WMS/Web/Android/Browser Host14/D172 business/Stable source changes",
+    "source_ci_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5",
+    "source_ci_run_id": 43870112335
   }
 }
