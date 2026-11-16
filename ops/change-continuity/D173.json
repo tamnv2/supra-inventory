@@ -13,7 +13,7 @@
     "status": "OWNER_CODE_AND_PRODUCTION_APPROVED__SOURCE_BRANCH_IN_PROGRESS__CI_RELEASE_NOT_YET_PASS",
     "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
     "branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-    "pr": null,
+    "pr": 984,
     "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
     "code_pass": false,
     "ci_scoped_pass": false,
@@ -5837,7 +5837,7 @@
       "owner_production_release_approved": true,
       "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
       "branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-      "pr": null,
+      "pr": 984,
       "owner_decision": "Owner explicitly commands 'chạy code, hoàn thiện code sau đó triển khai production' after approving exact failure-only email copy, authorizing both code and guarded Production for D173 only.",
       "facts": [
         "VPS logs confirmed repeat READY_EMPTY with zero WMS PickList codes while valid session and repeated WMS_DATA_UNAVAILABLE, with untriggered HA; upstream WMS data-request origin remains unverified.",
