@@ -27,6 +27,7 @@ import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
+import { buildConfirmIncidentMail, verifyIncidentReporter } from "./d173-confirm-incident";
 import {
   PrivilegedAuthError,
   isPrivilegedOneTimeUser,
@@ -40,7 +41,7 @@ import { handleD119Internal } from "./internal-d119";
 import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishAgentRemoteCommand, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePdaRegistryApi, reconcilePdaRegistrySheet } from "./pda-registry";
-import { ensureDailyLauncherPassword, handleLauncherPasswordApi, shouldRetryDailyLauncherPassword } from "./launcher-password";
+import { ensureDailyLauncherPassword, handleLauncherPasswordApi, shouldRetryDailyLauncherPassword, PROJECT_ADMIN_EMAIL } from "./launcher-password";
 import { handleLauncherDiagnosticLog } from "./launcher-diagnostics";
 import { resolveLauncherManifest, validateLauncherRules, loadLauncherUpdateConfig, verifyLauncherOwnerApproval } from "./launcher-update-policy";
 import { handlePdaManagementDiagnosticLog } from "./pda-management-diagnostics";
@@ -1948,6 +1949,71 @@ export default {
           }
         })());
         return operation;
+      }
+
+      // D173-E278: failure-only Owner notice; Agent auth + recent PRIMARY lease
+      // + one durable InventoryCore claim. No continuous polling or D172 data.
+      if (request.method === "POST" && url.pathname === "/api/agent/d173/confirm-incident") {
+        if (env.APP_ENV !== "beta") return json({ error: "D173_BETA_ONLY" }, 404);
+        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        let body: {
+          action?: "FAILED" | "RECOVERED";
+          incident_id?: string;
+          agent_instance_id?: string;
+          generation?: string;
+          machine?: string;
+          reason?: "SESSION_EXPIRED" | "WEB_CONFIRM_UNAVAILABLE";
+          standby?: "NOT_TRANSFERRED" | "TRANSFERRED" | "NO_READY_STANDBY";
+          healthy_for_ms?: number;
+        } = {};
+        try { body = await request.json() as typeof body; }
+        catch { return json({ error: "INVALID_JSON" }, 400); }
+        const action = String(body.action || "");
+        const incidentId = String(body.incident_id || "").trim();
+        const instance = String(body.agent_instance_id || "").trim();
+        const generation = String(body.generation || "").trim();
+        const machine = String(body.machine || "").trim();
+        const reason = String(body.reason || "");
+        const standby = String(body.standby || "");
+        if (!["FAILED", "RECOVERED"].includes(action) ||
+            !/^[a-f0-9]{32}$/.test(incidentId) ||
+            !/^[A-Za-z0-9:_-]{6,150}$/.test(instance) ||
+            !/^[A-Za-z0-9-]{16,150}$/.test(generation) ||
+            !/^[A-Za-z0-9._-]{1,64}$/.test(machine) ||
+            !["SESSION_EXPIRED", "WEB_CONFIRM_UNAVAILABLE"].includes(reason) ||
+            !["NOT_TRANSFERRED", "TRANSFERRED", "NO_READY_STANDBY"].includes(standby))
+          return json({ error: "INVALID_INCIDENT" }, 400);
+        const proven = await verifyIncidentReporter(env, instance, generation);
+        if (!proven) return json({ error: "PRIMARY_LEASE_NOT_VERIFIED" }, 403);
+        const payload = {
+          action, incident_id: incidentId,
+          healthy_for_ms: action === "RECOVERED" ? body.healthy_for_ms : 0,
+        };
+        const coreUrl = "https://inventory-core.internal/d173/confirm-incident";
+        const coreRequest = (value: Record<string, unknown>) =>
+          coreStub(env).fetch(coreUrl, {
+            method: "POST", headers: { "content-type": "application/json" },
+            body: JSON.stringify(value),
+          });
+        const claimed = await coreRequest(payload);
+        if (!claimed.ok) return json({ error: "INCIDENT_CLAIM_FAILED" }, 503);
+        const claim = await claimed.json() as { status?: string; should_send?: boolean };
+        if (!claim.should_send) return json({ status: claim.status || "SUPPRESSED", mail_sent: false });
+        const message = buildConfirmIncidentMail({
+          incidentId, machine,
+          reason: reason as "SESSION_EXPIRED" | "WEB_CONFIRM_UNAVAILABLE",
+          standby: standby as "NOT_TRANSFERRED" | "TRANSFERRED" | "NO_READY_STANDBY",
+          atMs: Date.now(),
+        });
+        try {
+          await sendProjectEmail(env, PROJECT_ADMIN_EMAIL, message.subject, message.body);
+          await coreRequest({ action: "SENT", incident_id: incidentId });
+          return json({ status: "SENT", mail_sent: true });
+        } catch {
+          try { await coreRequest({ action: "FAILED_SEND", incident_id: incidentId }); }
+          catch { /* Claimed incident still prevents duplicate email on retry. */ }
+          return json({ error: "INCIDENT_MAIL_SEND_FAILED", mail_sent: false }, 503);
+        }
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/reauth") {
