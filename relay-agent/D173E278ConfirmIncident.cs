@@ -106,7 +106,6 @@ namespace SupraInventoryRelayAgent
             {
                 if (_e278FirstConfirmedHealthyMs == 0)
                     _e278FirstConfirmedHealthyMs = E278NowMs();
-                _e278RearmReported = false;
             }
         }
 
