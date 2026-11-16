@@ -27,4 +27,4 @@
 - https://github.com/tamnv2/supra-inventory/actions/runs/43873539169
 - https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v194
 
-This is a docs-only checked receipt, not a request for another Production deploy or a FIELD/OWNER PASS claim.
+This receipt updates docs, current-state/registry metadata and a read-only authority proof for Agent194. It does not change Worker/Agent runtime code or request another Production deploy; FIELD/OWNER PASS is not claimed.
