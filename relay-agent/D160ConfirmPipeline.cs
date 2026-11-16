@@ -127,7 +127,12 @@ namespace SupraInventoryRelayAgent
             var ready = new List<D160ReadyTarget>();
             var deferred = new List<D160ReadyTarget>();
             D160ClassifyFastSearch(appSession, eligible, search, outcomes, ready, deferred);
-            if (E278ObserveSearch(search, eligible.Count > 0) && E278HasReadyStandby())
+            // Pre-click technical WMS-data failure may be retried under a new
+            // PRIMARY generation. Protect the FIRST failed request as PENDING too;
+            // the second verified failure triggers the safe automatic handoff.
+            var e278Degraded = E278ObserveSearch(search, eligible.Count > 0);
+            if ((e278Degraded || (search.PicklistCodeCount == 0 && search.SearchClicked &&
+                E278HasRecentPopulatedView())) && E278HasReadyStandby())
                 foreach (var outcome in outcomes.Values.Where(value => value != null &&
                     value.Result == "WMS_DATA_UNAVAILABLE")) outcome.ShouldAck = false;
             var maxAgeAtClassify = works.Select(D160RequestAgeMs).DefaultIfEmpty(0L).Max();
