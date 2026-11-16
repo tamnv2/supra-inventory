@@ -5883,9 +5883,9 @@
       ]
     },
     {
-      "id": "D173-E278-OTA-RECOVERY",
+      "id": "D173-E279",
       "date_vn": "2026-11-16",
-      "kind": "RELEASE_FAILURE_AND_SCOPED_REPAIR",
+      "kind": "BLOCKER",
       "change_id": "D173",
       "subchange": "E278",
       "topic": "Agent194 OTA recovery after production Worker PASS",
@@ -5904,7 +5904,10 @@
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "status": "AGENT194_OTA_POWERSHELL_HOST_RELEASE_FAILED__SCOPED_RECOVERY_CI_PENDING",
+      "next_action": "Validate recovery source CI + authority/state/D172; pin source SHA and guarded merge PR985; Worker Production re-deploy same SHA then Agent194 OTA SHA readback.",
+      "evidence": "GitHub Worker run 43868015330 SUCCESS; Agent OTA run 43868015344 failure on PowerShell read-only Host; protected main 40e4a498; PR985."
     }
   ],
   "resume": {
