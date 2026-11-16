@@ -98,6 +98,8 @@ test("Agent194 uses only its protected OTA; generic publisher cannot mutate Host
   assert.match(dedicated, /browserHost\.host_build -ne 14/);
   assert.doesNotMatch(dedicated, /\$host\s*=/i, "PowerShell $Host is a read-only automatic variable");
   assert.match(dedicated, /E278_WORKER_SAME_SHA_RELEASE_VERIFIED/);
+  const worker = read(".github/workflows/deploy-beta.yml");
+  assert.match(worker.split("workflow_dispatch:")[0], /"\.github\/workflows\/d173-e278-agent194-ota\.yml"/, "OTA recovery push must trigger same-SHA Worker deployment");
 });
 
 test("incident email only after authentication and recent real PRIMARY lease", () => {
