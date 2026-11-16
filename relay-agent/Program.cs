@@ -3184,12 +3184,12 @@ namespace SupraInventoryRelayAgent
 
         private bool D173E140IsWebUnavailable()
         {
-            return _d173E140WebUnavailable;
+            return _d173E140WebUnavailable || _e278ConfirmDegraded;
         }
 
         private bool HasReadyConfirmBrowser()
         {
-            return _supraBrowserReady &&
+            return _supraBrowserReady && !_e278ConfirmDegraded &&
                    Interlocked.CompareExchange(ref _browserStorageMigrationRunning, 0, 0) == 0 &&
                    Interlocked.CompareExchange(ref _e196BrowserResetRunning, 0, 0) == 0;
         }
@@ -4199,6 +4199,7 @@ namespace SupraInventoryRelayAgent
                     _supraBrowserState == "NOT_OPEN" ||
                     _supraBrowserState == "DASHBOARD_ACCESS_FAILED" ||
                     _supraBrowserState == "CONFIRM_RETRY_EXHAUSTED";
+                E278ObserveWebHealth(state);
                 E141ObserveWeb(state);
                 Ui(() =>
                 {
