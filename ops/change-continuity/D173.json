@@ -3,24 +3,25 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-  "pr": 984,
+  "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+  "pr": 985,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E278",
+    "id": "D173-E278-OTA-RECOVERY",
     "date_vn": "2026-11-16",
-    "summary": "E278 Agent194 + existing Worker code, native and six scoped CI PASS, SHA 255a4b52; safe exclusive release pending, FIELD/OWNER pending.",
-    "status": "OWNER_CODE_PRODUCTION_APPROVED__E278_SOURCE_CI_6_OF_6_PASS__PROTECTED_RELEASE_PENDING",
+    "summary": "Worker exact main 40e4a498 / run 43868015330 TECH PASS; Agent194 OTA run 43868015344 FAILED before build because PowerShell $Host is read-only; scoped recovery PR985 replaces variable and guards exact recovery parent; CI/release pending.",
+    "status": "WORKER_PRODUCTION_TECH_PASS__AGENT194_OTA_FAIL_POWERSHELL_HOST__RECOVERY_PR985_CI_PENDING__FIELD_OWNER_PENDING",
     "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
-    "branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
-    "pr": 984,
-    "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
-    "code_pass": true,
-    "ci_scoped_pass": true,
+    "branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+    "pr": 985,
+    "source_main_sha": "40e4a498ec7d563049717e9579673e0dee9749bf",
+    "code_pass": false,
+    "ci_scoped_pass": false,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
-    "source_ci_sha": "255a4b52d1fcad356d008433506228459162fbd3"
+    "worker_release_run_id": 43868015330,
+    "failed_agent_run_id": 43868015344
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5880,6 +5881,30 @@
         43865021712,
         43865018121
       ]
+    },
+    {
+      "id": "D173-E278-OTA-RECOVERY",
+      "date_vn": "2026-11-16",
+      "kind": "RELEASE_FAILURE_AND_SCOPED_REPAIR",
+      "change_id": "D173",
+      "subchange": "E278",
+      "topic": "Agent194 OTA recovery after production Worker PASS",
+      "facts": [
+        "Protected main 40e4a498ec7d563049717e9579673e0dee9749bf merged PR984 with exact E278 marker; existing Worker Production workflow 43868015330 SUCCESS.",
+        "Agent OTA workflow 43868015344 failed before native build or tag publication because its PowerShell $host variable conflicts with automatic read-only $Host.",
+        "No Agent194 release/tag or OTA channel readback verified at failure; recovery does not modify Agent runtime, WMS, D172, Stable, Android or Browser Host14."
+      ],
+      "owner_decision": "Existing D173-E278 Owner-approved Production deployment remains effective; repair is limited to the release script and matching gate/test.",
+      "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
+      "pr": 985,
+      "repair": "Rename $host to $browserHost; guard automatic-variable regression; permit two-parent protected recovery merge with first parent 40e4a498, preserve original scoped BASE diff and new exact CI pin.",
+      "ci": "PENDING_RECOVERY_SOURCE_RUN",
+      "worker_technical_release": "PASS_RUN_43868015330",
+      "agent_technical_release": "FAILED_RUN_43868015344_PENDING_RECOVERY",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
