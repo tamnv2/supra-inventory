@@ -3,23 +3,21 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e273-web3323-production-receipt-20261114",
-  "pr": 982,
+  "working_branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+  "pr": 983,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E273",
-    "date_vn": "2026-11-14",
-    "summary": "Web3.3.23 Smart Lazy protected main70bd1f12 and Production Worker/Web run43548451337 SUCCESS exact source; CODE/CI/RELEASE technical PASS, nine-page FIELD & Owner PASS pending, D172 HOLD.",
-    "status": "CODE_PASS__CI_SCOPED_PASS__RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md",
-    "branch": "docs/d173-e273-web3323-production-receipt-20261114",
-    "pr": 982,
-    "source_pr": 981,
-    "release_main_sha": "70bd1f12b142642aafba02f1c9cb71b1d3a14214",
-    "release_run_id": 43548451337,
-    "code_pass": true,
-    "ci_scoped_pass": true,
-    "release_pass": true,
+    "id": "D173-E277",
+    "date_vn": "2026-11-16",
+    "summary": "Owner approved E276 incident email title/body; asked prospective deployment scope. Plan includes Web functional-readiness repair, bounded recovery and safe Agent HA, one-mail-per-incident Worker alert, tests/release gates; no code/release instruction yet.",
+    "status": "OWNER_EMAIL_COPY_APPROVED__FUTURE_IMPLEMENTATION_PLAN_ONLY__CODE_RELEASE_NOT_AUTHORIZED",
+    "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+    "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+    "pr": 983,
+    "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+    "code_pass": false,
+    "ci_scoped_pass": false,
+    "release_pass": false,
     "field_pass": false,
     "owner_pass": false
   },
@@ -5827,6 +5825,113 @@
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E274",
+      "date_vn": "2026-11-16",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner-requested diagnosis: functional WMS confirm failure not triggering Agent HA; missing operational Owner email alert",
+      "status": "REVIEW_ONLY__PROPOSAL_PENDING_OWNER_APPROVAL__NO_SOURCE_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner reports operational confirm failure with no automatic failover and no Owner email alert; task is log/source review and remediation recommendation, not implementation authorization.",
+        "VPS day-summary 2026-11-16 17:14:19 records 600 received, 415 confirmed, 185 errors; summary error bucket mixes possible business and technical results.",
+        "VPS sampled manual support log through ~17:15 contained 81 WMS_DATA_UNAVAILABLE, one WMS_CONFIRM_ACTION_UNAVAILABLE and one WMS_CONFIRM_RESPONSE_MISSING responses; 59 READY_EMPTY ready=1 WMS monitor observations with zero PickList rows; zero rows alone not proof of infrastructure failure.",
+        "Admin support log records SECONDARY NEXT_A around 17:08:38 with WMS UI READY, while VPS remained PRIMARY and sent durable ACK for technical WMS_DATA_UNAVAILABLE; no observed secondary confirm or auto-promotion in examined extracts.",
+        "Source FirestoreAgentLeaderCoordinator.cs transfers only via lease or Web-availability gate; pipeline D160ConfirmPipeline.cs preserves pending if browser not ready and standby present but terminates + ACKs WMS_DATA_UNAVAILABLE for zero-row search while browser ready.",
+        "Existing service/src/google-mail.ts sends project email for account recovery. No automatic incident escalation email integration found in relevant Agent/Worker source and selected logs; absence of all external mail delivery not independently proven.",
+        "Keep no-blind post-click replay, exact-row read-only confirmation, generation CAS, in-flight handoff guard and D172 isolation."
+      ],
+      "alternatives": [
+        "Preferred: introduce bounded business-confirm degradation classifier and pre-click error deferral, then a safe ready-standby CAS handoff with anti-flapping and post-click uncertainty fencing.",
+        "Alternative reject: transfer immediately after any WMS error or blank WMS table; this risks false-positive business errors and dual confirm.",
+        "Owner mail: reuse protected existing Worker mail sender for deduplicated incident and recovery alert; no Agent SMTP creds, no new cloud resource assumed."
+      ],
+      "next_action": "Owner review/approval of code scope and thresholds before implementation; then reproduce fail with deterministic tests, smallest isolated Agent/Worker changes, exact CI/D172 regression and guarded release only by separate approved gate.",
+      "evidence": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+      "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E275",
+      "date_vn": "2026-11-16",
+      "kind": "OWNER_COMMAND",
+      "topic": "Restrict email only to PRIMARY confirmed incident; analyze why WMS data unavailable while login alive",
+      "status": "OWNER_REQUIREMENT_RECORDED__REVIEW_ONLY__IMPLEMENTATION_NOT_YET_APPROVED",
+      "owner_approval": true,
+      "owner_code_approved": false,
+      "owner_release_approved": false,
+      "facts": [
+        "Owner states notification should only go to one privately supplied Owner mailbox on real current PRIMARY outage: Supra session expired or still logged in but unable to confirm PickList. No spam; no mail for normal business errors, individual requests, successful takeover or routine recovery. Private recipient address is not published in repo.",
+        "Main source SupraConfirmBrowser.BuildReadinessScript sets ready when visible no-results marker is present, even with zero PickList rows; Program hard-failure flag does not include READY_EMPTY.",
+        "Main D160ConfirmPipeline PDA fast search explicitly passes recoverEmptyTable=false and recoverUnselectable=false, bypassing an existing empty-table real reload recovery and returning/ACKing WMS_DATA_UNAVAILABLE on zero rows. Existing functional Web availability is not currently a HA trigger.",
+        "VPS 16:09:27 post-click terminal unknown was followed by reload READY_EMPTY; 16:15:22 pre-final FOREIGN_SELECTION caused another real reload, 16:15:35 READY_EMPTY and 81 sampled WMS_DATA_UNAVAILABLE responses to 17:10:31. Logged login marker remained absent through this outage; only a brief marker at 17:13:11 after operator unlocked the Web, cleared 17:13:17. Data returned 17:13:26 and confirm succeeded again 17:15:53.",
+        "Admin SECONDARY Web retained nonzero PickList rows while VPS had 0, supporting VPS-specific Web view/data state rather than proven fleet-wide WMS outage. WMS backend/network request and root cause of empty table cannot be decided from Agent DOM log because CDP Network inspection is intentionally disabled.",
+        "Proposed incident lifecycle one failure-only mail per confirmed PRIMARY outage and protected runtime recipient; cross-agent dedupe, stable recovery rearm, no additional cloud polling; not yet code/release authorized."
+      ],
+      "alternatives": [
+        "Preferred: preserve existing single business owner fencing; detect sustained pre-click technical failures separately from DOM login state, enable safe bounded self-heal and preserve pending for ready standby; send only incident-onset alert via existing scoped Worker mail, with durable dedupe.",
+        "Rejected: equate zero-row READY_EMPTY alone to expired session; mail every confirm error, retry, failover or recovery; expose private recipient in public repo."
+      ],
+      "next_action": "Owner review threshold/implementation scope; add deterministic reproduce and safeguards before any Agent/Worker code or email test. Verify WMS browser network/filter/backend provenance only through privacy-preserving scoped evidence, without asserting a provider-side outage.",
+      "evidence": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+      "owner_pass": false,
+      "release_pass": false,
+      "field_pass": false
+    },
+    {
+      "id": "D173-E276",
+      "date_vn": "2026-11-16",
+      "kind": "OWNER_REQUEST_PROPOSAL",
+      "topic": "Proposed Owner email subject/body for confirmed PRIMARY inability to confirm PickList",
+      "status": "CONTENT_PROPOSED__NOT_YET_OWNER_FINAL_APPROVED__DOCS_ONLY",
+      "owner_approval": false,
+      "owner_code_approved": false,
+      "owner_release_approved": false,
+      "facts": [
+        "Owner requested suggested subject and body, no code or email sending authorization.",
+        "Proposed subject: [SUPRA 1291] CẢNH BÁO: Agent chính không thể confirm PickList.",
+        "Body includes alert time, affected PRIMARY Agent name, evidenced cause (Supra session expired vs still signed in but unusable Web), safe error description, actual standby state, incident ID, one-mail-per-incident footer.",
+        "When root cause unverified, use 'Chưa xác định'; never assume Supra session expired from READY_EMPTY. No private recipient email stored in public GitHub."
+      ],
+      "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+      "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+      "pr": 983,
+      "owner_pass": false,
+      "field_pass": false,
+      "release_pass": false,
+      "ci_scoped_pass": false,
+      "code_pass": false
+    },
+    {
+      "id": "D173-E277",
+      "date_vn": "2026-11-16",
+      "kind": "OWNER_DECISION_AND_PROSPECTIVE_PLAN",
+      "topic": "Owner approves E276 email subject/body; asks which scoped steps would follow a future 'triển khai' command",
+      "status": "OWNER_EMAIL_COPY_APPROVED__FUTURE_IMPLEMENTATION_PLAN_ONLY__CODE_RELEASE_NOT_AUTHORIZED",
+      "owner_approval": true,
+      "owner_code_approved": false,
+      "owner_release_approved": false,
+      "facts": [
+        "Owner explicitly approved prior E276 proposed email subject/body ('Ok chốt'); one Owner failure-only incident mail per confirmed PRIMARY functional Confirm outage remains in scope. Recipient is private and excluded from repo.",
+        "User then requested an explanation of what the assistant would do when subsequently instructed to deploy. The question is not an instruction to edit Agent/Worker or release now.",
+        "Planned scope if separately authorized: reproduce READY_EMPTY with failed SearchMany despite valid Supra session; separate Web login/DOM health from business-confirm health, bounded recovery; ensure failover to proven-ready NEXT_A/NEXT_B within existing request lifetime with lease/generation CAS and anti-duplicate WMS mutation.",
+        "Reuse existing authorized Worker email sending, cross-agent one-incident dedup and approved E276 text; no recovery mail or per-PickList mail; no new provider or cloud polling by default.",
+        "After explicit implementation authorization, perform bug reproduction, surgical code fixes, CI and D172 shared-infrastructure regression, bounded usage checks; signed Agent and guarded Worker release only when release authorization/gates apply, then field proof. Do not mark PASS in advance.",
+        "Underlying WMS data-page zero-row origin remains not verified without WMS request/provider side evidence."
+      ],
+      "owner_decision": "E276 email copy approved only, future deployment plan explanatory. No runtime change authorized by this turn.",
+      "next_action": "Await explicit Owner deployment instruction; re-bootstrap live main and PR head, then implement only authorized code and separately verify production release gates.",
+      "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+      "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+      "pr": 983,
+      "owner_pass": false,
+      "code_pass": false,
+      "ci_scoped_pass": false,
+      "release_pass": false,
+      "field_pass": false
     }
   ],
   "resume": {
@@ -5981,7 +6086,9 @@
       "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833.",
       "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release.",
       "E158 Agent172: owner has NOT authorized code/CI/release; retain Owner's listed defects only, exclude unsolicited feature suggestions. No release until explicit order.",
-      "D173-E174 proposed full 10-slot log queue/ACK redesign for Android/Agent/Web/Service needs owner review before separate runtime release."
+      "D173-E174 proposed full 10-slot log queue/ACK redesign for Android/Agent/Web/Service needs owner review before separate runtime release.",
+      "D173-E274 PR983: Agent functional Confirm health/failover + Owner incident mail — proposal only, awaits Owner code authorization; detailed source docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+      "D173-E275: Owner narrows email to one alert per verified PRIMARY confirm outage, sent only to protected recipient alias; root WMS page data loss still unverified upstream; no code/release approval."
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -6018,7 +6125,9 @@
       "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven.",
       "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending.",
       "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated.",
-      "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately."
+      "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately.",
+      "E274: Owner review of failover classifier/ACK replay safety/email thresholds; no new runtime change authorized.",
+      "E275: confirm safe pre-click self-heal, HA pending ACK and failover tests; incident dedupe mail; no production change before Owner code/release gate."
     ],
     "release_boundary": "D173-E174 Agent-only signed release allowed after protected source-pinned gates; D172 untouched, stable gated; no logging or Launcher deployment.",
     "pending": []
