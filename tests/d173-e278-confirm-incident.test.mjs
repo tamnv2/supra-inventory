@@ -76,7 +76,9 @@ test("Web still logged in but empty after real failed searches enters bounded HA
   assert.match(agent, /_e278LastNonEmptyMs <= 0/);
   assert.match(agent, /_e278LastEmptySearchMs > 60000/);
   assert.match(pipeline, /SearchMany\(eligible\.Select\(work => work\.Suffix\), true, false, true, 4000\)/);
-  assert.match(pipeline, /E278ObserveSearch\(search, eligible\.Count > 0\) && E278HasReadyStandby/);
+  assert.match(pipeline, /var e278Degraded = E278ObserveSearch\(search, eligible\.Count > 0\)/);
+  assert.match(pipeline, /search.PicklistCodeCount == 0 && search.SearchClicked &&/);
+  assert.match(pipeline, /E278HasRecentPopulatedView\(\)\) && E278HasReadyStandby/);
   assert.match(pipeline, /WMS_DATA_UNAVAILABLE"\)\) outcome\.ShouldAck = false/);
   assert.match(app, /return _supraBrowserReady && !_e278ConfirmDegraded/);
   assert.match(app, /return _d173E140WebUnavailable \|\| _e278ConfirmDegraded/);
