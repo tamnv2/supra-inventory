@@ -3,23 +3,21 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e273-web3323-production-receipt-20261114",
-  "pr": 982,
+  "working_branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E273",
-    "date_vn": "2026-11-14",
-    "summary": "Web3.3.23 Smart Lazy protected main70bd1f12 and Production Worker/Web run43548451337 SUCCESS exact source; CODE/CI/RELEASE technical PASS, nine-page FIELD & Owner PASS pending, D172 HOLD.",
-    "status": "CODE_PASS__CI_SCOPED_PASS__RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md",
-    "branch": "docs/d173-e273-web3323-production-receipt-20261114",
-    "pr": 982,
-    "source_pr": 981,
-    "release_main_sha": "70bd1f12b142642aafba02f1c9cb71b1d3a14214",
-    "release_run_id": 43548451337,
-    "code_pass": true,
-    "ci_scoped_pass": true,
-    "release_pass": true,
+    "id": "D173-E274",
+    "date_vn": "2026-11-16",
+    "summary": "Owner field reports functional Web Confirm outage without automatic replacement; VPS logs READY_EMPTY with technical ACK, Admin NEXT_A. Source confirms HA Web/lease gating but no persistent business-confirm-degraded trigger or Owner incident-email pipeline. Review proposal only; no code/release.",
+    "status": "REVIEW_ONLY__LOG_AND_SOURCE_FINDINGS__CODE_NOT_AUTHORIZED__FIELD_FAIL_OWNER_REPORTED__D172_HOLD",
+    "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+    "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
+    "pr": null,
+    "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+    "code_pass": false,
+    "ci_scoped_pass": false,
+    "release_pass": false,
     "field_pass": false,
     "owner_pass": false
   },
@@ -5827,6 +5825,34 @@
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E274",
+      "date_vn": "2026-11-16",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner-requested diagnosis: functional WMS confirm failure not triggering Agent HA; missing operational Owner email alert",
+      "status": "REVIEW_ONLY__PROPOSAL_PENDING_OWNER_APPROVAL__NO_SOURCE_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner reports operational confirm failure with no automatic failover and no Owner email alert; task is log/source review and remediation recommendation, not implementation authorization.",
+        "VPS day-summary 2026-11-16 17:14:19 records 600 received, 415 confirmed, 185 errors; summary error bucket mixes possible business and technical results.",
+        "VPS sampled manual support log through ~17:15 contained 81 WMS_DATA_UNAVAILABLE, one WMS_CONFIRM_ACTION_UNAVAILABLE and one WMS_CONFIRM_RESPONSE_MISSING responses; 59 READY_EMPTY ready=1 WMS monitor observations with zero PickList rows; zero rows alone not proof of infrastructure failure.",
+        "Admin support log records SECONDARY NEXT_A around 17:08:38 with WMS UI READY, while VPS remained PRIMARY and sent durable ACK for technical WMS_DATA_UNAVAILABLE; no observed secondary confirm or auto-promotion in examined extracts.",
+        "Source FirestoreAgentLeaderCoordinator.cs transfers only via lease or Web-availability gate; pipeline D160ConfirmPipeline.cs preserves pending if browser not ready and standby present but terminates + ACKs WMS_DATA_UNAVAILABLE for zero-row search while browser ready.",
+        "Existing service/src/google-mail.ts sends project email for account recovery. No automatic incident escalation email integration found in relevant Agent/Worker source and selected logs; absence of all external mail delivery not independently proven.",
+        "Keep no-blind post-click replay, exact-row read-only confirmation, generation CAS, in-flight handoff guard and D172 isolation."
+      ],
+      "alternatives": [
+        "Preferred: introduce bounded business-confirm degradation classifier and pre-click error deferral, then a safe ready-standby CAS handoff with anti-flapping and post-click uncertainty fencing.",
+        "Alternative reject: transfer immediately after any WMS error or blank WMS table; this risks false-positive business errors and dual confirm.",
+        "Owner mail: reuse protected existing Worker mail sender for deduplicated incident and recovery alert; no Agent SMTP creds, no new cloud resource assumed."
+      ],
+      "next_action": "Owner review/approval of code scope and thresholds before implementation; then reproduce fail with deterministic tests, smallest isolated Agent/Worker changes, exact CI/D172 regression and guarded release only by separate approved gate.",
+      "evidence": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
+      "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
@@ -5981,7 +6007,8 @@
       "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833.",
       "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release.",
       "E158 Agent172: owner has NOT authorized code/CI/release; retain Owner's listed defects only, exclude unsolicited feature suggestions. No release until explicit order.",
-      "D173-E174 proposed full 10-slot log queue/ACK redesign for Android/Agent/Web/Service needs owner review before separate runtime release."
+      "D173-E174 proposed full 10-slot log queue/ACK redesign for Android/Agent/Web/Service needs owner review before separate runtime release.",
+      "D173-E274: Agent functional Confirm health/failover + Owner incident mail — proposal only, awaits Owner code authorization; detailed source docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md"
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -6018,7 +6045,8 @@
       "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven.",
       "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending.",
       "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated.",
-      "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately."
+      "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately.",
+      "E274: Owner review of failover classifier/ACK replay safety/email thresholds; no new runtime change authorized."
     ],
     "release_boundary": "D173-E174 Agent-only signed release allowed after protected source-pinned gates; D172 untouched, stable gated; no logging or Launcher deployment.",
     "pending": []
