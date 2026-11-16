@@ -23,3 +23,9 @@ Owner has approved the E276 incident-alert subject/body and explicitly ordered *
 `D173-E278_OWNER_CODE_AND_PRODUCTION_APPROVED__SOURCE_IN_PROGRESS__PR_CI_NOT_YET_VERIFIED__NO_RELEASE_CLAIM__D172_HOLD`.
 
 Prior diagnosis and approved mail copy are in draft PR #983 and D173-E274–E277 working history. This implementation branch is based on accepted main SHA `910bbeb400eebcd499a356d392ae500e2320d885`. The public documentation deliberately omits private recipient address. 
+
+## CI và bảo vệ phát hành cuối (16/11/2026)
+- Mã nguồn được pin tại `255a4b52d1fcad356d008433506228459162fbd3`; source/job Windows build Agent194, Host14 smoke, Worker TypeScript, E278 incident tests và hồi quy D172 đều PASS trong workflow `43865018302`.
+- Cùng SHA: Repo authority `43865018216`, project-state `43865018153`, D172 isolation `43865018130`, D172 backend `43865021712`, E123/shared regression `43865018121` đều PASS. Đây là sáu workflow CI **trong phạm vi**; không suy diễn toàn bộ CI lịch sử hoặc FIELD PASS.
+- Quy trình phát hành loại trừ marker E278 khỏi **legacy** `verify-relay-agent.yml` (tránh tự phát hành Agent/Browser khác); bỏ qua job `deploy-beta-firestore.yml` cho marker E278 (không ghi Firestore Rules); chỉ phát hành Worker hiện hữu trước, sau khi cùng SHA PASS mới phát hành Agent194 bằng workflow riêng. Host14/Firestore/APK/Stable/D172 business không đổi.
+- Release kỹ thuật còn chờ protected merge và readback Worker/Agent OTA thực tế. FIELD/OWNER PASS không đồng nhất với CI/release.
