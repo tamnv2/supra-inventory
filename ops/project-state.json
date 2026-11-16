@@ -7666,7 +7666,7 @@
     "checkpoint_date_vn": "2026-11-16",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E278_OWNER_CODE_AND_PRODUCTION_APPROVED__EXACT_CI_REQUIRED__PROD_NOT_YET_DEPLOYED__D172_HOLD",
+    "owner_release_gate": "D173_E278_SCOPED_CI_PINNED__OWNER_PROD_APPROVED__PROTECTED_MERGE_THEN_WORKER_AGENT_RELEASE__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 984,
@@ -15016,12 +15016,21 @@
     "approved_failure_email_copy": "D173-E276",
     "mail_recipient": "EXISTING_PROJECT_ADMIN_EMAIL_CONSTANT_NO_NEW_PUBLIC_ADDRESS",
     "required_gates": "WIN_NATIVE_AGENT194__WORKER_TYPECHECK__D172_ISOLATION__CI_PIN__WORKER_SAME_SHA_RELEASE__AGENT194_OTA_SHA_READBACK",
-    "status": "SOURCE_IMPLEMENTED_UNVERIFIED__PR_AND_CI_PENDING__NO_PRODUCTION_CLAIM",
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "status": "CODE_AND_SCOPED_CI_6_OF_6_PASS__PRODUCTION_RELEASE_PENDING__FIELD_OWNER_PENDING",
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
-    "d172": "INDEPENDENT_PENDING_HOLD"
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "source_ci_sha": "09a3f694fb9706a57075bbc3d6a87b5ef554f33f",
+    "source_ci_run_ids": [
+      43863564556,
+      43863564970,
+      43863564615,
+      43863564570,
+      43863564785,
+      43863564844
+    ]
   }
 }
