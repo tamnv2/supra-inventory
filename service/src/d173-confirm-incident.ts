@@ -45,7 +45,7 @@ export function decideIncident(current: IncidentState | null, action: IncidentAc
   incidentId: string, now: number, healthyForMs = 0,
 ): { status: string; state: IncidentState | null; shouldSend: boolean } {
   if (action === "RECOVERED") {
-    if (!current?.active || healthyForMs < 300000)
+    if (!current?.active || healthyForMs < 300000 || now - current.claimed_at_ms < 300000)
       return { status: "NOT_REARMED", state: current, shouldSend: false };
     return { status: "REARMED", state: { ...current, active: false }, shouldSend: false };
   }
