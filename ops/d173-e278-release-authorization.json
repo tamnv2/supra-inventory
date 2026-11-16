@@ -22,12 +22,13 @@
   "field_pass": false,
   "owner_pass": false,
   "source_ci_verified": true,
-  "source_ci_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5",
+  "source_ci_sha": "bb360d8671f3e549c0a6352aee82be99efc7687c",
   "source_ci_run_ids": [
     43865018302,
-    43870112335
+    43870112335,
+    43871801723
   ],
-  "required_ci_success": 10,
+  "required_ci_success": 14,
   "required_ci_run_ids": [
     43865018302,
     43865018130,
@@ -38,17 +39,21 @@
     43870112335,
     43870112184,
     43870112263,
-    43870112192
+    43870112192,
+    43871801723,
+    43871809450,
+    43871809400,
+    43871802157
   ],
   "native_windows_pass": true,
   "worker_typecheck_pass": true,
   "d172_isolation_pass": true,
   "authority_guard_pass": true,
-  "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
-  "source_pr": 985,
-  "production_release_gate": "WORKER_RUN43868015330_TECH_PASS__RECOVERY_EXACT_HEAD_CI_43870112335_NATIVE_PASS__PR985_PROTECTED_MERGE_PENDING",
+  "working_branch": "fix/d173-e278-agent194-worker-trigger-release-20261116",
+  "source_pr": 986,
+  "production_release_gate": "RECOVERY_PR986_SAME_SHA_WORKER_PUSH_TRIGGER_FIXED__SOURCE_NATIVE_CI_SHA_BB360D__PROTECTED_MERGE_PENDING",
   "required_ci_failed": 0,
-  "source_job_id": 133308739233,
-  "agent_native_job_id": 133308970116,
+  "source_job_id": 133314597158,
+  "agent_native_job_id": 133314866506,
   "global_legacy_checks": "HISTORICAL_UNRELATED_WORKFLOWS_SOME_FAIL__NOT_REQUIRED_E278_SCOPE"
 }

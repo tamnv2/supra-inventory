@@ -2,6 +2,7 @@ name: D173 E278 Agent194 protected OTA release
 on:
   push:
     branches: [main]
+    # This workflow change also triggers deploy-beta.yml at the identical merge SHA.
     paths: ["relay-agent/VERSION", ".github/workflows/d173-e278-agent194-ota.yml"]
 permissions:
   contents: write

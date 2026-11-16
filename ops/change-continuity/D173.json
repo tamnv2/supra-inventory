@@ -3,18 +3,18 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
-  "pr": 985,
+  "working_branch": "fix/d173-e278-agent194-worker-trigger-release-20261116",
+  "pr": 986,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E278",
     "date_vn": "2026-11-16",
-    "summary": "Worker Prod run43868015330 PASS; Agent194 OTA initial PowerShell Host failure run43868015344; PR985 scoped recovery code + Windows native/Worker/D172 CI run43870112335 PASS exact source a50d31; guarded merge and OTA release pending.",
-    "status": "WORKER_RELEASE_PASS__AGENT194_RECOVERY_SOURCE_CI_NATIVE_PASS__OTA_PROTECTED_MERGE_PENDING",
+    "summary": "PR986 same-SHA Worker push trigger + Agent194 OTA release source/native CI PASS at bb360d / run43871801723; authority/continuity/D172 PASS; previous Worker Production run43868015330 PASS; Agent194 gated protected merge pending.",
+    "status": "D173_E278_PR986_SOURCE_NATIVE_AUTHORITY_D172_CI_PASS__PROTECTED_MERGE_PENDING",
     "source": "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
-    "branch": "fix/d173-e278-agent194-ota-powershell-recovery-20261116",
-    "pr": 985,
-    "source_main_sha": "40e4a498ec7d563049717e9579673e0dee9749bf",
+    "branch": "fix/d173-e278-agent194-worker-trigger-release-20261116",
+    "pr": 986,
+    "source_main_sha": "e32dd97fa604c0c946a8cc734b470186034b1609",
     "code_pass": true,
     "ci_scoped_pass": true,
     "release_pass": false,
@@ -22,8 +22,8 @@
     "owner_pass": false,
     "worker_release_run_id": 43868015330,
     "failed_agent_run_id": 43868015344,
-    "source_ci_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5",
-    "source_ci_run_id": 43870112335
+    "source_ci_sha": "bb360d8671f3e549c0a6352aee82be99efc7687c",
+    "source_ci_run_id": 43871801723
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -5912,6 +5912,34 @@
       "next_action": "Protected merge PR985 exact pinned head, then Worker same SHA Production SUCCESS and Agent194 OTA tag+channel SHA readback.",
       "evidence": "GitHub Worker run 43868015330 SUCCESS; Agent OTA run 43868015344 failure on PowerShell read-only Host; protected main 40e4a498; PR985.",
       "repair_source_sha": "a50d31cda32b04e4b2f694055196c8fe44f36ac5"
+    },
+    {
+      "id": "D173-E280",
+      "date_vn": "2026-11-16",
+      "kind": "BLOCKER",
+      "owner_approval": null,
+      "topic": "Agent194 OTA requires same-SHA Worker push workflow after PR985 recovery",
+      "status": "EXACT_SHA_BB360D_SOURCE_NATIVE_D172_AUTHORITY_CI_PASS__PROTECTED_RELEASE_PENDING",
+      "next_action": "Validate Worker trigger and Agent native source CI PR986; pin exact SHA; guarded merge then verify Worker and OTA same merge SHA tag/channel.",
+      "evidence": "PR985 merged main e32dd97; Agent194 OTA run 43871239718 waiting for push Worker at e32dd97; deploy-beta.yml push.paths did not include changed Agent194 OTA path.",
+      "facts": [
+        "PR985 recovery correctly fixes PowerShell reserved $Host but did not modify paths matching existing deploy-beta.yml push trigger.",
+        "D173-E278 OTA verifier requires a SUCCESS Worker push run on the exact same protected main SHA; workflow_dispatch is not accepted.",
+        "PR986 registers the Agent194 OTA workflow path for the existing Worker push, preserves D172/Stable/Agent194 native source, and adds regression contract test."
+      ],
+      "change_id": "D173",
+      "subchange": "E278",
+      "working_branch": "fix/d173-e278-agent194-worker-trigger-release-20261116",
+      "pr": 986,
+      "owner_decision": "Existing E278 scoped Production approval remains; this is a release-pipeline repair only, not a new runtime feature.",
+      "ci": "PASS_E278_43871801723__AUTHORITY_43871809450__STATE_43871809400__D172_ISOLATION_43871802157",
+      "worker_release": "PREVIOUS_MAIN40E4_SUCCESS__NEW_SHA_REQUIRED",
+      "agent_release": "PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "source_ci_sha": "bb360d8671f3e549c0a6352aee82be99efc7687c"
     }
   ],
   "resume": {
