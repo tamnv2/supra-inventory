@@ -40,6 +40,12 @@ namespace SupraInventoryRelayAgent
                  string.Equals(agent.AgentInstanceId, coordinator.CurrentNextBId, StringComparison.Ordinal)));
         }
 
+        private bool E278HasRecentPopulatedView()
+        {
+            var age = E278NowMs() - Interlocked.Read(ref _e278LastNonEmptyMs);
+            return age >= 0 && age <= 7200000;
+        }
+
         private bool E278ObserveSearch(SupraBrowserSearchResult search, bool hasPendingWork)
         {
             if (!hasPendingWork || search == null) return false;
