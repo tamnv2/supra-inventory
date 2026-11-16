@@ -46,7 +46,7 @@ jobs:
         run: |
           npm run typecheck --prefix service
           node --test tests/d173-e278-confirm-incident.test.mjs
-          node --test tests/d173-e140-picker-unlock-and-wms.test.mjs
+          node --test --test-name-pattern="E140 explicit WMS login failure and Web-ready fenced failover" tests/d173-e140-picker-unlock-and-wms.test.mjs
       - name: Shared Worker D172 independent regressions
         run: node --test tests/d172-*.test.mjs
 
