@@ -50,6 +50,35 @@ Owner reported field failure on 2026-11-16 and requested log-backed diagnosis an
 
 **Status:** revised E274 proposal and deeper findings only; NO executable change, NO CI PASS claim, NO production release and NO test email.
 
+
+## E276 Owner-requested incident email copy proposal (2026-11-16)
+
+**Status:** PROPOSAL_ONLY, not yet approved as final copy; no Agent/Worker code or actual email. Public repository intentionally excludes the private recipient address.
+
+**Suggested email subject:** `[SUPRA 1291] CẢNH BÁO: Agent chính không thể confirm PickList`
+
+**Proposed plain-text email body:**
+
+```text
+CẢNH BÁO SỰ CỐ AGENT – SUPRA 1291
+
+Hệ thống phát hiện Agent chính không thể thực hiện xác nhận PickList.
+
+Thời gian: {dd/MM/yyyy HH:mm:ss}
+Agent gặp lỗi: {Tên máy / Agent}
+Nguyên nhân: {Phiên Supra hết hạn / Web không khả dụng dù phiên còn hiệu lực}
+Chi tiết lỗi: {Mô tả ngắn gọn theo log đã xác minh}
+Chuyển Agent dự phòng: {Đã chuyển / Chưa chuyển / Không có Agent khả dụng}
+
+Ảnh hưởng: Chức năng confirm PickList trên Agent chính bị gián đoạn.
+Mã sự cố: {Incident ID}
+
+Email được gửi tự động khi phát hiện sự cố.
+Các lỗi lặp lại trong cùng sự cố sẽ không gửi thêm email.
+```
+
+**Accuracy:** `Nguyên nhân` must be evidenced by the health classifier; otherwise display `Chưa xác định` rather than inventing an expired session or WMS server outage. Failover status must be derived from actual HA transitions. Single incident mail only; no recovery or per-request spam.
+
 ## Status
 
 `DIAGNOSIS_SUPPORTED_BY_SAMPLED_LOGS_AND_SOURCE; ROOT_CAUSE_BOUNDARY_IDENTIFIED; FULL_DAY_BREAKDOWN_PENDING; CODE_NOT_CHANGED; CI_NOT_RUN; RELEASE_NOT_AUTHORIZED; FIELD_FAIL_OWNER_REPORTED; OWNER_APPROVAL_PENDING`.
