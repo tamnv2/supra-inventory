@@ -29,6 +29,7 @@ ALLOWED = {
     "docs/D173_E278_AGENT194_HA_INCIDENT_PRODUCTION_2026-11-16.md",
     "ops/d173-e278-release-authorization.json",
     "ops/authority-manifest.json",
+    "ops/current-context.json",
     "ops/change-continuity/D173.json",
     "ops/project-state.json",
     "docs/OWNER_DECISIONS.md",
