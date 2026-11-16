@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "910bbeb400eebcd499a356d392ae500e2320d885"
+RECOVERY_BASE = "40e4a498ec7d563049717e9579673e0dee9749bf"  # Worker exact-SHA release succeeded
 MARKER = "D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:"
 AUTH = ROOT / "ops/d173-e278-release-authorization.json"
 ALLOWED = {
@@ -100,11 +101,11 @@ def main():
         deny("AGENT194_HOST14_CONSISTENCY")
     if args.preflight:
         origin = git("merge-base", "origin/main", "HEAD")
-        if origin != BASE: deny("MAIN_ADVANCED_REBASE_REQUIRED")
+        if origin != RECOVERY_BASE: deny("MAIN_ADVANCED_REBASE_REQUIRED")
     else:
         if args.component is None: deny("COMPONENT_REQUIRED")
         parents = git("rev-list", "--parents", "-n", "1", "HEAD").split()
-        if len(parents) != 3 or parents[1] != BASE: deny("PROTECTED_TWO_PARENT_MERGE")
+        if len(parents) != 3 or parents[1] != RECOVERY_BASE: deny("PROTECTED_TWO_PARENT_RECOVERY_MERGE")
         if os.environ.get("GITHUB_REF") != "refs/heads/main" or not git("log", "-1", "--format=%s").startswith(MARKER):
             deny("EXACT_MAIN_OWNER_MARKER")
     changed = set(git("diff", "--name-only", BASE, "HEAD").splitlines())
