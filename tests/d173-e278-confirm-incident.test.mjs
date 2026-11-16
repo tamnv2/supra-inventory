@@ -90,7 +90,9 @@ test("Web still logged in but empty after real failed searches enters bounded HA
 test("Agent194 uses only its protected OTA; generic publisher cannot mutate Host14", () => {
   const generic = read(".github/workflows/verify-relay-agent.yml");
   const dedicated = read(".github/workflows/d173-e278-agent194-ota.yml");
+  const firestore = read(".github/workflows/deploy-beta-firestore.yml");
   assert.match(generic, /D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:/);
+  assert.match(firestore, /D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:/);
   assert.match(dedicated, /D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:/);
   assert.match(dedicated, /previous.tag -ne 'relay-agent-v193'/);
   assert.match(dedicated, /host.host_build -ne 14/);
