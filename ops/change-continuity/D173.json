@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
-  "pr": null,
+  "pr": 983,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E274",
@@ -13,7 +13,7 @@
     "status": "REVIEW_ONLY__LOG_AND_SOURCE_FINDINGS__CODE_NOT_AUTHORIZED__FIELD_FAIL_OWNER_REPORTED__D172_HOLD",
     "source": "docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md",
     "branch": "docs/d173-e274-confirm-failover-owner-email-review-20261116",
-    "pr": null,
+    "pr": 983,
     "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
     "code_pass": false,
     "ci_scoped_pass": false,
@@ -6008,7 +6008,7 @@
       "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release.",
       "E158 Agent172: owner has NOT authorized code/CI/release; retain Owner's listed defects only, exclude unsolicited feature suggestions. No release until explicit order.",
       "D173-E174 proposed full 10-slot log queue/ACK redesign for Android/Agent/Web/Service needs owner review before separate runtime release.",
-      "D173-E274: Agent functional Confirm health/failover + Owner incident mail — proposal only, awaits Owner code authorization; detailed source docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md"
+      "D173-E274 PR983: Agent functional Confirm health/failover + Owner incident mail — proposal only, awaits Owner code authorization; detailed source docs/D173_E274_CONFIRM_FAILOVER_OWNER_EMAIL_REVIEW_2026-11-16.md"
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
