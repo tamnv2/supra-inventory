@@ -87,6 +87,16 @@ test("Web still logged in but empty after real failed searches enters bounded HA
   assert.match(pipeline, /retry_final_click=DENIED/);
 });
 
+test("Agent194 uses only its protected OTA; generic publisher cannot mutate Host14", () => {
+  const generic = read(".github/workflows/verify-relay-agent.yml");
+  const dedicated = read(".github/workflows/d173-e278-agent194-ota.yml");
+  assert.match(generic, /D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:/);
+  assert.match(dedicated, /D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:/);
+  assert.match(dedicated, /previous.tag -ne 'relay-agent-v193'/);
+  assert.match(dedicated, /host.host_build -ne 14/);
+  assert.match(dedicated, /E278_WORKER_SAME_SHA_RELEASE_VERIFIED/);
+});
+
 test("incident email only after authentication and recent real PRIMARY lease", () => {
   const web = read("service/src/index.ts");
   const core = read("service/src/core.ts");
