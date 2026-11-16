@@ -35,6 +35,7 @@ import { initializeD167OverdueSchema } from "./d167-overdue-core";
 import { readOperatingScheduleProjectionExact } from "./firestore-projection";
 import { readD173Snapshot, d173SnapshotParams, type D173SnapshotKind } from "./d173-snapshot-core";
 import { handleD173BackgroundCoreRequest } from "./d173-background-core";
+import { handleD173ConfirmIncidentCore } from "./d173-confirm-incident";
 
 // D173-E128: restore the pre-E110 single HTTP business-request path.
 // Realtime WebSocket push, E123 shift/session enforcement and SQL projections stay live.
@@ -1153,6 +1154,8 @@ export class InventoryCore {
       reconcileOperatingSchedule: () => this.reconcileOperatingScheduleExactIfClosed(),
     });
     if (background) return background;
+    const confirmIncident = await handleD173ConfirmIncidentCore(this.state, request);
+    if (confirmIncident) return confirmIncident;
 
     if (request.method === "GET" && url.pathname === "/authorized/read/realtime/presence") {
       const user = this.authorizeInteractiveIdentity(request, ["ADMIN", "ROOT"]);
