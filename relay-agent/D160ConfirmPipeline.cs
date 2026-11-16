@@ -110,8 +110,8 @@ namespace SupraInventoryRelayAgent
             {
                 search = eligible.Count == 0
                     ? new SupraBrowserSearchResult { Result = "NOT_FOUND" }
-                    : _supraBrowser.SearchMany(eligible.Select(work => work.Suffix), true, false, false);
-                if (eligible.Count > 0) MarkD157WmsProof();
+                    : _supraBrowser.SearchMany(eligible.Select(work => work.Suffix), true, false, true, 4000);
+                if (eligible.Count > 0 && search.PicklistCodeCount > 0) MarkD157WmsProof();
             }
             catch (Exception ex)
             {
@@ -127,6 +127,14 @@ namespace SupraInventoryRelayAgent
             var ready = new List<D160ReadyTarget>();
             var deferred = new List<D160ReadyTarget>();
             D160ClassifyFastSearch(appSession, eligible, search, outcomes, ready, deferred);
+            // Pre-click technical WMS-data failure may be retried under a new
+            // PRIMARY generation. Protect the FIRST failed request as PENDING too;
+            // the second verified failure triggers the safe automatic handoff.
+            var e278Degraded = E278ObserveSearch(search, eligible.Count > 0);
+            if ((e278Degraded || (search.PicklistCodeCount == 0 && search.SearchClicked &&
+                E278HasRecentPopulatedView())) && E278HasReadyStandby())
+                foreach (var outcome in outcomes.Values.Where(value => value != null &&
+                    value.Result == "WMS_DATA_UNAVAILABLE")) outcome.ShouldAck = false;
             var maxAgeAtClassify = works.Select(D160RequestAgeMs).DefaultIfEmpty(0L).Max();
             Log("D160_DIAG BATCH phase=CLASSIFIED jobs=" + works.Count +
                 " eligible=" + eligible.Count +
@@ -230,6 +238,8 @@ namespace SupraInventoryRelayAgent
                             1);
             }
 
+            if (outcomes.Values.Any(value => value != null && value.Result == "CONFIRMED"))
+                E278Confirmed();
             FinalizeD160Outcomes(works, outcomes, mutationWaves, search);
             EmitD160TerminalOutcomes(outcomes, terminalCallback, null);
             var diagnosticSummary = string.Join(",", outcomes.Values

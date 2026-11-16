@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173-E278",
+  "owner_code_approved": true,
+  "owner_production_release_approved": true,
+  "owner_approval_reference": "OWNER_20261116_EXPLICIT_CODE_COMPLETE_THEN_DEPLOY_PRODUCTION",
+  "source_main_sha": "910bbeb400eebcd499a356d392ae500e2320d885",
+  "approved_components": [
+    "agent",
+    "worker"
+  ],
+  "target_agent_version": 194,
+  "previous_signed_release": "relay-agent-v193",
+  "host_build_unchanged": 14,
+  "web_ui_source_changed": false,
+  "android_changed": false,
+  "d172_business_changed": false,
+  "stable_changed": false,
+  "new_provider_resources": false,
+  "release_marker": "D173-E278_AGENT194_CONFIRM_INCIDENT_PROD_RELEASE:",
+  "field_pass": false,
+  "owner_pass": false,
+  "source_ci_verified": true,
+  "source_ci_sha": "255a4b52d1fcad356d008433506228459162fbd3",
+  "source_ci_run_ids": [
+    43865018302
+  ],
+  "required_ci_success": 6,
+  "required_ci_run_ids": [
+    43865018302,
+    43865018130,
+    43865018216,
+    43865018153,
+    43865021712,
+    43865018121
+  ],
+  "native_windows_pass": true,
+  "worker_typecheck_pass": true,
+  "d172_isolation_pass": true,
+  "authority_guard_pass": true,
+  "working_branch": "fix/d173-e278-agent194-confirm-ha-owner-alert-20261116",
+  "source_pr": 984,
+  "production_release_gate": "SIX_SCOPED_CI_PASS__D172_GUARDED__EXCLUSIVE_AGENT194_OTA__PROTECTED_MERGE_READY",
+  "required_ci_failed": 0,
+  "source_job_id": 133291230769,
+  "agent_native_job_id": 133292303094,
+  "global_legacy_checks": "HISTORICAL_UNRELATED_WORKFLOWS_SOME_FAIL__NOT_REQUIRED_E278_SCOPE"
+}

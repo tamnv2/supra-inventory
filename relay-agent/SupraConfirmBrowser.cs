@@ -1005,7 +1005,7 @@ namespace SupraInventoryRelayAgent
             return output;
         }
 
-        internal SupraBrowserSearchResult SearchMany(IEnumerable<string> fragments, bool allowOneSearchClick, bool recoverUnselectable = true, bool recoverEmptyTable = true)
+        internal SupraBrowserSearchResult SearchMany(IEnumerable<string> fragments, bool allowOneSearchClick, bool recoverUnselectable = true, bool recoverEmptyTable = true, int emptyRecoveryMs = 10000)
         {
             var started = Stopwatch.StartNew();
             var terms = NormalizeFragments(fragments);
@@ -1088,12 +1088,12 @@ namespace SupraInventoryRelayAgent
                     emptyRecoveryThisSearch = true;
                     _log("SUPRA_BROWSER empty_data_self_heal=START first_search_zero_picklist_codes=true");
                     IssueConfirmReloadNowNoLock("empty_table_after_search");
-                    if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromSeconds(10)))
+                    if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromMilliseconds(Math.Max(1000, Math.Min(10000, emptyRecoveryMs)))))
                     {
                         EnsurePageSize100NoLock();
                         ClickExactButtonNoLock(SearchText);
                         output.SearchClicked = true;
-                        var healDeadline = DateTime.UtcNow.AddMilliseconds(4500);
+                        var healDeadline = DateTime.UtcNow.AddMilliseconds(Math.Min(4500, emptyRecoveryMs));
                         var healed = ScanNoLock(terms);
                         while (DateTime.UtcNow < healDeadline && NeedsSearchRetry(healed))
                         {
