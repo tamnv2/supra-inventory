@@ -7,10 +7,10 @@
   "pr": 988,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E282-R1",
+    "id": "D173-E282-R2",
     "date_vn": "2026-11-19",
-    "summary": "Owner corrects approval narrative: propose company-managed in-house solution first, existing app permission only if company cannot implement; do not disclose current architecture as main narrative.",
-    "status": "REVIEW_ONLY__OWNER_FRAMING_RECORDED__NO_RUNTIME_MUTATION",
+    "summary": "Company-first Báo hàng-only Word proposal drafted following the five-section corporate sample; existing app conditional fallback only; no runtime or provider change.",
+    "status": "EXTERNAL_WORD_DRAFT__NO_CODE_OR_RELEASE",
     "branch": "docs/d173-e282-external-data-flow-review-20261119",
     "pr": 988,
     "source_main_sha": "df7ae65b78005f093862ee944e71a2d757b3c49f",
@@ -6016,6 +6016,25 @@
       "decision": "OWNER_INTENT_CONFIRMED__COMPANY_FIRST__EXISTING_APP_FALLBACK_ONLY",
       "status": "REVIEW_ONLY__NO_CODE_OR_RELEASE",
       "next_action": "Draft according to template's problem, solution, workflow, owner, access fields; prioritize corporate managed implementation and contingent fallback without disclosing implementation internals.",
+      "privacy_safe": true,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E282-R2",
+      "date_vn": "2026-11-19",
+      "kind": "DOCUMENT_DRAFT",
+      "change_id": "D173",
+      "subchange": "E282",
+      "topic": "Company-first proposal template for Báo hàng only",
+      "facts": [
+        "Prepared an external Word proposal using the user's five-section company sample: business problem, company-managed solution, workflow, owner, access.",
+        "The draft covers only Báo hàng shortage reporting; Agent/WMS confirmation excluded from this requested artifact.",
+        "Existing app is described solely as conditional fallback if company cannot deliver equivalent workflow, subject to corporate security approval.",
+        "No private incident/security details or runtime provider/credential list put into public project materials."
+      ],
+      "status": "DRAFT_CREATED_EXTERNALLY__NO_RUNTIME_CHANGE",
+      "next_action": "Owner reviews the Word draft; no implementation/release authority inferred.",
       "privacy_safe": true,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
