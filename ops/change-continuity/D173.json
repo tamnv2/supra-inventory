@@ -7,10 +7,10 @@
   "pr": 988,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E282-R4",
+    "id": "D173-E282-R5",
     "date_vn": "2026-11-19",
-    "summary": "Company-first Bao hang Word proposal revised: SFT priority and scoped Pick Pack/Inventory management rights; Inventory can confirm; standalone app/web alternate. External DOCX render verified.",
-    "status": "DOCUMENT_REVISED_RENDERED__NO_CODE_OR_RELEASE",
+    "summary": "Owner-requested one-page Word proposal for optimizing SFT PickList re-pick confirmation produced and rendered; company-first safety-gated elimination or remote/conditional alternative; no runtime change.",
+    "status": "DOCUMENT_DRAFT_CREATED_RENDER_VERIFIED__NO_CODE_OR_RELEASE",
     "branch": "docs/d173-e282-external-data-flow-review-20261119",
     "pr": 988,
     "source_main_sha": "df7ae65b78005f093862ee944e71a2d757b3c49f",
@@ -6074,6 +6074,24 @@
       ],
       "decision": "OWNER_CONTENT_CORRECTION_INCORPORATED_IN_EXTERNAL_DOC_DRAFT",
       "status": "DOCUMENT_REVISED_AND_RENDERED__NO_CODE_OR_RELEASE",
+      "privacy_safe": true,
+      "d172": "INDEPENDENT_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E282-R5",
+      "date_vn": "2026-11-19",
+      "kind": "DOCUMENT_DRAFT_OWNER_REQUEST",
+      "change_id": "D173",
+      "subchange": "E282",
+      "topic": "Company-first proposal for optimizing SFT order re-pick confirmation",
+      "facts": [
+        "Prepared an editable one-page Word proposal following the company's five-section sample (problem, solution, workflow, owner, access).",
+        "The Owner's operational issue is unnecessary return-to-desk confirmation before re-picking SKU that have been Nexted.",
+        "Proposal requests SFT/IT feasibility and control assessment first: eliminate an unneeded intermediary confirmation only where safe, otherwise support role-gated remote or conditional confirmation with history.",
+        "Proposal connects this workflow to SKU-level Bao hang results; does not prescribe external production app/service deployment.",
+        "Document rendered to one A4 page and visually inspected; no business code, permissions, runtime, provider or D172 changes."
+      ],
+      "status": "DOCUMENT_DRAFT_CREATED_RENDER_VERIFIED__NO_CODE_OR_RELEASE",
       "privacy_safe": true,
       "d172": "INDEPENDENT_PENDING_HOLD"
     }
