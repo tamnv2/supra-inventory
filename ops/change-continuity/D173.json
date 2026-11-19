@@ -7,10 +7,10 @@
   "pr": 988,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E282-R2",
+    "id": "D173-E282-R3",
     "date_vn": "2026-11-19",
-    "summary": "Company-first Báo hàng-only Word proposal drafted following the five-section corporate sample; existing app conditional fallback only; no runtime or provider change.",
-    "status": "EXTERNAL_WORD_DRAFT__NO_CODE_OR_RELEASE",
+    "summary": "Revised concise one-page business-first Bao hang Word proposal; Picker↔Bao hang direct, Inventory managerial role only; IT evaluates solution; existing tool contingent fallback.",
+    "status": "DOC_DRAFT_REVISED__NO_CODE_OR_RELEASE",
     "branch": "docs/d173-e282-external-data-flow-review-20261119",
     "pr": 988,
     "source_main_sha": "df7ae65b78005f093862ee944e71a2d757b3c49f",
@@ -6038,6 +6038,25 @@
       "privacy_safe": true,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E282-R3",
+      "date_vn": "2026-11-19",
+      "kind": "DOCUMENT_REVISION_OWNER_FEEDBACK",
+      "change_id": "D173",
+      "subchange": "E282",
+      "topic": "Revise company-first Bao hang proposal to align business ownership and real workflow",
+      "facts": [
+        "Owner clarified actual direct business path: Picker reports missing SKU to dedicated Bao hang personnel; only Bao hang personnel verify physical status and confirm a result.",
+        "Inventory lead/specialist manages users, observes aggregate operational status and redistributes work when needed, not direct case-confirmation.",
+        "Proposal should use concise company-template problem/solution/workflow/owner/access framing and let corporate IT evaluate its implementation, not prescriptively demand development.",
+        "Produced a revised one-page Word draft for Owner review, with contingent existing-tool fallback only.",
+        "No production code, data, providers, security policy or D172 resources changed."
+      ],
+      "decision": "OWNER_FEEDBACK_INCORPORATED_IN_EXTERNAL_DOCUMENT_DRAFT_ONLY",
+      "status": "DOC_DRAFT_REVISED__NO_RUNTIME_OR_RELEASE",
+      "privacy_safe": true,
+      "d172": "INDEPENDENT_PENDING_HOLD"
     }
   ],
   "resume": {
