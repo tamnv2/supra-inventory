@@ -7,16 +7,17 @@
   "pr": 989,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E283",
+    "id": "D173-E284",
     "date_vn": "2026-11-19",
-    "summary": "Combined three Site 1291 proposal themes into one locally delivered two-page Word proposal. Independent reporting/confirmation preserved.",
-    "status": "DOCUMENT_DRAFT_ONLY__FIELD_OWNER_UNCHANGED__D172_HOLD",
-    "source": "docs/D173_E283_UNIFIED_SITE1291_BUSINESS_PROPOSAL_2026-11-19.md",
+    "summary": "Revised Site1291 combined Word proposal: three separate business scopes, clear App/Web functions and workflows, two A4 pages.",
+    "status": "DOCUMENT_DRAFT_REVISED__NO_CODE_OR_RELEASE__FIELD_OWNER_UNCHANGED__D172_HOLD",
+    "source": "docs/D173_E284_THREE_DISTINCT_APP_WEB_PROPOSALS_2026-11-19.md",
     "branch": "docs/d173-e282-proposal-workflow-separation-20261119",
     "pr": 989,
-    "prior_checkpoint": "D173-E282",
+    "prior_checkpoint": "D173-E283",
     "code_changed": false,
     "release_changed": false,
+    "field_pass_not_inferred": true,
     "owner_pass_not_inferred": true
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
@@ -5982,6 +5983,17 @@
       "summary": "Owner requested replace three repeated proposal sections with one coherent two-page business proposal: evidence-backed pain points, proposed optimizations and expected benefits, combined accountability, with independent Báo hàng and SFT take-back confirmation.",
       "status": "WORD_DRAFT_PRODUCED__NO_CODE_OR_RELEASE__NO_OWNER_ACCEPTANCE__D172_HOLD",
       "source": "docs/D173_E283_UNIFIED_SITE1291_BUSINESS_PROPOSAL_2026-11-19.md",
+      "branch": "docs/d173-e282-proposal-workflow-separation-20261119",
+      "pr": 989
+    },
+    {
+      "id": "D173-E284",
+      "date_vn": "2026-11-19",
+      "kind": "OWNER_FEEDBACK_CORRECTION",
+      "topic": "Clarify three distinct App/Web proposals in one Site1291 Word document",
+      "summary": "Owner judged the previous combined proposal too blended; rewrote local two-page Word proposal with three separated scopes, each with problem, App, Web, workflow and expected benefit. Independent Báo hàng versus SFT takeback confirmation preserved.",
+      "status": "DOCUMENT_DRAFT_REVISED__NO_CODE_OR_RELEASE__D172_HOLD",
+      "source": "docs/D173_E284_THREE_DISTINCT_APP_WEB_PROPOSALS_2026-11-19.md",
       "branch": "docs/d173-e282-proposal-workflow-separation-20261119",
       "pr": 989
     }
