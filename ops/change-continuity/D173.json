@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e282-external-data-flow-review-20261119",
-  "pr": null,
+  "pr": 988,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E282",
@@ -12,7 +12,7 @@
     "summary": "Source-backed read-only external data-flow review preparation; no security certification, code, provider or release authorization.",
     "status": "REVIEW_ONLY__NO_RUNTIME_MUTATION__COMPANY_APPROVAL_PENDING",
     "branch": "docs/d173-e282-external-data-flow-review-20261119",
-    "pr": null,
+    "pr": 988,
     "source_main_sha": "df7ae65b78005f093862ee944e71a2d757b3c49f",
     "code_pass": false,
     "ci_scoped_pass": false,
@@ -5996,7 +5996,9 @@
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED",
       "privacy_safe": true,
-      "docs_only": true
+      "docs_only": true,
+      "pr": 988,
+      "working_branch": "docs/d173-e282-external-data-flow-review-20261119"
     }
   ],
   "resume": {
