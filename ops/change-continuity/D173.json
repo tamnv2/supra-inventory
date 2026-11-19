@@ -7,10 +7,10 @@
   "pr": 988,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E282",
+    "id": "D173-E282-R1",
     "date_vn": "2026-11-19",
-    "summary": "Source-backed read-only external data-flow review preparation; no security certification, code, provider or release authorization.",
-    "status": "REVIEW_ONLY__NO_RUNTIME_MUTATION__COMPANY_APPROVAL_PENDING",
+    "summary": "Owner corrects approval narrative: propose company-managed in-house solution first, existing app permission only if company cannot implement; do not disclose current architecture as main narrative.",
+    "status": "REVIEW_ONLY__OWNER_FRAMING_RECORDED__NO_RUNTIME_MUTATION",
     "branch": "docs/d173-e282-external-data-flow-review-20261119",
     "pr": 988,
     "source_main_sha": "df7ae65b78005f093862ee944e71a2d757b3c49f",
@@ -5999,6 +5999,26 @@
       "docs_only": true,
       "pr": 988,
       "working_branch": "docs/d173-e282-external-data-flow-review-20261119"
+    },
+    {
+      "id": "D173-E282-R1",
+      "date_vn": "2026-11-19",
+      "change_id": "D173",
+      "subchange": "E282",
+      "kind": "OWNER_SCOPE_CORRECTION",
+      "topic": "Company-first proposal for in-house reporting and WMS confirmation workflow",
+      "facts": [
+        "Owner explicitly rejects presenting the current third-party service architecture as the main approval narrative.",
+        "First priority: propose the operational business requirements and workflow so company IT can own/design/host/operate the solution internally.",
+        "Fallback only if company cannot supply equivalent solution: request narrowly scoped permission to continue the current application under company security conditions."
+      ],
+      "supersedes": "D173-E282 external-provider-first narrative; this is a proposal-framing correction, not a runtime or security decision.",
+      "decision": "OWNER_INTENT_CONFIRMED__COMPANY_FIRST__EXISTING_APP_FALLBACK_ONLY",
+      "status": "REVIEW_ONLY__NO_CODE_OR_RELEASE",
+      "next_action": "Draft according to template's problem, solution, workflow, owner, access fields; prioritize corporate managed implementation and contingent fallback without disclosing implementation internals.",
+      "privacy_safe": true,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
