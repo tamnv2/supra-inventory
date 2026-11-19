@@ -7,10 +7,10 @@
   "pr": 988,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E282-R3",
+    "id": "D173-E282-R4",
     "date_vn": "2026-11-19",
-    "summary": "Revised concise one-page business-first Bao hang Word proposal; Picker↔Bao hang direct, Inventory managerial role only; IT evaluates solution; existing tool contingent fallback.",
-    "status": "DOC_DRAFT_REVISED__NO_CODE_OR_RELEASE",
+    "summary": "Company-first Bao hang Word proposal revised: SFT priority and scoped Pick Pack/Inventory management rights; Inventory can confirm; standalone app/web alternate. External DOCX render verified.",
+    "status": "DOCUMENT_REVISED_RENDERED__NO_CODE_OR_RELEASE",
     "branch": "docs/d173-e282-external-data-flow-review-20261119",
     "pr": 988,
     "source_main_sha": "df7ae65b78005f093862ee944e71a2d757b3c49f",
@@ -6055,6 +6055,25 @@
       ],
       "decision": "OWNER_FEEDBACK_INCORPORATED_IN_EXTERNAL_DOCUMENT_DRAFT_ONLY",
       "status": "DOC_DRAFT_REVISED__NO_RUNTIME_OR_RELEASE",
+      "privacy_safe": true,
+      "d172": "INDEPENDENT_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E282-R4",
+      "date_vn": "2026-11-19",
+      "kind": "DOCUMENT_REVISION_OWNER_FEEDBACK",
+      "change_id": "D173",
+      "subchange": "E282",
+      "topic": "Revised company-first Bao hang proposal - SFT integration priority and role ownership",
+      "facts": [
+        "Owner clarified Chuyen vien/Truong nhom Pick Pack administer Picker personnel records and reporting permissions; Chuyen vien/Truong nhom Inventory administer Bao hang personnel records.",
+        "Inventory specialists/leads may also confirm case results, in addition to dedicated Bao hang staff.",
+        "Proposal prioritizes a Bao hang button on the SFT picking screen for missing SKU, SFT reports/management UI and role separation; standalone app/web is the second implementation option.",
+        "A one-page editable DOCX has been revised and visually validated externally; current app remains conditional corporate-security-approved fallback only.",
+        "No repository business code, cloud services, production release, or D172 resources changed."
+      ],
+      "decision": "OWNER_CONTENT_CORRECTION_INCORPORATED_IN_EXTERNAL_DOC_DRAFT",
+      "status": "DOCUMENT_REVISED_AND_RENDERED__NO_CODE_OR_RELEASE",
       "privacy_safe": true,
       "d172": "INDEPENDENT_PENDING_HOLD"
     }
