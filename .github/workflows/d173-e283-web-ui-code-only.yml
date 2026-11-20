@@ -32,6 +32,13 @@ jobs:
           npx playwright install chromium
       - name: Verify visual contracts in Chromium
         run: node --test tests/d173-e283-inventory-preview.test.mjs
+      - name: Publish synthetic multi-page screenshot gallery for Owner review
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e283-inventory-ui-review
+          path: .artifacts/d173-e283-ui-review/
+          retention-days: 14
+          if-no-files-found: error
       - name: Web TypeScript and Vite build
         working-directory: web
         run: npm run build
