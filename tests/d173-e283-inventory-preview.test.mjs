@@ -115,14 +115,17 @@ test("E285 responsive interaction and 9-screen visual review artifacts", async (
           const header = document.querySelector(".d173-tabler-navbar");
           const main = document.querySelector(".d173-page-content");
           return {
-            sidebar:nav.getBoundingClientRect(), header:header.getBoundingClientRect(),
-            main:main.getBoundingClientRect(), overflow:document.documentElement.scrollWidth>innerWidth+1,
+            sidebar:nav.getBoundingClientRect().toJSON(), header:header.getBoundingClientRect().toJSON(),
+            main:main.getBoundingClientRect().toJSON(), grid:getComputedStyle(nav.parentElement).gridTemplateColumns,
+            navColumn:getComputedStyle(nav).gridColumn,mainColumn:getComputedStyle(main).gridColumn,
+            shellDisplay:getComputedStyle(nav.parentElement).display,
+            overflow:document.documentElement.scrollWidth>innerWidth+1,
             cardCount:main.querySelectorAll(".ops-panel,.business-summary-card,.fast-list,.fast-detail,.d173-overview-panel").length
           };
         });
         assert.equal(state.overflow,false,section+" "+theme+" desktop horizontal overflow");
         assert.ok(state.sidebar.width >= 250 && state.sidebar.width <= 260, section+" sidebar width");
-        assert.ok(state.main.left >= 250, section+" main left inset");
+        assert.ok(state.main.left >= 250, section+" main left inset: "+JSON.stringify(state));
         assert.ok(state.cardCount > 0, section+" content rendered");
         const file = section+"-"+theme+"-1366.png";
         await page.screenshot({path:join(root,file),fullPage:true,animations:"disabled"});
