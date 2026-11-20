@@ -234,10 +234,10 @@
     "branch": "feat/d173-e283-inventory-preview-ui-20261120",
     "pr": 991,
     "owner_code_approved": true,
-    "owner_production_release_approved": false,
+    "owner_production_release_approved": true,
     "code": "PASS_SCOPED_SOURCE_E285",
-    "ci": "PASS_SOURCE_E2652E_CHROMIUM_22_FIXTURES_BUILD_E123_D172_AUTHORITY_STATE__GLOBAL_LEGACY_FAIL",
-    "release": "NO_CHANGE_WEB3323",
+    "ci": "E286_VERSION_BUMP_AND_RELEASE_PREFLIGHT_PENDING__PRIOR_E285_PASS_NOT_SUFFICIENT_FOR_NEW_VERSION",
+    "release": "E286_AUTHORIZED_BY_OWNER__CI_AND_MERGE_PENDING__LIVE_WEB3323_UNCHANGED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_HOLD",
@@ -257,6 +257,8 @@
       "visual_screenshots": 22,
       "synthetic": true
     },
-    "real_authenticated_review": "PENDING"
+    "real_authenticated_review": "PENDING",
+    "production_target_version": "3.3.24",
+    "release_source_code_sha": "7fb26c151535403fdeba95bac1229459d9eaa9d7"
   }
 }
