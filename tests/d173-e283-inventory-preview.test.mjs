@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -80,4 +80,74 @@ test("E283 Chromium shell matches approved dark navigation, content layout and r
       await page.close();
     }
   } finally { await browser.close(); }
+});
+
+
+
+// Representative screenshot fixtures: no credentials, API calls, Production data or fake PASS.
+const reviewSections = [
+  ["operations", operations],
+  ["dashboard", '<section class="report-workspace d173-dashboard"><div class="d173-overview-content"><div class="d173-overview-kpis"><article class="d173-overview-kpi"><strong>12</strong><span>Đang xử lý</span></article><article class="d173-overview-kpi"><strong>4</strong><span>Quá hạn</span></article></div><article class="d173-overview-panel"><header>Tổng quan báo hàng</header><div class="ops-panel">Dữ liệu minh họa bố cục</div></article></div></section>'],
+  ["shift", '<section class="ops-route tools-workspace"><div class="business-page-head"><h2>Ca vận hành</h2></div><div class="business-summary-grid"><article class="business-summary-card">Ca 1: 06:00–14:00</article><article class="business-summary-card">Ca 2: 14:00–22:00</article></div><article class="ops-panel shift-history-panel"><div class="ops-panel-title"><h3>Lịch sử ca vận hành</h3></div><div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Ca</th></tr></thead><tbody><tr><td>20/11/2026</td><td>Ca 1</td></tr></tbody></table></div></article></section>'],
+  ["sku", '<section class="ops-route sku-workspace"><div class="business-page-head"><h2>Danh mục SKU</h2></div><div class="business-summary-grid"><article class="business-summary-card">Danh mục</article></div><article class="ops-panel"><div class="ops-panel-title"><h3>Thông tin SKU</h3></div><div class="table-wrap"><table><thead><tr><th>Mã SKU</th><th>Tên sản phẩm</th></tr></thead><tbody><tr><td>893100001000</td><td>Sản phẩm minh họa</td></tr></tbody></table></div></article></section>'],
+  ["users", '<section class="ops-route users-workspace"><div class="workspace-tabs users-mode-tabs"><button class="workspace-tab active">Danh sách</button><button class="workspace-tab">Phân quyền</button></div><div class="users-top-grid"><article class="ops-panel users-filter-panel"><div class="ops-panel-title"><h3>Tìm và lọc tài khoản</h3></div><div class="users-form-grid"><label>Tên nhân sự<input placeholder="Tìm kiếm"></label></div></article></div><article class="ops-panel ops-users-panel"><div class="ops-panel-title"><h3>Danh sách tài khoản</h3></div><div class="table-wrap"><table><thead><tr><th>Mã NV</th><th>Vai trò</th></tr></thead><tbody><tr><td>100</td><td>Picker</td></tr></tbody></table></div></article></section>'],
+  ["sla", '<section class="ops-route sla-workspace"><div class="business-page-head"><h2>Thời gian xử lý</h2></div><article class="ops-panel sla-config-panel"><div class="ops-panel-title"><h3>Thiết lập mốc phản hồi</h3></div><div class="ops-settings-grid"><label>Phút cảnh báo<input value="10" readonly></label><label>Quá hạn<input value="15" readonly></label></div></article></section>'],
+  ["logs", '<section class="ops-route logs-workspace"><div class="business-page-head"><h2>Nhật ký</h2></div><div class="workspace-tabs"><button class="workspace-tab active">Log Web</button><button class="workspace-tab">Log Agent</button></div><article class="ops-panel"><div class="ops-panel-title"><h3>Sự kiện hệ thống</h3></div><div class="table-wrap"><table><thead><tr><th>Thời gian</th><th>Loại</th></tr></thead><tbody><tr><td>17:50</td><td>Minh họa</td></tr></tbody></table></div></article></section>'],
+  ["tools", '<section class="ops-route tools-workspace"><div class="business-page-head"><h2>Công cụ</h2></div><article class="ops-panel"><div class="ops-panel-title"><h3>Kiểm tra</h3></div><button type="button" class="btn secondary">Kiểm tra trạng thái</button></article></section>'],
+  ["account", '<section class="ops-route account-workspace"><div class="business-page-head"><h2>Tài khoản</h2></div><article class="ops-panel"><div class="ops-panel-title"><h3>Thông tin cá nhân</h3></div><label>Tên hiển thị<input value="Nhân viên mẫu" readonly></label></article></section>']
+];
+
+test("E285 responsive interaction and 9-screen visual review artifacts", async () => {
+  const browser = await chromium.launch({ headless:true });
+  const root = join(ROOT, ".artifacts", "d173-e283-ui-review");
+  mkdirSync(root, {recursive:true});
+  const pages = [];
+  try {
+    for (const [section, markup] of reviewSections) {
+      for (const theme of ["light", "dark"]) {
+        const page = await browser.newPage({viewport:{width:1366,height:900}, deviceScaleFactor:1});
+        await page.setContent(fixture(theme,markup));
+        const state = await page.evaluate(() => {
+          const nav = document.querySelector(".d173-tabler-sidebar");
+          const header = document.querySelector(".d173-tabler-navbar");
+          const main = document.querySelector(".d173-page-content");
+          return {
+            sidebar:nav.getBoundingClientRect(), header:header.getBoundingClientRect(),
+            main:main.getBoundingClientRect(), overflow:document.documentElement.scrollWidth>innerWidth+1,
+            cardCount:main.querySelectorAll(".ops-panel,.business-summary-card,.fast-list,.fast-detail,.d173-overview-panel").length
+          };
+        });
+        assert.equal(state.overflow,false,section+" "+theme+" desktop horizontal overflow");
+        assert.ok(state.sidebar.width >= 250 && state.sidebar.width <= 260, section+" sidebar width");
+        assert.ok(state.main.left >= 250, section+" main left inset");
+        assert.ok(state.cardCount > 0, section+" content rendered");
+        const file = section+"-"+theme+"-1366.png";
+        await page.screenshot({path:join(root,file),fullPage:true,animations:"disabled"});
+        pages.push({section,theme,width:1366,file});
+        await page.close();
+      }
+    }
+    for (const section of ["operations", "users"]) {
+      for (const theme of ["light","dark"]) {
+        const markup=reviewSections.find(x=>x[0]===section)[1];
+        const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
+        await page.setContent(fixture(theme,markup));
+        const closed=await page.locator(".d173-tabler-sidebar").evaluate(el=>getComputedStyle(el).transform);
+        assert.notEqual(closed,"none","mobile nav initially closed");
+        await page.evaluate(()=>document.body.dataset.inventoryMenuOpen="true");
+        const opened=await page.locator(".d173-tabler-sidebar").evaluate(el=>getComputedStyle(el).transform);
+        assert.notEqual(closed,opened,"mobile drawer opens");
+        const file=section+"-"+theme+"-390.png";
+        await page.screenshot({path:join(root,file),fullPage:true,animations:"disabled"});
+        pages.push({section,theme,width:390,file});
+        await page.close();
+      }
+    }
+    const html = '<!doctype html><html lang="vi"><meta charset="utf-8"><title>D173 UI Review - Synthetic Fixtures</title><style>body{font:14px system-ui;background:#f6f7f9;color:#243040;margin:24px}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}figure{margin:0;padding:12px;background:white;border:1px solid #dce3e9;border-radius:8px}img{display:block;width:100%;height:280px;object-fit:contain;object-position:top}figcaption{font-weight:700;padding:8px 0}p{line-height:1.6}</style><h1>D173-E283 | Review giao diện</h1><p>Ảnh từ Chromium và CSS source trên PR #991, dữ liệu minh họa, không phải kiểm thử tài khoản hoặc nghiệp vụ Production.</p><main>' +
+      pages.map(p=>'<figure><a href="'+p.file+'"><img src="'+p.file+'" alt="'+p.section+' '+p.theme+'"></a><figcaption>'+p.section+' | '+p.theme+' | '+p.width+'px</figcaption></figure>').join("") +
+      '</main></html>';
+    writeFileSync(join(root,"index.html"),html,"utf8");
+    writeFileSync(join(root,"manifest.json"),JSON.stringify({source:"D173 PR991 candidate",synthetic_data_only:true,production_connected:false,generated_screens:pages},null,2));
+    assert.equal(pages.length,22,"9 desktop screens x 2 + 2 mobile x 2");
+  } finally {await browser.close();}
 });
