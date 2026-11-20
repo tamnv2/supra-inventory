@@ -25,6 +25,9 @@ test("E283 real Inventory APIs and role controls remain, preview has no mock bus
   ]) assert.ok(ts.includes(contract), contract + " preserved");
   assert.match(ts, /function previewSectionTitle\(section: Section\)/);
   assert.match(ts, /class="fast-list-heading"/);
+  assert.match(ts, /class="inventory-warning-filter"/);
+  assert.match(ts, /resultTabBadgeCounts\.HAS_STOCK/);
+  assert.match(ts, /resultTabBadgeCounts\.SKIP_ALLOWED/);
   assert.doesNotMatch(ts, /data-shell-generation="legacy-direct-transplant"/);
   assert.doesNotMatch(read("web/src/d173-inventory-preview.css"), /url\(https?:\/\//);
 });
@@ -35,7 +38,7 @@ const nav = '<div class="inventory-side-brand"><div class="inventory-brand-mark"
   '<div class="inventory-side-footer"><div class="header-runtime"><span data-state="on">Dịch vụ sẵn sàng</span></div><footer class="app-footer">tamnv2</footer></div>';
 
 const operations = '<section class="ops-business-workspace"><div class="d173-ops-toolbar"><div class="workspace-tabs"><button class="workspace-tab active">Đang xử lý</button><button class="workspace-tab">Quá hạn</button></div></div>' +
-  '<div class="business-summary-grid"><article class="business-summary-card">Đang chờ 12</article></div>' +
+  '<div class="business-summary-grid queue-summary-grid"><article class="business-summary-card">SKU đang chờ xử lý <strong>12</strong></article><article class="business-summary-card danger">SKU quá hạn <strong>4</strong></article><article class="business-summary-card good">Đã có hàng <strong>5</strong></article><article class="business-summary-card warning">Cho phép Skip <strong>2</strong></article></div><div class="inventory-warning-filter"><button type="button" class="btn small secondary">Sắp quá thời gian: 1</button></div>' +
   '<div class="fast-workspace"><div class="fast-list"><div class="fast-list-heading"><span>SKU</span><span>Tên sản phẩm</span><span>Picker</span><span>Thời gian báo</span><span>Trạng thái</span></div>' +
   '<button class="fast-issue-row selected"><span class="fast-sku">893100001000</span><span class="fast-product">Bột giặt</span><span class="fast-picker-count">1 Picker</span><time class="fast-reported-at">17:50</time><span class="fast-meta"><b class="fast-status">Đang xử lý</b></span></button></div>' +
   '<aside class="fast-detail"><div class="fast-detail-head">Chi tiết</div><dl class="fast-facts"><div><dt>Picker</dt><dd>1</dd></div></dl><div class="fast-actions"><button>Đã có hàng</button></div></aside></div></section>';
