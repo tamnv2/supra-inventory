@@ -7,14 +7,14 @@
   "pr": 989,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E284",
-    "date_vn": "2026-11-19",
-    "summary": "Revised Site1291 combined Word proposal: three separate business scopes, clear App/Web functions and workflows, two A4 pages.",
-    "status": "DOCUMENT_DRAFT_REVISED__NO_CODE_OR_RELEASE__FIELD_OWNER_UNCHANGED__D172_HOLD",
-    "source": "docs/D173_E284_THREE_DISTINCT_APP_WEB_PROPOSALS_2026-11-19.md",
+    "id": "D173-E285",
+    "date_vn": "2026-11-20",
+    "summary": "Delivered separate one-page PDA Launcher proposal; checked Launcher main capabilities and Android Device Owner limitation; Site1291 Web/CCDC integration remains proposed.",
+    "status": "PROPOSAL_ONLY__NO_APP_CHANGE__D172_HOLD",
+    "source": "docs/D173_E285_PDA_LAUNCHER_SITE1291_PROPOSAL_2026-11-20.md",
     "branch": "docs/d173-e282-proposal-workflow-separation-20261119",
     "pr": 989,
-    "prior_checkpoint": "D173-E283",
+    "prior_checkpoint": "D173-E284",
     "code_changed": false,
     "release_changed": false,
     "field_pass_not_inferred": true,
@@ -5994,6 +5994,17 @@
       "summary": "Owner judged the previous combined proposal too blended; rewrote local two-page Word proposal with three separated scopes, each with problem, App, Web, workflow and expected benefit. Independent Báo hàng versus SFT takeback confirmation preserved.",
       "status": "DOCUMENT_DRAFT_REVISED__NO_CODE_OR_RELEASE__D172_HOLD",
       "source": "docs/D173_E284_THREE_DISTINCT_APP_WEB_PROPOSALS_2026-11-19.md",
+      "branch": "docs/d173-e282-proposal-workflow-separation-20261119",
+      "pr": 989
+    },
+    {
+      "id": "D173-E285",
+      "date_vn": "2026-11-20",
+      "kind": "OWNER_PROPOSAL_DOCUMENT",
+      "topic": "Site1291 PDA Launcher and operations management integration proposal",
+      "summary": "Reviewed tamnv2/supra-pda-launcher source (read-only), delivered one-page DOCX proposal for PDA app access controls, employee-code association, device identifier and optional Site operations Web linkage; Device Owner limitation stated.",
+      "status": "LOCAL_DOCX_DELIVERED__PROPOSAL_ONLY__NO_CODE_RELEASE_OR_CROSS_PROJECT_MUTATION__D172_HOLD",
+      "source": "docs/D173_E285_PDA_LAUNCHER_SITE1291_PROPOSAL_2026-11-20.md",
       "branch": "docs/d173-e282-proposal-workflow-separation-20261119",
       "pr": 989
     }
