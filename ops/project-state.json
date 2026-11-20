@@ -15093,23 +15093,39 @@
     "candidate_pr": 991,
     "accepted_main_base": "df7ae65b78005f093862ee944e71a2d757b3c49f",
     "content": "REAL_INVENTORY_AUTH_ROLE_SHELL_9_PAGES_QUEUE_LIST_CSS_AND_MOBILE",
-    "code": "PASS_SCOPED_REAL_WEB_SOURCE",
-    "ci": "PASS_E283_CHROMIUM_VITE_D172_AND_E123_SOURCE__GLOBAL_LEGACY_CI_FAIL",
+    "code": "PASS_SOURCE_SCOPED_AFTER_E285_VISUAL_REPAIR",
+    "ci": "PASS_SCOPED_E283_E123_D172_AUTHORITY_STATE__GLOBAL_LEGACY_FAIL",
     "release": "NOT_AUTHORIZED_NO_PRODUCTION_CHANGE",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "test_gate": "CHROMIUM_MULTI_SCREEN_LIGHT_DARK_ROLE_GUARD__TSC_VITE__D172_ISOLATION__SOURCE_CI",
-    "verified_source_sha": "684fbf0139095d2737cfd267c1c45c9875c9838b",
+    "verified_source_sha": "e2652e9581baa641d2bcdf034e6e65dc9cd63293",
     "ci_runs": {
-      "ui_and_d172": 44728449057,
-      "source_e123": 44728449062,
-      "authority": 44728448950,
-      "project_state": 44728448936,
-      "isolated_d172": 44728448563
+      "ui_and_d172": 44730466922,
+      "source_e123": 44730466858,
+      "authority": 44730466852,
+      "project_state": 44730466569,
+      "isolated_d172": 44730466532
     },
-    "global_ci": "FAIL_LEGACY_OUT_OF_SCOPE__E032_VERSION_339_E019_PARITY_D167_VERSION_3319_UI_GUARD_STALE_PLUS_AGENT_WORKFLOWS",
-    "next_gate": "OWNER_REVIEW_UI_BEFORE_SEPARATE_RELEASE_AUTHORIZATION__NO_MERGE_OR_DEPLOY"
+    "global_ci": "FAIL_10_LEGACY_OR_UNRELATED_WORKFLOWS__NOT_CLAIMED_PASS",
+    "next_gate": "Owner screenshot/design review, real authenticated interaction test in isolated authorized environment, resolve relevant regressions, then separate release approval.",
+    "review_artifact": {
+      "run_id": 44730466922,
+      "artifact_id": 14626475886,
+      "name": "d173-e283-inventory-ui-review",
+      "screenshots": 22,
+      "pages": 9,
+      "desktop_themes": 2,
+      "mobile_pages": 2,
+      "synthetic_fixture_only": true
+    },
+    "fixes": [
+      "Resolved legacy role-specific 216px grid override to intended 254px preview Sidebar via scoped selector.",
+      "Restored four real-status KPI cards and retained pre-deadline warning filter."
+    ],
+    "end_to_end_authenticated_ui": "NOT_VERIFIED_IN_REAL_USER_SESSION",
+    "preview_web_host": "NOT_DEPLOYED__NO_APPROVED_ISOLATED_HOST"
   }
 }
