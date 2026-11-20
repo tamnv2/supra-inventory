@@ -15093,13 +15093,23 @@
     "candidate_pr": 991,
     "accepted_main_base": "df7ae65b78005f093862ee944e71a2d757b3c49f",
     "content": "REAL_INVENTORY_AUTH_ROLE_SHELL_9_PAGES_QUEUE_LIST_CSS_AND_MOBILE",
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
+    "code": "PASS_SCOPED_REAL_WEB_SOURCE",
+    "ci": "PASS_E283_CHROMIUM_VITE_D172_AND_E123_SOURCE__GLOBAL_LEGACY_CI_FAIL",
     "release": "NOT_AUTHORIZED_NO_PRODUCTION_CHANGE",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "test_gate": "CHROMIUM_MULTI_SCREEN_LIGHT_DARK_ROLE_GUARD__TSC_VITE__D172_ISOLATION__SOURCE_CI"
+    "test_gate": "CHROMIUM_MULTI_SCREEN_LIGHT_DARK_ROLE_GUARD__TSC_VITE__D172_ISOLATION__SOURCE_CI",
+    "verified_source_sha": "684fbf0139095d2737cfd267c1c45c9875c9838b",
+    "ci_runs": {
+      "ui_and_d172": 44728449057,
+      "source_e123": 44728449062,
+      "authority": 44728448950,
+      "project_state": 44728448936,
+      "isolated_d172": 44728448563
+    },
+    "global_ci": "FAIL_LEGACY_OUT_OF_SCOPE__E032_VERSION_339_E019_PARITY_D167_VERSION_3319_UI_GUARD_STALE_PLUS_AGENT_WORKFLOWS",
+    "next_gate": "OWNER_REVIEW_UI_BEFORE_SEPARATE_RELEASE_AUTHORIZATION__NO_MERGE_OR_DEPLOY"
   }
 }
