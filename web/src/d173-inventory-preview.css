@@ -249,3 +249,27 @@ body[data-theme="dark"] .d173-inventory-preview .fast-issue-row.selected { backg
 @media (prefers-reduced-motion: reduce) {
   .d173-inventory-preview.d173-tabler-shell > .d173-tabler-sidebar { transition:none; }
 }
+
+/* Public login/reset screens use the same preview palette; authentication remains unchanged. */
+body .login-shell { background:#f6f7f9 !important; color:#243040; }
+body .login-stage { min-height:100vh; }
+body .login-shell .login-card {
+  background:#fff !important; color:#243040 !important; border:1px solid #e8ecf1 !important;
+  border-radius:10px !important; box-shadow:0 8px 36px #202d4010 !important;
+}
+body .login-shell .login-brand-lockup { color:#243040 !important; }
+body .login-shell .login-company { color:#e94b3c !important; }
+body .login-shell .login-brand-copy h1 { color:#243040 !important; }
+body .login-shell .login-card :is(h2,label) { color:#243040 !important; }
+body .login-shell :is(input,select) { border-color:#e8ecf1 !important; border-radius:7px !important; }
+body .login-shell :is(button.primary,.btn.primary) { background:#e94b3c !important; color:#fff !important; border-radius:7px !important; }
+body .login-shell :is(button.primary,.btn.primary):hover { background:#d83d30 !important; }
+body[data-theme="dark"] .login-shell { background:#151a21 !important; color:#e6ebf1; }
+body[data-theme="dark"] .login-shell .login-card { background:#1e2630 !important; border-color:#35414f !important; color:#e6ebf1 !important; }
+body[data-theme="dark"] .login-shell .login-brand-lockup,
+body[data-theme="dark"] .login-shell .login-brand-copy h1,
+body[data-theme="dark"] .login-shell .login-card :is(h2,label) { color:#e6ebf1 !important; }
+body[data-theme="dark"] .login-shell .login-company { color:#f26e5e !important; }
+body[data-theme="dark"] .login-shell :is(input,select) { border-color:#35414f !important; background:#28313c !important; color:#e6ebf1 !important; }
+body[data-theme="dark"] .login-shell :is(button.primary,.btn.primary) { background:#f26e5e !important; }
+.d173-inventory-preview > #overlay-root { display:contents; }
