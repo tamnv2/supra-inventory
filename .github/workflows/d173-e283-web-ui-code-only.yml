@@ -14,7 +14,7 @@ permissions:
 jobs:
   visual-source-and-d172:
     if: contains(github.head_ref, 'd173-e283-inventory-preview-ui')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
