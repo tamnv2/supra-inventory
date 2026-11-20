@@ -130,7 +130,7 @@ test("E285 responsive interaction and 9-screen visual review artifacts", async (
     for (const section of ["operations", "users"]) {
       for (const theme of ["light","dark"]) {
         const markup=reviewSections.find(x=>x[0]===section)[1];
-        const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
+        const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1,reducedMotion:"reduce"});
         await page.setContent(fixture(theme,markup));
         const closed=await page.locator(".d173-tabler-sidebar").evaluate(el=>getComputedStyle(el).transform);
         assert.notEqual(closed,"none","mobile nav initially closed");
