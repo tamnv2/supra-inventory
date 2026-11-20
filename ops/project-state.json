@@ -15086,7 +15086,7 @@
     "date_vn": "2026-11-20",
     "change_id": "D173",
     "scope": "WEB_UI_PRESENTATION_ONLY",
-    "owner_authorized": "CODE_ONLY_INTEGRATE_APPROVED_STATIC_PREVIEW_THEN_FIELD_REVIEW",
+    "owner_authorized": "E286_SCOPED_PRODUCTION_WEB_VISUAL_TEST_APPROVED__SEPARATE_RELEASE_GATE",
     "read_only_design_source": "tamnv2/pickpack#2 OPEN_DRAFT_SHA_c9a7730b",
     "sample_preview": "D173_PR990_DOCS_ONLY_HTML_LOCAL_DELIVERED",
     "candidate_branch": "feat/d173-e283-inventory-preview-ui-20261120",
@@ -15110,7 +15110,7 @@
       "isolated_d172": 44730466532
     },
     "global_ci": "FAIL_10_LEGACY_OR_UNRELATED_WORKFLOWS__NOT_CLAIMED_PASS",
-    "next_gate": "Owner screenshot/design review, real authenticated interaction test in isolated authorized environment, resolve relevant regressions, then separate release approval.",
+    "next_gate": "E286_EXACT_SOURCE_CI_AND_PROTECTED_MERGE__FIELD_OWNER_STILL_PENDING",
     "review_artifact": {
       "run_id": 44730466922,
       "artifact_id": 14626475886,
@@ -15127,5 +15127,41 @@
     ],
     "end_to_end_authenticated_ui": "NOT_VERIFIED_IN_REAL_USER_SESSION",
     "preview_web_host": "NOT_DEPLOYED__NO_APPROVED_ISOLATED_HOST"
+  },
+  "d173_e286_web3324_production_ui_test": {
+    "date_vn": "2026-11-20",
+    "change_id": "D173",
+    "subchange": "E286",
+    "owner_instruction": "PUBLISH_INVENTORY_WEB_NEW_UI_DIRECTLY_TO_EXISTING_PRODUCTION_FOR_OWNER_LIVE_TEST",
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "owner_field_pass": false,
+    "owner_pass": false,
+    "production_hostname": "inventory.supra.cc.cd",
+    "worker": "supra-inventory-beta",
+    "target_web_version": "3.3.24",
+    "source_pr": 991,
+    "branch": "feat/d173-e283-inventory-preview-ui-20261120",
+    "base_main_sha": "df7ae65b78005f093862ee944e71a2d757b3c49f",
+    "source_code_sha": "7fb26c151535403fdeba95bac1229459d9eaa9d7",
+    "web_ui_changes_only": true,
+    "web_actual_release": "PENDING_EXACT_SOURCE_CI_AND_PROTECTED_MERGE",
+    "currently_deployed_web": "3.3.23",
+    "required_ci": "E283_CHROMIUM_BUILD_D172__E123_SQL_AUTH_D172__AUTHORITY__PROJECT_STATE_CONTINUITY__D172_BUSINESS_ISOLATION",
+    "global_ci": "HISTORICAL_UNRELATED_LEGACY_FAIL_NOT_A_CLAIM_OF_GLOBAL_PASS",
+    "frozen_modules": [
+      "D172",
+      "Agent",
+      "Android",
+      "Firebase",
+      "Worker_business",
+      "DO_SQLite",
+      "Gateway",
+      "Stable"
+    ],
+    "field_pass": false,
+    "release_technical_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD"
   }
 }
