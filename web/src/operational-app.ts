@@ -1834,13 +1834,16 @@ function renderOperations(): string {
     </section>
     <div class="fast-workspace">
       <div class="fast-list" id="fastList" aria-live="polite">
+        <div class="fast-list-heading"><span>SKU</span><span>Tên sản phẩm</span><span>Picker</span><span>Thời gian báo</span><span>Trạng thái</span></div>
         ${visibleRows.length ? visibleRows.map((row) => {
           const rowTiming = liveQueueTiming(row);
           const tone = rowTiming.state === "ESCALATED" ? "danger" : rowTiming.state === "WARNING" ? "open" : "work";
           return `<button class="fast-issue-row ${selected?.batch_id === row.batch_id ? "selected" : ""}" data-select-batch="${esc(row.batch_id)}">
             <span class="fast-sku">${esc(row.sku)}</span>
             <span class="fast-product">${esc(row.product_name)}</span>
-            <span class="fast-meta"><b class="fast-status ${tone}">${esc(slaLabel(rowTiming.state))}</b><em>${Number(row.affected_picker_count)} Picker</em><em>Chờ ${rowTiming.waiting} phút</em></span>
+            <span class="fast-picker-count">${Number(row.affected_picker_count)} Picker</span>
+            <time class="fast-reported-at" datetime="${esc(row.first_report_at)}">${esc(fmt(row.first_report_at))}</time>
+            <span class="fast-meta"><b class="fast-status ${tone}">${esc(slaLabel(rowTiming.state))}</b><em>Chờ ${rowTiming.waiting} phút</em></span>
           </button>`;
         }).join("") : `<div class="fast-empty-row">${queueFilter === "ALL" ? "Hiện không có SKU chờ xử lý." : "Không có SKU trong nhóm này."}</div>`}
       </div>
