@@ -31,7 +31,7 @@ jobs:
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
           npx playwright install chromium
       - name: Verify visual contracts in Chromium
-        run: node --test tests/d173-e283-inventory-preview.test.mjs
+        run: node --test tests/d173-e283-inventory-preview.test.mjs tests/d173-e286-web3324-release.test.mjs
       - name: Publish synthetic multi-page screenshot gallery for Owner review
         uses: actions/upload-artifact@v4
         with:
@@ -42,6 +42,10 @@ jobs:
       - name: Web TypeScript and Vite build
         working-directory: web
         run: npm run build
+      - name: E286 exact owner release preflight (read only)
+        run: |
+          python3 tools/d173_e286_web3324_release_gate.py --component worker --preflight
+          python3 tools/d173_e286_web3324_release_gate.py --component web --preflight
       - name: Install Worker test dependencies
         working-directory: service
         run: npm install --ignore-scripts --no-audit --no-fund
