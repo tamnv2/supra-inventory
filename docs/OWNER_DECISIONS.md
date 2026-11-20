@@ -1,3 +1,9 @@
+## D173-E286 — Owner yêu cầu phát hành Web Inventory UI mẫu lên Production để kiểm thử trực tiếp (20/11/2026)
+
+Owner thay đổi quyết định E283 CODE ONLY: **duyệt riêng Production Web3.3.24 frontend UI** lên `inventory.supra.cc.cd` thông qua Worker hiện hữu `supra-inventory-beta`, để Owner trực tiếp nghiệm thu trên Web thật. Không yêu cầu giả lập UAT hoặc tạo preview Worker/domain mới. Chỉ sửa UI Web D173, giữ nguyên hệ thống xác thực, nghiệp vụ, realtime, D172, Agent/Android, Firebase, Gateway và Worker service source; Stable OWNER-GATED. Bắt buộc Owner gate E286 + exact-source five scoped CI + D172 isolation + protected two-parent merge và live deployment readback. **Không được coi lệnh phát hành là FIELD/OWNER PASS**. Tài liệu: `docs/D173_E286_WEB3324_RELEASE_AUTHORIZATION_2026-11-20.md`, [PR #991](https://github.com/tamnv2/supra-inventory/pull/991).
+
+---
+
 ## D173-E283 — Owner duyệt chuyển Web Inventory sang UI mẫu, CODE ONLY (20/11/2026)
 
 Owner chấp thuận thay **toàn bộ lớp giao diện** Inventory Web theo bản HTML tĩnh đã kiểm thử, trên nhánh kiểm thử độc lập trước; kiểm tra đủ mọi trang, thao tác thật, vai trò và responsive. **KHÔNG** merge hoặc triển khai Production trước khi Owner nghiệm thu bản tích hợp và ra lệnh phát hành riêng.
