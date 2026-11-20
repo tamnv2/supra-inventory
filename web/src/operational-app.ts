@@ -1829,9 +1829,11 @@ function renderOperations(): string {
     ${renderOperationalTabs("operations")}
     <section class="business-summary-grid queue-summary-grid">
       <button type="button" class="business-summary-card summary-filter-card primary ${queueFilter === "ALL" ? "active" : ""}" data-queue-filter="ALL"><span>SKU đang chờ xử lý</span><strong>${queueRows.length.toLocaleString("vi-VN")}</strong><small>${affected.toLocaleString("vi-VN")} Picker đang bị ảnh hưởng</small></button>
-      <button type="button" class="business-summary-card summary-filter-card warning ${queueFilter === "WARNING" ? "active" : ""}" data-queue-filter="WARNING"><span>Sắp quá thời gian</span><strong>${warningCount.toLocaleString("vi-VN")}</strong></button>
-      <button type="button" class="business-summary-card summary-filter-card danger ${queueFilter === "ESCALATED" ? "active" : ""}" data-queue-filter="ESCALATED"><span>Đã quá thời gian</span><strong>${overdueCount.toLocaleString("vi-VN")}</strong></button>
+      <button type="button" class="business-summary-card summary-filter-card danger ${queueFilter === "ESCALATED" ? "active" : ""}" data-queue-filter="ESCALATED"><span>SKU quá hạn</span><strong>${overdueCount.toLocaleString("vi-VN")}</strong><small>Ưu tiên phản hồi</small></button>
+      <article class="business-summary-card good"><span>Đã có hàng</span><strong>${resultTabBadgeCounts.HAS_STOCK.toLocaleString("vi-VN")}</strong><small>Theo bộ đếm kết quả</small></article>
+      <article class="business-summary-card warning"><span>Cho phép Skip</span><strong>${resultTabBadgeCounts.SKIP_ALLOWED.toLocaleString("vi-VN")}</strong><small>Theo bộ đếm kết quả</small></article>
     </section>
+    <div class="inventory-warning-filter"><button type="button" class="btn small secondary ${queueFilter === "WARNING" ? "active" : ""}" data-queue-filter="WARNING">Sắp quá thời gian: ${warningCount.toLocaleString("vi-VN")}</button></div>
     <div class="fast-workspace">
       <div class="fast-list" id="fastList" aria-live="polite">
         <div class="fast-list-heading"><span>SKU</span><span>Tên sản phẩm</span><span>Picker</span><span>Thời gian báo</span><span>Trạng thái</span></div>
