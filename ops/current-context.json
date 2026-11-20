@@ -235,21 +235,28 @@
     "pr": 991,
     "owner_code_approved": true,
     "owner_production_release_approved": false,
-    "code": "PASS_SCOPED_REAL_WEB_SOURCE",
-    "ci": "PASS_EXACT_SOURCE_684FBF_CHROMIUM_VITE_D172_E123__GLOBAL_LEGACY_CI_FAIL",
-    "release": "NOT_AUTHORIZED_NOT_DEPLOYED",
+    "code": "PASS_SCOPED_SOURCE_E285",
+    "ci": "PASS_SOURCE_E2652E_CHROMIUM_22_FIXTURES_BUILD_E123_D172_AUTHORITY_STATE__GLOBAL_LEGACY_FAIL",
+    "release": "NO_CHANGE_WEB3323",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_HOLD",
     "reference": "PR990_HTML_PREVIEW__PR2_PICKPACK_READ_ONLY",
-    "source_sha": "684fbf0139095d2737cfd267c1c45c9875c9838b",
+    "source_sha": "e2652e9581baa641d2bcdf034e6e65dc9cd63293",
     "ci_runs": {
-      "visual_and_d172": 44728449057,
-      "worker_web_e123": 44728449062,
-      "authority": 44728448950,
-      "project_state": 44728448936,
-      "d172_business": 44728448563
+      "visual_and_d172": 44730466922,
+      "worker_web_e123": 44730466858,
+      "authority": 44730466852,
+      "project_state": 44730466569,
+      "d172_business": 44730466532
     },
-    "global_ci": "FAIL_OLD_E032_E019_D167_UI_DESIGN_AND_AGENT_CONTRACTS__UNRELATED_HISTORIC_EXPECTATIONS"
+    "global_ci": "FAIL_OLD_E032_E019_D167_UI_DESIGN_AND_AGENT_CONTRACTS__UNRELATED_HISTORIC_EXPECTATIONS",
+    "review_gallery": {
+      "run_id": 44730466922,
+      "artifact_id": 14626475886,
+      "visual_screenshots": 22,
+      "synthetic": true
+    },
+    "real_authenticated_review": "PENDING"
   }
 }
