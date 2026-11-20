@@ -5971,6 +5971,29 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-UI-PREVIEW-20261120",
+      "date_vn": "2026-11-20",
+      "change_id": "D173",
+      "kind": "OWNER_STATIC_UI_PREVIEW_REQUEST",
+      "owner_instruction": "Dùng phong cách giao diện Web Office PickPack đang kiểm thử làm lớp trình bày cho Web Inventory; trước mắt tạo Web tĩnh nội dung Báo hàng để Owner xem, chưa tích hợp Production.",
+      "facts": [
+        "Verified read-only reference tamnv2/pickpack PR#2 OPEN DRAFT head c9a7730b4307aa085e48e0198e859a3419d1c33e, prototype/assets/styles.css and app.js. Reference only; no PickPack mutation.",
+        "Inventory main at preview baseline df7ae65b78005f093862ee944e71a2d757b3c49f; current web release receipt Web3.3.23 is technical PASS, FIELD/OWNER pending.",
+        "Standalone HTML prototype delivered in the requesting chat only; it has eight Inventory sidebar sections, five operations status tabs, synthetic SKU/picker data, local visual actions, theme and responsive layout.",
+        "Chromium in isolated test harness rendered HTML and exercised nav, tab, dark theme and mobile menu with no JS page errors; no external hosting, production authentication, provider call or field validation."
+      ],
+      "boundary": "STANDALONE_LOCAL_STATIC_PREVIEW_ONLY__NO_REPOSITORY_APP_SOURCE__NO_PRODUCTION__NO_PICKPACK_MUTATION__NO_D172__NO_STABLE",
+      "status": "STATIC_PREVIEW_DELIVERED_FOR_OWNER_VISUAL_REVIEW__NO_FIELD_OR_OWNER_PASS",
+      "next_action": "Owner reviews mock layout before separate scoped approval for any Web Inventory code integration; retain existing Inventory data/auth/API/realtime contracts.",
+      "code": "LOCAL_HTML_CREATED_NOT_IN_REPO",
+      "ci": "NOT_RUN_FOR_PREVIEW",
+      "release": "NONE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
