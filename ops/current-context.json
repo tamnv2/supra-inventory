@@ -235,12 +235,21 @@
     "pr": 991,
     "owner_code_approved": true,
     "owner_production_release_approved": false,
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
-    "release": "NO_CHANGE_WEB3323",
+    "code": "PASS_SCOPED_REAL_WEB_SOURCE",
+    "ci": "PASS_EXACT_SOURCE_684FBF_CHROMIUM_VITE_D172_E123__GLOBAL_LEGACY_CI_FAIL",
+    "release": "NOT_AUTHORIZED_NOT_DEPLOYED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_HOLD",
-    "reference": "PR990_HTML_PREVIEW__PR2_PICKPACK_READ_ONLY"
+    "reference": "PR990_HTML_PREVIEW__PR2_PICKPACK_READ_ONLY",
+    "source_sha": "684fbf0139095d2737cfd267c1c45c9875c9838b",
+    "ci_runs": {
+      "visual_and_d172": 44728449057,
+      "worker_web_e123": 44728449062,
+      "authority": 44728448950,
+      "project_state": 44728448936,
+      "d172_business": 44728448563
+    },
+    "global_ci": "FAIL_OLD_E032_E019_D167_UI_DESIGN_AND_AGENT_CONTRACTS__UNRELATED_HISTORIC_EXPECTATIONS"
   }
 }
