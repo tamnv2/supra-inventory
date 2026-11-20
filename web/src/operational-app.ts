@@ -16,6 +16,7 @@ import "./legacy-transplant/d167-web-compact-accounts.css";
 import "./legacy-transplant/d167-web-ux-recovery.css";
 import "./d173-tabler.css";
 import "./d173-overview.css";
+import "./d173-inventory-preview.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -1238,6 +1239,10 @@ function syncNavigationSelection(): void {
     else node.removeAttribute("aria-current");
   });
   syncOperationsNavBadge();
+  const heading = document.querySelector<HTMLElement>("#inventory-current-title");
+  if (heading) heading.textContent = previewSectionTitle(activeSection);
+  document.body.dataset.inventoryMenuOpen = "false";
+  document.querySelector("#inventory-menu-toggle")?.setAttribute("aria-expanded", "false");
 }
 
 function navigateToSection(next: Section, historyMode: SectionHistoryMode = "push"): void {
@@ -1509,24 +1514,72 @@ function renderLogin(): void {
   });
 }
 
+const INVENTORY_ACCENT_KEY = "supra_inventory_ui_accent_v1";
+const INVENTORY_ACCENTS = ["coral", "red", "orange", "yellow", "green", "blue", "indigo", "violet"];
+let inventoryClockTimer: number | null = null;
+
+function inventoryAccent(): string {
+  try {
+    const saved = localStorage.getItem(INVENTORY_ACCENT_KEY) || "coral";
+    return INVENTORY_ACCENTS.includes(saved) ? saved : "coral";
+  } catch { return "coral"; }
+}
+
+function previewSectionTitle(section: Section): string {
+  const titles: Partial<Record<Section, string>> = {
+    picker:"Báo thiếu hàng", operations:"Xử lý báo hàng", overdue:"Quá hạn", results:"Kết quả báo hàng",
+    shift:"Ca vận hành", sku:"Danh mục SKU", hr:"Nguồn nhân sự", users:"Nhân sự & tài khoản",
+    sla:"Thời gian xử lý", dashboard:"Tổng quan & báo cáo", reports:"Báo cáo chi tiết",
+    system:"Trạng thái hệ thống", devices:"Thiết bị", logs:"Nhật ký", tools:"Công cụ",
+    "system-reset":"Đặt lại hệ thống", versions:"Phiên bản", account:"Tài khoản",
+  };
+  return titles[section] || "1291 Báo hàng";
+}
+
+function tickInventoryClock(): void {
+  const node = document.querySelector<HTMLElement>("#inventory-ui-clock");
+  if (!node) {
+    if (inventoryClockTimer !== null) { window.clearInterval(inventoryClockTimer); inventoryClockTimer = null; }
+    return;
+  }
+  node.textContent = new Intl.DateTimeFormat("en-US", { timeZone:"Asia/Ho_Chi_Minh", hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:true }).format(new Date());
+}
+
+function startInventoryClock(): void {
+  tickInventoryClock();
+  if (inventoryClockTimer === null) inventoryClockTimer = window.setInterval(tickInventoryClock, 1000);
+}
 function renderShell(content: string): void {
   if (!profile) return renderLogin();
   const visualRole = profile.role === "PICKER" ? "PICKER" : profile.role === "REPORTER" ? "INVENT" : "ADMIN";
   document.body.dataset.role = visualRole;
   document.body.dataset.testRole = "";
-  app.innerHTML = `<div class="app-shell d173-tabler-shell role-${esc(profile.role.toLowerCase())}">
-    <header class="topbar d173-tabler-navbar">
-      <div class="header-product">
-        <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
-        <h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1>
-        <div class="header-runtime">
+  document.body.dataset.inventoryAccent = inventoryAccent();
+  app.innerHTML = `<div class="app-shell d173-tabler-shell d173-inventory-preview role-${esc(profile.role.toLowerCase())}">
+    <nav id="inventory-sidebar" class="tabs d173-tabler-sidebar" data-shell-generation="d173-preview-ui">
+      <div class="inventory-side-brand"><div class="inventory-brand-mark" aria-hidden="true">S</div><div class="inventory-brand-lines"><strong>CÔNG TY CỔ PHẦN THE SUPRA</strong><small>DC HƯNG YÊN</small></div></div>
+      <div class="inventory-side-app"><strong>1291 Báo hàng</strong><small>Kho HY1 · Web Inventory</small></div>
+      <div class="inventory-nav-scroll">${renderNav()}</div>
+      <div class="inventory-side-footer">
+        <div class="inventory-side-status"><div class="header-runtime">
           <span id="service-state" title="Tình trạng kết nối Web đến API xử lý báo hàng" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ API: ${serviceReachable ? "Sẵn sàng" : "Không truy cập được"}</span>
           <span class="header-runtime-separator">|</span>
           <span id="realtime-state" title="Kết nối WebSocket để nhận thay đổi báo hàng ngay khi phát sinh" data-state="${realtimeState === "connected" ? "on" : realtimeState === "offline" ? "off" : "pending"}">Dữ liệu trực tiếp: ${realtimeStatusLabel()}</span>
           <span class="header-runtime-separator">|</span>
           <span id="last-web-update">Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}</span>
-        </div>
+        </div></div>
+        <span class="inventory-version">${WEB_VERSION_LABEL}</span>
+        <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>
       </div>
+    </nav>
+    <header class="topbar d173-tabler-navbar">
+      <button type="button" class="inventory-mobile-toggle" id="inventory-menu-toggle" aria-label="Mở menu" aria-expanded="false" aria-controls="inventory-sidebar">☰</button>
+      <strong class="inventory-current-title" id="inventory-current-title">${esc(previewSectionTitle(activeSection))}</strong>
+      <div class="inventory-top-actions">
+        <time class="inventory-clock" id="inventory-ui-clock" aria-label="Giờ Việt Nam"></time>
+        <details class="inventory-user-menu">
+          <summary class="inventory-user-trigger"><span class="inventory-user-avatar">${esc((profile.display_name || "?").slice(0,2).toUpperCase())}</span><strong>${esc(profile.display_name)}</strong></summary>
+          <div class="inventory-user-panel">
       <div class="user header-user">
         <div class="header-user-identity">
           <strong>${esc(profile.display_name)}</strong>
@@ -1539,15 +1592,21 @@ function renderShell(content: string): void {
           <div class="user-actions"><button type="button" class="ghost header-account-action ${activeSection === "account" ? "active" : ""}" data-section="account">Tài khoản</button><button id="logout" class="ghost">Đăng xuất</button></div>
         </div>
       </div>
+
+            <label class="header-control inventory-accent-control"><span>Màu giao diện</span><select id="inventory-accent-color" aria-label="Chọn màu giao diện">
+              ${INVENTORY_ACCENTS.map((color) => `<option value="${color}" ${inventoryAccent() === color ? "selected" : ""}>${({coral:"San hô",red:"Đỏ",orange:"Cam",yellow:"Vàng",green:"Lục",blue:"Lam",indigo:"Chàm",violet:"Tím"} as Record<string,string>)[color]}</option>`).join("")}
+            </select></label>
+          </div>
+        </details>
+      </div>
     </header>
-    <nav class="tabs d173-tabler-sidebar" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
     <main id="content" class="content main d173-page-content" data-active-section="${esc(activeSection)}">${content}</main>
-    <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>
+    <button type="button" class="inventory-sidebar-backdrop" id="inventory-sidebar-backdrop" aria-label="Đóng menu"></button>
     <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}${renderD167MealOverlay()}</div>
   </div>`;
   bindShell();
+  startInventoryClock();
 }
-
 function renderStockModal(): string {
   if (!stockConfirm) return "";
   return `<div class="modal"><div class="modal-box action-confirm-box"><h2>XÁC NHẬN ĐÃ CÓ HÀNG?</h2>
@@ -4652,6 +4711,21 @@ function bindShell(): void {
   const currentProfile = profile;
   if (!currentProfile) return;
   document.body.dataset.d173Sidebar = "expanded";
+  document.body.dataset.inventoryMenuOpen = "false";
+  const menuToggle = document.querySelector<HTMLButtonElement>("#inventory-menu-toggle");
+  const closeMenu = () => { document.body.dataset.inventoryMenuOpen = "false"; if (menuToggle) menuToggle.setAttribute("aria-expanded", "false"); };
+  menuToggle?.addEventListener("click", () => {
+    const open = document.body.dataset.inventoryMenuOpen !== "true";
+    document.body.dataset.inventoryMenuOpen = String(open);
+    menuToggle.setAttribute("aria-expanded", String(open));
+  });
+  document.querySelector("#inventory-sidebar-backdrop")?.addEventListener("click", closeMenu);
+  document.querySelector<HTMLSelectElement>("#inventory-accent-color")?.addEventListener("change", (event) => {
+    const value = (event.currentTarget as HTMLSelectElement).value;
+    if (!INVENTORY_ACCENTS.includes(value)) return;
+    document.body.dataset.inventoryAccent = value;
+    try { localStorage.setItem(INVENTORY_ACCENT_KEY, value); } catch { /* cosmetic preference only */ }
+  });
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.section as Section;
     if (!next || next === activeSection || !canAccessSection(next, currentProfile)) return;
