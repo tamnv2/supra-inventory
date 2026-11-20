@@ -5994,6 +5994,35 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-UI-MIGRATION-REVIEW-20261120",
+      "date_vn": "2026-11-20",
+      "change_id": "D173",
+      "kind": "OWNER_UI_REDESIGN_FEASIBILITY_AND_SCOPE_REVIEW",
+      "owner_instruction": "Owner wants all current Inventory Web interface to match prior static visual preview; asks whether feasible and what must be clarified.",
+      "verified_facts": [
+        "Main df7ae65b78005f093862ee944e71a2d757b3c49f: Inventory real Web3.3.23 has role-specific PICKER, REPORTER, PICKPACK_ADMIN, ADMIN/ROOT navigation and API/realtime/auth; file web/src/operational-app.ts.",
+        "Preview artifact is a standalone ~40KB HTML with eight sidebar sections, synthetic demo SKU and five operations tabs; no fetch/localStorage/real production login.",
+        "PickPack reference UI comes from tamnv2/pickpack PR#2 OPEN DRAFT, read-only. Inventory D173 preview documentation PR#990 OPEN DRAFT, no production changes.",
+        "Latest published Web technical receipt E273 version 3.3.23; authenticated FIELD and Owner PASS unconfirmed."
+      ],
+      "analysis": "Full UI/UX visual redesign feasible by replacing presentation layer within existing Inventory Web; direct replacement by demo HTML would silently break production flows, roles, live data and security. Keep production auth/RBAC, APIs, websocket/notifications, exact workflow semantics, D172 isolation, shared Worker, Agent/Android and Stable unchanged. Risk of CSS cascade, screen density, mobile, form controls, role-specific views, and Cloudflare service repacking; verify Chromium multi-role 9 pages and production-like regression before any guarded release.",
+      "proposed_scope": "D173_WEB_PRESENTATION_ONLY__ALL_EXISTING_WEB_PAGES_AND_ROLE_SPECIFIC_VIEWS__REFERENCE_APPROVED_STATIC_UI",
+      "assumptions_not_owner_approved": [
+        "Visual identity matches preview as close as practical while preserving full existing real business function.",
+        "Default safer workflow is code-only PR and authenticated staged visual review before separate production release."
+      ],
+      "owner_decision_pending": "Clarify whether Owner approves code-only integration/validation first or also expressly authorizes a production release upon exact scoped CI PASS.",
+      "status": "REVIEW_AND_DESIGN_DECISION_PENDING__NO_APP_CODE_OR_RELEASE_AUTHORIZED_BY_THIS_CHECKPOINT",
+      "next_action": "Seek single Owner choice on code-only first versus guarded production deployment. Before source mutation, separate explicit Owner approval for exact D173 Web scope and affected-base impact review.",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NO_CHANGE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
