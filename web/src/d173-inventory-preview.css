@@ -174,6 +174,30 @@ body[data-theme="dark"] .d173-inventory-preview { --preview-accent-soft:#392b2b;
 .d173-inventory-preview .d173-page-content :is(thead th,.ops-table thead th) { background:var(--preview-bg) !important; color:var(--preview-muted) !important; font-size:11px; }
 .d173-inventory-preview .d173-page-content :is(tbody td,.ops-table tbody td) { color:var(--preview-text); }
 .d173-inventory-preview .d173-page-content .business-summary-card { min-height:88px; }
+
+.d173-inventory-preview .ops-business-workspace .queue-summary-grid {
+  display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:10px !important; margin-bottom:8px;
+}
+.d173-inventory-preview .ops-business-workspace .queue-summary-grid .business-summary-card {
+  min-width:0; text-align:left; padding:14px 15px !important;
+  background:var(--preview-card) !important; border:1px solid var(--preview-line) !important;
+  border-radius:9px !important; box-shadow:0 3px 18px #202d4010 !important;
+}
+.d173-inventory-preview .queue-summary-grid .business-summary-card strong { font-size:27px; font-variant-numeric:tabular-nums; }
+.d173-inventory-preview .inventory-warning-filter { display:flex; justify-content:flex-end; align-items:center; margin:0 0 8px; }
+.d173-inventory-preview .inventory-warning-filter .btn.active {
+  border-color:var(--preview-accent) !important; color:var(--preview-accent) !important;
+  background:var(--preview-accent-soft) !important;
+}
+@media (max-width:920px) {
+  .d173-inventory-preview .ops-business-workspace .queue-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+}
+@media (max-width:480px) {
+  .d173-inventory-preview .ops-business-workspace .queue-summary-grid { gap:6px !important; }
+  .d173-inventory-preview .ops-business-workspace .queue-summary-grid .business-summary-card { padding:10px 9px !important; }
+}
+
 .d173-inventory-preview .d173-page-content .d173-ops-toolbar { border-color:var(--preview-line); }
 .d173-inventory-preview .d173-page-content .ops-business-workspace .fast-workspace { gap:12px !important; min-width:0; }
 .d173-inventory-preview .d173-page-content .ops-business-workspace .fast-list {
