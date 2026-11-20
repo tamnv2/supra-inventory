@@ -1,0 +1,59 @@
+name: D173 E283 Inventory Preview UI Code Only
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'tests/d173-e283-*'
+      - 'ops/change-continuity/D173.json'
+      - 'ops/project-state.json'
+      - 'docs/OWNER_DECISIONS.md'
+      - '.github/workflows/d173-e283-web-ui-code-only.yml'
+permissions:
+  contents: read
+jobs:
+  visual-source-and-d172:
+    if: contains(github.head_ref, 'd173-e283-inventory-preview-ui')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Web test dependencies
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          npx playwright install chromium
+      - name: Verify visual contracts in Chromium
+        run: node --test tests/d173-e283-inventory-preview.test.mjs tests/d173-e286-web3324-release.test.mjs
+      - name: Publish synthetic multi-page screenshot gallery for Owner review
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e283-inventory-ui-review
+          path: .artifacts/d173-e283-ui-review/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Web TypeScript and Vite build
+        working-directory: web
+        run: npm run build
+      - name: E286 exact owner release preflight (read only)
+        run: |
+          python3 tools/d173_e286_web3324_release_gate.py --component worker --preflight
+          python3 tools/d173_e286_web3324_release_gate.py --component web --preflight
+      - name: Install Worker test dependencies
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: D172 firewall and isolated regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          node --test tests/d172-*.test.mjs
+      - name: Explicit release prohibition
+        run: echo 'D173_E283_CODE_ONLY__NO_MERGE_NO_DEPLOY__D172_HOLD__STABLE_OWNER_GATED'

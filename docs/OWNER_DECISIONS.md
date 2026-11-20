@@ -1,3 +1,17 @@
+## D173-E286 — Owner yêu cầu phát hành Web Inventory UI mẫu lên Production để kiểm thử trực tiếp (20/11/2026)
+
+Owner thay đổi quyết định E283 CODE ONLY: **duyệt riêng Production Web3.3.24 frontend UI** lên `inventory.supra.cc.cd` thông qua Worker hiện hữu `supra-inventory-beta`, để Owner trực tiếp nghiệm thu trên Web thật. Không yêu cầu giả lập UAT hoặc tạo preview Worker/domain mới. Chỉ sửa UI Web D173, giữ nguyên hệ thống xác thực, nghiệp vụ, realtime, D172, Agent/Android, Firebase, Gateway và Worker service source; Stable OWNER-GATED. Bắt buộc Owner gate E286 + exact-source five scoped CI + D172 isolation + protected two-parent merge và live deployment readback. **Không được coi lệnh phát hành là FIELD/OWNER PASS**. Tài liệu: `docs/D173_E286_WEB3324_RELEASE_AUTHORIZATION_2026-11-20.md`, [PR #991](https://github.com/tamnv2/supra-inventory/pull/991).
+
+---
+
+## D173-E283 — Owner duyệt chuyển Web Inventory sang UI mẫu, CODE ONLY (20/11/2026)
+
+Owner chấp thuận thay **toàn bộ lớp giao diện** Inventory Web theo bản HTML tĩnh đã kiểm thử, trên nhánh kiểm thử độc lập trước; kiểm tra đủ mọi trang, thao tác thật, vai trò và responsive. **KHÔNG** merge hoặc triển khai Production trước khi Owner nghiệm thu bản tích hợp và ra lệnh phát hành riêng.
+
+Giữ đúng Firebase Auth, per-role RBAC, dữ liệu, business API, WebSocket/realtime, thông báo, xử lý SKU/Picker, Agent, Android, D172 và Stable. Không dùng HTML mock thay source xử lý thật, không đưa dữ liệu vận hành vào bản công khai, không tạo Cloudflare/Firebase usage mới. Có thể đổi markup và trình bày trên `web/`; mọi chức năng đang có phải tiếp tục dùng handler/API hiện hữu, không tạo nút giả. Tham chiếu thị giác PickPack PR #2 chỉ đọc; D173 mẫu trước tại PR #990; ứng viên CODE ONLY tại PR #991. Chromium/typecheck/CI và guard D172 là tiêu chí kỹ thuật, không thay thế FIELD/OWNER PASS.
+
+---
+
 ## D173-E270 — Owner duyệt sửa Smart Lazy và Production Web3.3.23 (14/11/2026)
 
 Owner xác nhận Web3.3.22 FIELD FAIL về đồng nhất hình học qua 9 ảnh Production; chốt sửa code theo Smart Lazy và triển khai Production khi đủ guard. Phạm vi: chỉ D173 Web authenticated UI/CSS, bỏ khai báo spacing/padding dư tại nguồn, dùng chung một quyền định nghĩa hình học trong CSS hiện có, không thêm lớp override mới; đổi Web version 3.3.23, kiểm tra 9 route bằng Chromium cùng test Web/D172/Authority/Continuity. Được phép repack Web assets trên **Worker Production hiện hữu**, không đổi Worker nghiệp vụ, Auth, DO/SQLite, Firebase, Agent, Android, Gateway, D172 hoặc Stable, không thêm provider resource/usage logic. Chỉ merge/release sau source-pinned CI, protected two-parent merge marker và live readback. CODE/CI/RELEASE kỹ thuật riêng FIELD/OWNER; không coi test fixture là nghiệm thu 9 trang thật. Nguồn: `docs/D173_E270_WEB3322_FIELD_SMART_LAZY_REVIEW_2026-11-14.md`, PR #981.
