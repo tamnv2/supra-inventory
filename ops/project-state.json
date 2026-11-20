@@ -864,7 +864,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-11-14",
+  "last_updated": "2026-11-20",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -15081,5 +15081,25 @@
     "status": "CODE_CI_WORKER_AGENT194_RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED"
+  },
+  "d173_e283_inventory_preview_ui": {
+    "date_vn": "2026-11-20",
+    "change_id": "D173",
+    "scope": "WEB_UI_PRESENTATION_ONLY",
+    "owner_authorized": "CODE_ONLY_INTEGRATE_APPROVED_STATIC_PREVIEW_THEN_FIELD_REVIEW",
+    "read_only_design_source": "tamnv2/pickpack#2 OPEN_DRAFT_SHA_c9a7730b",
+    "sample_preview": "D173_PR990_DOCS_ONLY_HTML_LOCAL_DELIVERED",
+    "candidate_branch": "feat/d173-e283-inventory-preview-ui-20261120",
+    "candidate_pr": 991,
+    "accepted_main_base": "df7ae65b78005f093862ee944e71a2d757b3c49f",
+    "content": "REAL_INVENTORY_AUTH_ROLE_SHELL_9_PAGES_QUEUE_LIST_CSS_AND_MOBILE",
+    "code": "SOURCE_CANDIDATE",
+    "ci": "PENDING",
+    "release": "NOT_AUTHORIZED_NO_PRODUCTION_CHANGE",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "test_gate": "CHROMIUM_MULTI_SCREEN_LIGHT_DARK_ROLE_GUARD__TSC_VITE__D172_ISOLATION__SOURCE_CI"
   }
 }
