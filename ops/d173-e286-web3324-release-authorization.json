@@ -23,16 +23,22 @@
   "firebase_mutation": false,
   "stable_mutation": false,
   "new_provider_resources": false,
-  "source_ci_verified": false,
-  "web_build_pass": false,
-  "d172_isolation_pass": false,
-  "authority_guard_pass": false,
-  "continuity_guard_pass": false,
-  "source_ci_sha": "",
+  "source_ci_verified": true,
+  "web_build_pass": true,
+  "d172_isolation_pass": true,
+  "authority_guard_pass": true,
+  "continuity_guard_pass": true,
+  "source_ci_sha": "eac9c860336dd6016dfec973a11d0f286692d35e",
   "required_ci_failed": 0,
-  "required_ci_success": 0,
-  "required_ci_run_ids": [],
+  "required_ci_success": 5,
+  "required_ci_run_ids": [
+    44734466517,
+    44734465917,
+    44734466515,
+    44734466005,
+    44734466411
+  ],
   "field_pass": false,
   "owner_pass": false,
-  "release": "OWNER_PRODUCTION_APPROVED__SOURCE_CODE_PINNED__CI_PENDING__NO_DEPLOY"
+  "release": "E286_SCOPED_CI_5_OF_5_PASS__SOURCE_EXACT_PINNED__PROTECTED_MERGE_AND_DEPLOY_PENDING__FIELD_OWNER_PENDING"
 }
