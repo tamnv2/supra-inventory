@@ -22,3 +22,8 @@ Triển khai trực tiếp Production trước FIELD nghiệm thu có thể phá
 - Web 3.3.23 Production technical PASS: E273 workflow 43548451337; FIELD/OWNER pending.
 - D173-E285 PR#991 nguồn candidate 3.3.23 đã có 22 screenshot Chromium và scoped CI E283/E123/D172/Authority/State PASS tại e2652e9581baa641d2bcdf034e6e65dc9cd63293.
 - E286 Web3.3.24 source pin được ghi trong `ops/d173-e286-web3324-release-authorization.json`; CI và release của Web3.3.24 chưa được xác nhận khi tạo tài liệu.
+
+## Exact-source CI trước khi phát hành (20/11/2026)
+- Gate E286 yêu cầu source pin `7fb26c151535403fdeba95bac1229459d9eaa9d7` và CI-snapshot SHA `eac9c860336dd6016dfec973a11d0f286692d35e`.
+- 5/5 SUCCESS: E283 [44734466517](https://github.com/tamnv2/supra-inventory/actions/runs/44734466517); E123 [44734465917](https://github.com/tamnv2/supra-inventory/actions/runs/44734465917); Authority [44734466515](https://github.com/tamnv2/supra-inventory/actions/runs/44734466515); Project State [44734466005](https://github.com/tamnv2/supra-inventory/actions/runs/44734466005); D172 isolation [44734466411](https://github.com/tamnv2/supra-inventory/actions/runs/44734466411).
+- Web3.3.24 mới **CODE/CI scoped PASS, chưa RELEASE**, chưa có field/Owner PASS. Global CI lịch sử còn lỗi khác phạm vi; source web/service/tests/CI/tool phải không đổi từ CI pin tới merge.

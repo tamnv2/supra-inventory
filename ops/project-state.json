@@ -15145,7 +15145,7 @@
     "base_main_sha": "df7ae65b78005f093862ee944e71a2d757b3c49f",
     "source_code_sha": "7fb26c151535403fdeba95bac1229459d9eaa9d7",
     "web_ui_changes_only": true,
-    "web_actual_release": "PENDING_EXACT_SOURCE_CI_AND_PROTECTED_MERGE",
+    "web_actual_release": "PENDING_PROTECTED_MERGE_AND_WORKER_DEPLOY",
     "currently_deployed_web": "3.3.23",
     "required_ci": "E283_CHROMIUM_BUILD_D172__E123_SQL_AUTH_D172__AUTHORITY__PROJECT_STATE_CONTINUITY__D172_BUSINESS_ISOLATION",
     "global_ci": "HISTORICAL_UNRELATED_LEGACY_FAIL_NOT_A_CLAIM_OF_GLOBAL_PASS",
@@ -15162,6 +15162,19 @@
     "field_pass": false,
     "release_technical_pass": false,
     "stable": "OWNER_GATED",
-    "d172": "INDEPENDENT_PENDING_HOLD"
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "source_ci_sha": "eac9c860336dd6016dfec973a11d0f286692d35e",
+    "required_ci_success": 5,
+    "required_ci_failed": 0,
+    "required_ci_run_ids": [
+      44734466517,
+      44734465917,
+      44734466515,
+      44734466005,
+      44734466411
+    ],
+    "release_gate_preflight": "PASS_E283_E286_WORKER_AND_WEB",
+    "code": "PASS_EXACT_SOURCE",
+    "ci": "PASS_SCOPED_5_OF_5"
   }
 }

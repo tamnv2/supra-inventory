@@ -236,19 +236,19 @@
     "owner_code_approved": true,
     "owner_production_release_approved": true,
     "code": "PASS_SCOPED_SOURCE_E285",
-    "ci": "E286_VERSION_BUMP_AND_RELEASE_PREFLIGHT_PENDING__PRIOR_E285_PASS_NOT_SUFFICIENT_FOR_NEW_VERSION",
-    "release": "E286_AUTHORIZED_BY_OWNER__CI_AND_MERGE_PENDING__LIVE_WEB3323_UNCHANGED",
+    "ci": "PASS_SCOPED_5_OF_5_E286_RELEASE_PREFLIGHT__GLOBAL_LEGACY_FAIL",
+    "release": "OWNER_AUTHORIZED__PROTECTED_MERGE_AND_PRODUCTION_DEPLOY_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_HOLD",
     "reference": "PR990_HTML_PREVIEW__PR2_PICKPACK_READ_ONLY",
     "source_sha": "e2652e9581baa641d2bcdf034e6e65dc9cd63293",
     "ci_runs": {
-      "visual_and_d172": 44730466922,
-      "worker_web_e123": 44730466858,
-      "authority": 44730466852,
-      "project_state": 44730466569,
-      "d172_business": 44730466532
+      "visual_and_d172": 44734466517,
+      "worker_web_e123": 44734465917,
+      "authority": 44734466515,
+      "project_state": 44734466005,
+      "d172_business": 44734466411
     },
     "global_ci": "FAIL_OLD_E032_E019_D167_UI_DESIGN_AND_AGENT_CONTRACTS__UNRELATED_HISTORIC_EXPECTATIONS",
     "review_gallery": {
@@ -259,6 +259,7 @@
     },
     "real_authenticated_review": "PENDING",
     "production_target_version": "3.3.24",
-    "release_source_code_sha": "7fb26c151535403fdeba95bac1229459d9eaa9d7"
+    "release_source_code_sha": "7fb26c151535403fdeba95bac1229459d9eaa9d7",
+    "source_ci_sha": "eac9c860336dd6016dfec973a11d0f286692d35e"
   }
 }
