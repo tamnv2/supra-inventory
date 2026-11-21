@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e296-web3323-rollback-release-20261121",
-  "pr": null,
+  "pr": 996,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E296",
@@ -13,7 +13,7 @@
     "status": "WEB3323_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "source": "docs/D173_E296_WEB3323_ROLLBACK_PRODUCTION_RECEIPT_2026-11-21.md",
     "branch": "docs/d173-e296-web3323-rollback-release-20261121",
-    "pr": null,
+    "pr": 996,
     "source_main_sha": "e450aef40929076706d92333848202af04f86100",
     "source_code_sha": "a44f6739c4b45e15ee3529918759af8bdfbea45a",
     "source_ci_sha": "f3f95c7dd6d89a148e9a658128a4b9b65f137c04",
@@ -6433,7 +6433,7 @@
       "next_action": "Owner evaluates authenticated Web3.3.23 on inventory.supra.cc.cd. D173 remains open; no further deployment or unrelated change authorized.",
       "privacy_safe": true,
       "branch": "docs/d173-e296-web3323-rollback-release-20261121",
-      "pr": null
+      "pr": 996
     }
   ],
   "resume": {

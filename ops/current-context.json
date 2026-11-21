@@ -19,7 +19,7 @@
   },
   "current_governance_work": {
     "checkpoint_id": "D173-E296",
-    "pr": null,
+    "pr": 996,
     "branch": "docs/d173-e296-web3323-rollback-release-20261121",
     "status": "D173_WEB3323_PRODUCTION_ROLLBACK_TECH_PASS__RUN44900247227__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_code_direction": "ROLLBACK_EXACT_WEB3323_TREE_ONLY__KEEP_LATEST_BACKEND",

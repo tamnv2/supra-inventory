@@ -7695,7 +7695,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e296-web3323-rollback-release-20261121",
-    "pr": null,
+    "pr": 996,
     "latest_checkpoint_id": "D173-E296",
     "checkpoint_date_vn": "2026-11-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -7703,9 +7703,9 @@
     "owner_release_gate": "D173_E294_WEB3323_ROLLBACK_RELEASE_TECH_PASS_MAIN_E450AEF_RUN44900247227__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null,
+    "working_pr": 996,
     "active_working_branch": "docs/d173-e296-web3323-rollback-release-20261121",
-    "working_pr_lifecycle": "E296_DOCS_ONLY_PRODUCTION_RECEIPT_PR_PENDING"
+    "working_pr_lifecycle": "PR996_OPEN_DOCS_ONLY_PRODUCTION_ROLLBACK_RECEIPT__PR995_MERGED"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
