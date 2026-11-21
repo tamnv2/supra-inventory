@@ -6185,7 +6185,7 @@
       "id": "D173-E289",
       "date_vn": "2026-11-21",
       "kind": "OWNER_COMMAND",
-      "owner_approval": "EXPLICIT_REBUILD_DIRECTION_CODE_SCOPE__NO_NEW_PRODUCTION_RELEASE",
+      "owner_approval": true,
       "change_id": "D173",
       "subchange": "E289",
       "topic": "Owner FIELD FAIL Web3.3.24; reject accumulated legacy CSS and require entirely rebuilt Inventory Web presentation following PickPack management prototype",
@@ -6193,8 +6193,7 @@
       "next_action": "Build new D173-only Web presentation from PickPack PR#2 visual reference without retaining legacy layered visual CSS; integrate real Inventory handlers/auth/RBAC/realtime and test nine authenticated screens/light-dark/mobile/roles. Hold release and merger until exact-source checks and Owner approval.",
       "evidence": "Owner FIELD report 2026-11-21; main 9125244e64458b10ccbffec1744418b63b3423bd; E288 receipt Production Web3.3.24 main ac4b0512 run44735679902 attempt2 success; PR991 merged; PR992 merged; PR990 remains open draft; PickPack PR2 open draft read-only; web/src/operational-app.ts nineteen CSS imports; tests/d173-e283-inventory-preview.test.mjs synthetic fixture 22 screenshots; Draft PR#993 docs stage.",
       "supersedes": [
-        "D173-E283 VISUAL_IMPLEMENTATION_ACCEPTANCE_CANDIDATE_ONLY",
-        "D173-E288 FIELD_PENDING_TO_OWNER_FIELD_FAIL"
+        "D173-E288"
       ],
       "facts": [
         "Owner reports Production Web3.3.24 interface materially differs from PickPack visual test and rejects it. Technical release PASS does not equal FIELD/OWNER PASS.",
