@@ -7,19 +7,19 @@
   "pr": 995,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E294",
+    "id": "D173-E295",
     "date_vn": "2026-11-21",
-    "summary": "Owner FIELD FAIL Web3.3.25; explicit command restore exact Web3.3.23 on Production. PR995 draft branch fix/d173-e294-web3323-rollback-20261121; previous Production 3.3.25 remains until guarded release; no backend/Agent/Android/D172 source rollback.",
-    "status": "OWNER_ROLLBACK_AUTHORIZED__WEB3323_SOURCE_CANDIDATE_PR995__CI_RELEASE_PENDING__D172_HOLD",
-    "source": "PR995 / ops/d173-e294-web3323-rollback-authorization.json",
+    "summary": "E294 exact Web3.3.23 tree restoration scoped CI 5/5 PASS: E294 browser/TS/Vite + D172 74/74, E123 backend/Auth/D172, Repo Authority, Project State, D173/D172 business isolation. PR995 source/CI pinned, Production still Web3.3.25. Legacy global UI Design Guard FAIL reported separately; Owner FIELD FAIL pending rollback.",
+    "status": "PR995_CODE_CI_SCOPED_PASS__PRODUCTION_ROLLBACK_PENDING__D172_HOLD",
+    "source": "PR995 CI runs 44899898475,44899898373,44899898456,44899898209,44899898564",
     "branch": "fix/d173-e294-web3323-rollback-20261121",
     "pr": 995,
     "source_main_sha": "163f05ac7db75ee232254c811c655069ec5f0638",
     "source_code_sha": "a44f6739c4b45e15ee3529918759af8bdfbea45a",
+    "source_ci_sha": "f3f95c7dd6d89a148e9a658128a4b9b65f137c04",
     "release_run_id": null,
-    "release_run_attempt": null,
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false
@@ -6393,6 +6393,26 @@
       "base_main_sha": "163f05ac7db75ee232254c811c655069ec5f0638",
       "next_action": "Fix targeted test; source pin; Web build and D172/authority/continuity CI; protected merge only if guard PASS; Production health/readback; Owner field review. Do not infer release or Owner PASS.",
       "privacy_safe": true
+    },
+    {
+      "id": "D173-E295",
+      "date_vn": "2026-11-21",
+      "kind": "TEST",
+      "topic": "Source-pinned Web3.3.23 exact-tree rollback regression and release gate CI check",
+      "status": "E294_EXACT_WEB3323_TREE_BUILD_AND_D172_SCOPED_5_OF_5_CI_PASS__PR995_PRODUCTION_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR995 source code SHA a44f6739c4b45e15ee3529918759af8bdfbea45a reproduces full Web tree from historical 70bd1f12b142642aafba02f1c9cb71b1d3a14214",
+        "Dedicated E294 Chromium and Web TS/Vite build CI 44899898475 SUCCESS with D172 74/74 PASS",
+        "Project State 44899898373, Repo Authority 44899898456, D173 D172 isolation 44899898209, E123 Worker SQL Auth D172 44899898564 all SUCCESS on f3f95c7dd6d89a148e9a658128a4b9b65f137c04",
+        "Global UI Design Guard 44899898465 failed historic out-of-scope Agent/legacy UI assertions; not represented as global pass",
+        "Auth gate pins exact scoped CI SHA f3f95c7dd6d89a148e9a658128a4b9b65f137c04, 5 run IDs; separate protected Production deploy not yet occurred"
+      ],
+      "evidence": "PR995 branch fix/d173-e294-web3323-rollback-20261121; CI workflow run IDs 44899898475,44899898373,44899898456,44899898209,44899898564; auth ops/d173-e294-web3323-rollback-authorization.json pinned on branch commit a2f52b81f88296483bf7ccc5e6e4eef3cbba1efc.",
+      "next_action": "Review branch source equivalence and CI pin, mark PR995 ready, protected two-parent merge with D173-E294 release marker, monitor Production Worker/Web release and live health exact SHA; FIELD/OWNER PASS remains unverified.",
+      "privacy_safe": true,
+      "pr": 995,
+      "branch": "fix/d173-e294-web3323-rollback-20261121"
     }
   ],
   "resume": {
