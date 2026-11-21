@@ -15,7 +15,7 @@
     "branch": "fix/d173-e294-web3323-rollback-20261121",
     "pr": 995,
     "source_main_sha": "163f05ac7db75ee232254c811c655069ec5f0638",
-    "source_code_sha": "7422e76be85ffa3fb3dec318f986be7393e3f78e",
+    "source_code_sha": "a44f6739c4b45e15ee3529918759af8bdfbea45a",
     "release_run_id": null,
     "release_run_attempt": null,
     "code_pass": false,
@@ -6376,20 +6376,16 @@
     {
       "id": "D173-E294",
       "date_vn": "2026-11-21",
-      "kind": "OWNER_FIELD_FAIL_AND_ROLLBACK_COMMAND",
+      "kind": "OWNER_COMMAND",
       "topic": "Web3.3.25 Owner FIELD FAIL; restore exact Web3.3.23 from 14/11 release to current official Production, Web only",
       "status": "PR995_SOURCE_CANDIDATE__CI_PENDING__PRODUCTION_3_3_25_UNCHANGED",
-      "owner_approval": {
-        "rollback_web": true,
-        "production_release": true,
-        "field_pass": false,
-        "owner_pass": false
-      },
+      "owner_approval": true,
       "facts": [
         "Current Web3.3.25 technical release main b566f532, run44893780330 SUCCESS, Owner now rejects UI",
         "Historical Web3.3.23 released from main 70bd1f12, run43548451337 SUCCESS",
         "Current PR995 branch based on main 163f05ac; Web tree restored by old Git blobs; backend current source remains"
       ],
+      "evidence": "Owner direct FIELD FAIL and restore 3.3.23 instruction 21/11/2026; PR995 source head e1a65298; exact Web tree matches GitHub main 70bd1f12; worker/backend main 163f05ac baseline preserved; new E294 release not yet executed.",
       "scope": "WEB_TREE_ONLY__NO_SERVICE_AGENT_ANDROID_FIREBASE_D172_OR_STABLE",
       "security": "EXACT_WEB_TREE_SHA_CHECK__EXACT_SOURCE_CI_AND_TWO_PARENT_RELEASE_GATE__D172_REGRESSION",
       "pr": 995,
