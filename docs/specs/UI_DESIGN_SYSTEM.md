@@ -1,3 +1,19 @@
+## D173-E290 — tái sử dụng nguyên mẫu mã giao diện PickPack thay vì tạo giao diện mới theo ảnh (21/11/2026)
+
+Owner làm rõ bản kiểm thử Mô hình quản lý vận hành đã có **HTML/CSS/JS giao diện sử dụng được**; D173 phải tái sử dụng **lớp trình bày thực** của `tamnv2/pickpack` [PR #2](https://github.com/tamnv2/pickpack/pull/2) (head `c9a7730b4307aa085e48e0198e859a3419d1c33e`): `prototype/index.html`, `prototype/assets/styles.css` (token, sidebar, topbar, form/table/modal/light-dark) và các hàm tạo markup UI trong `prototype/assets/app.js`. Không viết một UI khác theo ảnh; không lấy CSS mới làm lớp ghi đè legacy Inventory. Đọc trực tiếp code PickPack không thay đổi repo PickPack. **Không nhập JS demo/localStorage dữ liệu nghiệp vụ, tài khoản mô phỏng, PDA/CCDC/quyền giả** của prototype vào Inventory. Phải chuyển lớp trình bày và buộc vào Auth/RBAC/API/WS/D173 handlers hiện hữu.
+
+Source PickPack hiện ghi nội bộ `WEB_VERSION='0.12.2'` tại HEAD, nên không lấy PR body `v0.11.0` làm căn cứ phiên bản code. Web Inventory Production 3.3.24 FIELD FAIL, chưa phát hành mới. Tiêu chí kiểm thử và firewall D172 kế thừa E289. Ghi nhận D173-E290 ở PR #993.
+
+---
+
+## D173-E289 — thay toàn bộ presentation Web theo UI tham chiếu, không chồng CSS (21/11/2026)
+
+Owner FIELD NOT PASS Web3.3.24. Bản xây lại tiếp theo phải dùng PickPack PR #2 **chỉ làm tham chiếu bố cục/thị giác** và dựng một hệ thống thiết kế Web Inventory thống nhất: sidebar, topbar, trang chức năng, bảng, bộ lọc, form, modal, login, màu sáng/tối, theme accent, HD/HD+/mobile. **Không dùng lại CSS legacy-transplant làm nền và không chỉ bổ sung `!important` để đè giao diện cũ.** Tách presentation mới khỏi các handler/API/RBAC/realtime hiện có nhưng phải giữ toàn bộ nghiệp vụ thật, chức năng từng màn hình, phân vai, session và bảo mật. Chỉ sau khi chuyển đủ các thành phần và chạy test tương tác tích hợp thì mới loại import CSS cũ; không xóa mù khiến Production hỏng.
+
+**Nghiệm thu bắt buộc:** 9 nhóm màn hình có ảnh/geometry đối chiếu từ app thực với login/role dữ liệu được phép, sáng/tối, 390/1280/1366/1920px; kiểm chứng nhấn nút/form/modal/scroll/điều hướng, D172 isolation, TypeScript/Vite, Auth/RBAC, realtime và không tăng calls. Fixture synthetic không thay thế FIELD PASS. E270 về giữ 18 CSS imports chỉ là thiết kế cũ, **được thay thế cho ứng viên E289**; Web3.3.24 Production hiện hành giữ nguyên cho tới một release có kiểm soát. Nguồn: `docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md`, Draft PR #993.
+
+---
+
 ## D173-E270 — Smart Lazy: giảm lớp CSS, thống nhất 9 trang Web3.3.23 (14/11/2026)
 
 Giữ nguyên 18 CSS imports hiện hữu (Tabler + 17 CSS nội bộ); **không thêm import/stylesheet hoặc blanket `!important`**. Dùng E260 làm một nơi định nghĩa desktop page inset 4px dọc / 6px ngang / 24px đáy, tránh E267 khai báo lặp. Nguồn base `web-professional-v2.css` sở hữu panel padding 8×10px và title gap 6px; xóa bản cũ 16px/12px trong `web-unified-ui.css`. Bỏ double margin Users tabs/grid và Shift history, bỏ inline Shift grid gap 14px (dùng token shared 6px); Dashboard top inset 0 và header gap 6px. Operations tiếp tục panel 6×4px theo mật độ riêng, scroll nội bộ giữ nguyên; không ép layout bằng nhau khi khác nghiệp vụ.

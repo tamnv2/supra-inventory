@@ -1,3 +1,31 @@
+## D173-E292 — xác nhận CI nguồn Web3.3.25 trước release (21/11/2026)
+
+Theo Owner gate E291, ứng viên từ PR #993 Web3.3.25 đã hoàn tất build và 6/6 kiểm thử app thực trên Vite với HTTP mock cách ly (ROOT/REPORTER/PICKER, sáng/tối, 390–1920px, 9 nhóm màn hình, xác nhận modal Đã có hàng/Cho phép Skip không ghi dữ liệu). D172 isolation + regression, Repo Authority Guard và Project State Guard PASS. Source pin `c4490a2d0fd467e91d173b34b6366b0d075536e1`; bốn run `44893357382 / 44893357601 / 44893357551 / 44893357536`. Legacy `UI Design Guard` toàn cục còn FAIL vì kiểm tra kiến trúc CSS cũ đã bị thay theo lệnh Owner; không gọi Global CI PASS. Có thể vào bước bảo vệ merge/release theo gate riêng, **chưa deploy, chưa FIELD/OWNER PASS**.
+
+---
+
+## D173-E291 — Owner yêu cầu triển khai thực tế giao diện PickPack cho Inventory và phát hành Production (21/11/2026)
+
+Owner **đã ra lệnh triển khai thực tế để phát hành Production** Web Báo hàng dựa trên chính mã giao diện Web kiểm thử Mô hình quản lý vận hành PickPack (PR #2 read-only). Yêu cầu thay **toàn bộ lớp presentation cũ** bằng khung và CSS PickPack đã kiểm thử; giữ nghiệp vụ thực D173, Firebase Auth, RBAC, API/WebSocket, tất cả thao tác SKU, form, dashboard, log, dữ liệu và bảo mật. Không dùng JS mock/login/dữ liệu/localStorage nghiệp vụ PickPack. Được phát hành lên **Worker Production đang chạy `inventory.supra.cc.cd`** sau khi ứng viên Web3.3.25 đạt TypeScript/Vite, Chromium app thật nhiều vai trò/viewport, regression hiện hữu, D172 isolation và exact-source Owner gate, protected merge và runtime readback. Lệnh hiện tại KHÔNG miễn giảm các gate, KHÔNG cho phép đụng D172/Agent/Android/Firebase hoặc Stable, KHÔNG có Owner FIELD PASS. Production tiếp tục 3.3.24 cho tới khi release mới được xác nhận kỹ thuật. [PR #993](https://github.com/tamnv2/supra-inventory/pull/993), `docs/D173_E291_PICKPACK_UI_INVENTORY_PRODUCTION_SCOPE_2026-11-21.md`.
+
+---
+
+## D173-E290 — 21/11/2026: tái sử dụng trực tiếp mã nguồn giao diện Web kiểm thử PickPack
+
+Owner làm rõ: **Web kiểm thử dự án Mô hình quản lý vận hành là mã nguồn giao diện đã có, phải tái sử dụng phần giao diện đó**, không lấy ảnh làm mẫu rồi thiết kế lại hoặc chồng CSS mới lên giao diện Inventory cũ. GitHub PickPack Draft PR #2 đang MỞ, nguồn thực có `prototype/index.html`, `prototype/assets/styles.css` và `prototype/assets/app.js` (HEAD `c9a7730b4307aa085e48e0198e859a3419d1c33e`); source app.js hiện ghi phiên bản `0.12.2`. Điều kiện sử dụng: **đọc và lấy phần trình bày** (khung sidebar/topbar/main, CSS tokens/light-dark/accents, thành phần bảng/form/modal, menu, icon) để chuyển sang D173, nhưng tuyệt đối không dùng login mock, lưu trữ nghiệp vụ local, quyền giả hoặc luồng PickPack trong Inventory. Mọi API, RBAC, realtime và handler Inventory phải giữ nguyên và gắn với presentation mới. Đây là sửa cách hiểu **E289**, không mở ứng dụng hay nghiệp vụ mới.
+
+Trạng thái: PickPack UI **source đã tồn tại**, nhưng bản ghép với Inventory **chưa hoàn thành**; Web3.3.24 Production TECH PASS trước đó nhưng OWNER FIELD FAIL, **không có quyền deploy mới**. D172 HOLD độc lập, Stable OWNER-GATED. [PR Inventory #993](https://github.com/tamnv2/supra-inventory/pull/993).
+
+---
+
+## D173-E289 — 21/11/2026: Web3.3.24 FIELD FAIL, xây lại hoàn toàn giao diện
+
+Owner xác nhận Web 3.3.24 đã phát hành **không đạt về giao diện**, không giống bản kiểm thử ở dự án Mô hình quản lý vận hành. **Bác bỏ cách giữ giao diện cũ rồi chồng CSS mới**; yêu cầu thay hoàn toàn lớp trình bày Inventory Web dựa theo UI PickPack PR #2 **chỉ đọc làm tham chiếu thị giác**. Không nhập dữ liệu, nghiệp vụ, quyền hoặc hạ tầng từ PickPack; D173 giữ nguyên Auth/RBAC, API, realtime, dữ liệu và mọi hành động hoạt động thực. Lớp CSS/style cũ không được tiếp tục làm nền của bản UI mới; chuyển từng màn hình và kiểm chứng tích hợp trước khi bỏ phụ thuộc CSS cũ. Quyết định E270 về giữ các CSS import **không còn áp dụng cho ứng viên giao diện E289** (nhưng vẫn là lịch sử của Production 3.3.24).
+
+**Chứng cứ**: `web/src/operational-app.ts` còn 19 CSS imports (legacy/overrides + preview), E283 Chromium 22 ảnh từ fixture synthetic, không phải UAT đăng nhập thực; Production run `44735679902` attempt 2 technical PASS nhưng Owner FIELD **NOT PASS**. Không đổi Worker/DO/SQLite, D172, Agent, Android, Firebase, Gateway, Stable; không cấp quyền Production mới từ lệnh này. **CODE/CI E289 PENDING; WEB3.3.24 Production giữ nguyên; FIELD/OWNER PASS FALSE.** [Draft PR #993](https://github.com/tamnv2/supra-inventory/pull/993); `docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md`.
+
+---
+
 ## D173-E286 — Owner yêu cầu phát hành Web Inventory UI mẫu lên Production để kiểm thử trực tiếp (20/11/2026)
 
 Owner thay đổi quyết định E283 CODE ONLY: **duyệt riêng Production Web3.3.24 frontend UI** lên `inventory.supra.cc.cd` thông qua Worker hiện hữu `supra-inventory-beta`, để Owner trực tiếp nghiệm thu trên Web thật. Không yêu cầu giả lập UAT hoặc tạo preview Worker/domain mới. Chỉ sửa UI Web D173, giữ nguyên hệ thống xác thực, nghiệp vụ, realtime, D172, Agent/Android, Firebase, Gateway và Worker service source; Stable OWNER-GATED. Bắt buộc Owner gate E286 + exact-source five scoped CI + D172 isolation + protected two-parent merge và live deployment readback. **Không được coi lệnh phát hành là FIELD/OWNER PASS**. Tài liệu: `docs/D173_E286_WEB3324_RELEASE_AUTHORIZATION_2026-11-20.md`, [PR #991](https://github.com/tamnv2/supra-inventory/pull/991).
@@ -8,7 +36,7 @@ Owner thay đổi quyết định E283 CODE ONLY: **duyệt riêng Production We
 
 Owner chấp thuận thay **toàn bộ lớp giao diện** Inventory Web theo bản HTML tĩnh đã kiểm thử, trên nhánh kiểm thử độc lập trước; kiểm tra đủ mọi trang, thao tác thật, vai trò và responsive. **KHÔNG** merge hoặc triển khai Production trước khi Owner nghiệm thu bản tích hợp và ra lệnh phát hành riêng.
 
-Giữ đúng Firebase Auth, per-role RBAC, dữ liệu, business API, WebSocket/realtime, thông báo, xử lý SKU/Picker, Agent, Android, D172 và Stable. Không dùng HTML mock thay source xử lý thật, không đưa dữ liệu vận hành vào bản công khai, không tạo Cloudflare/Firebase usage mới. Có thể đổi markup và trình bày trên `web/`; mọi chức năng đang có phải tiếp tục dùng handler/API hiện hữu, không tạo nút giả. Tham chiếu thị giác PickPack PR #2 chỉ đọc; D173 mẫu trước tại PR #990; ứng viên CODE ONLY tại PR #991. Chromium/typecheck/CI và guard D172 là tiêu chí kỹ thuật, không thay thế FIELD/OWNER PASS.
+Giữ đúng Firebase Auth, per-role RBAC, dữ liệu, business API, WebSocket/realtime, thông báo, xử lý SKU/Picker, Agent, Android, D172 và Stable. Không dùng HTML mock thay source xử lý thật, không đưa dữ liệu vận hành vào bản công khai, không tạo Cloudflare/Firebase usage mới. Có thể đổi markup và trình bày trên `web/`; mọi chức năng đang có phải tiếp tục dùng handler/API hiện hữu, không tạo nút giả. Tái sử dụng phần mã nguồn giao diện PickPack PR #2 bằng quyền chỉ đọc: `prototype/index.html`, `prototype/assets/styles.css` và các hàm trình bày của `prototype/assets/app.js`; tuyệt đối không chuyển login mock, dữ liệu hay xử lý nghiệp vụ PickPack. D173 mẫu trước tại PR #990; ứng viên CODE ONLY tại PR #991. Chromium/typecheck/CI và guard D172 là tiêu chí kỹ thuật, không thay thế FIELD/OWNER PASS.
 
 ---
 
