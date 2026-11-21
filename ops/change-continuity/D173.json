@@ -7,16 +7,18 @@
   "pr": 993,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E291",
+    "id": "D173-E292",
     "date_vn": "2026-11-21",
-    "summary": "Owner orders actual PickPack UI Inventory integration and gated Production release. Candidate Web3.3.25 source committed to PR993 with existing PickPack CSS; build/browser role/CI not yet verified. Production remains 3.3.24 FIELD FAIL.",
-    "status": "SOURCE_CANDIDATE_TEST_PENDING__RELEASE_NOT_DEPLOYED",
+    "summary": "Inventory Web3.3.25 PickPack-based UI exact-source c4490a2d CI scoped 4/4 PASS (real Web browser/source 6 tests, build, D172 independent, authority/state). Owner release authorized E291, protected merge and Production deployment still PENDING. No Owner FIELD PASS.",
+    "status": "SOURCE_CI_4_OF_4_PASS__PRODUCTION_RELEASE_PENDING__D172_HOLD",
     "source": "docs/D173_E291_PICKPACK_UI_INVENTORY_PRODUCTION_SCOPE_2026-11-21.md",
     "branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
     "pr": 993,
     "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
-    "code_pass": false,
-    "ci_scoped_pass": false,
+    "source_code_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+    "source_ci_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+    "code_pass": true,
+    "ci_scoped_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false
@@ -6279,6 +6281,48 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E292",
+      "date_vn": "2026-11-21",
+      "kind": "STATUS",
+      "owner_approval": null,
+      "change_id": "D173",
+      "subchange": "E292",
+      "topic": "D173 Web3.3.25 direct PickPack UI source integration: exact-source scoped Chromium/role/build/D172 CI PASS; prepare Owner authorized release pin",
+      "status": "D173_WEB3325_EXACT_SOURCE_CI_4_OF_4_PASS__PR993_PROTECTED_MERGE_RELEASE_PENDING",
+      "next_action": "Verify pinned Owner release preflight on PR993, protected 2-parent merge with D173-E291_WEB3325_PRODUCTION_RELEASE marker, Production Worker/Web exact-SHA deploy run and live readback. Do not declare FIELD/OWNER PASS from technical CI.",
+      "evidence": "PR993 source SHA c4490a2d0fd467e91d173b34b6366b0d075536e1; scoped CI: D173 E291 PickPack UI Real App and D172 Isolation #44893357382, Repo Authority Guard #44893357601, Project State Guard #44893357551, D173 D172 Business Isolation Guard #44893357536; run 44893357382 Web TypeScript/Vite build PASS, 6/6 real Vite Chromium/source tests (ROOT/REPORTER/PICKER, 390-1920, dark/light, nine pages, resolve/skip modal with mock network), D172 guard and regression suite PASS; previous UI Design Guard historical failure requires old layer and is not counted; production not yet deployed.",
+      "supersedes": [
+        "D173-E291"
+      ],
+      "facts": [
+        "Owner E291 ordered actual Production release after gates, not FIELD PASS.",
+        "Web3.3.25 UI source built successfully and six new real-browser/source tests PASS on source SHA c4490a2d.",
+        "Nine authenticated app page groups were navigated under isolated mock API; ROOT/REPORTER/PICKER RBAC, light/dark, four widths and read-only resolve/skip modal flows checked. Production backend events are not authenticated E2E tested.",
+        "D172 independent isolation guard and regression tests PASS, Repo Authority Guard and Project State Guard PASS for exact source.",
+        "Old global UI Design Guard still FAIL due now-retired legacy CSS architecture tests; no claim of global CI PASS.",
+        "Release auth JSON has exact source pin and four evidence run IDs; protected merge/Production release STILL PENDING until production run verified."
+      ],
+      "working_branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
+      "pr": 993,
+      "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
+      "source_code_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+      "source_ci_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+      "source_ci_runs": [
+        44893357382,
+        44893357601,
+        44893357551,
+        44893357536
+      ],
+      "web_target_version": "3.3.25",
+      "code": "PASS_SCOPED_SOURCE",
+      "ci": "PASS_SCOPED_4_OF_4__GLOBAL_LEGACY_UI_GUARD_FAIL",
+      "release": "PENDING_PROTECTED_MERGE_AND_LIVE_READBACK",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -6356,7 +6400,8 @@
       "E171 Owner-approved technical recovery PR874 CODE: explicit UTF-8 Windows Agent175 release gate, source contract; Worker e3958d3 technical deployed; Agent run42481347446 failed before build.",
       "D173-E248: Web3317 PR968 scoped code/source CI PASS at 1d537ad; Worker shared DO/D172 tests PASS; no Production release.",
       "D173-E251 Web3317 Worker/Web release technical PASS main d8aa54cf run43362731384 /health200, D172 guarded; FIELD/Owner pending.",
-      "D173-E291 PR993 working frontend candidate Web3.3.25: exact PickPack Office CSS source copied; all 19 Inventory legacy CSS imports removed; new sidebar/topbar/login and D173 CSS adaptation; real Inventory handlers preserved at source level."
+      "D173-E291 PR993 working frontend candidate Web3.3.25: exact PickPack Office CSS source copied; all 19 Inventory legacy CSS imports removed; new sidebar/topbar/login and D173 CSS adaptation; real Inventory handlers preserved at source level.",
+      "D173-E292 exact source c4490a2d Web build + Chromium real app 6/6 + D172 isolation/regression PASS; separate authority/state guard pass; four scoped CI runs pinned in auth."
     ],
     "in_progress": [
       "D173-E186 governance-only PR910 Owner merge-approved; resolve live PR state/check runs before concluding OPEN/MERGED, do not redeploy applications.",
@@ -6482,7 +6527,8 @@
       "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately.",
       "E289: build separate D173 Web UI presentation and real integrated screens; verify regression/usage/security/D172; then request separate release gate and authenticated Owner field acceptance.",
       "D173-E290 integrate pinned PickPack UI shell/component CSS and layout markup with real Inventory 9 pages, RBAC, API, realtime, action handlers and browser regression on PR993.",
-      "D173-E291 finalize CI tests/guard, repair any UI/binding regressions, then protected merge and Production only if exact-source gate succeeds and readback verifies Worker/Web; no D172 change."
+      "D173-E291 finalize CI tests/guard, repair any UI/binding regressions, then protected merge and Production only if exact-source gate succeeds and readback verifies Worker/Web; no D172 change.",
+      "D173-E292 protected PR993 two-parent merge with exact E291 release marker and Production runtime readback; no FIELD/OWNER PASS inference."
     ],
     "release_boundary": "E289 WEB_CODE_ONLY_PENDING__WEB3324_PRODUCTION_UNCHANGED_FIELD_FAIL__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []

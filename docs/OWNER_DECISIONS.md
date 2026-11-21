@@ -1,3 +1,9 @@
+## D173-E292 — xác nhận CI nguồn Web3.3.25 trước release (21/11/2026)
+
+Theo Owner gate E291, ứng viên từ PR #993 Web3.3.25 đã hoàn tất build và 6/6 kiểm thử app thực trên Vite với HTTP mock cách ly (ROOT/REPORTER/PICKER, sáng/tối, 390–1920px, 9 nhóm màn hình, xác nhận modal Đã có hàng/Cho phép Skip không ghi dữ liệu). D172 isolation + regression, Repo Authority Guard và Project State Guard PASS. Source pin `c4490a2d0fd467e91d173b34b6366b0d075536e1`; bốn run `44893357382 / 44893357601 / 44893357551 / 44893357536`. Legacy `UI Design Guard` toàn cục còn FAIL vì kiểm tra kiến trúc CSS cũ đã bị thay theo lệnh Owner; không gọi Global CI PASS. Có thể vào bước bảo vệ merge/release theo gate riêng, **chưa deploy, chưa FIELD/OWNER PASS**.
+
+---
+
 ## D173-E291 — Owner yêu cầu triển khai thực tế giao diện PickPack cho Inventory và phát hành Production (21/11/2026)
 
 Owner **đã ra lệnh triển khai thực tế để phát hành Production** Web Báo hàng dựa trên chính mã giao diện Web kiểm thử Mô hình quản lý vận hành PickPack (PR #2 read-only). Yêu cầu thay **toàn bộ lớp presentation cũ** bằng khung và CSS PickPack đã kiểm thử; giữ nghiệp vụ thực D173, Firebase Auth, RBAC, API/WebSocket, tất cả thao tác SKU, form, dashboard, log, dữ liệu và bảo mật. Không dùng JS mock/login/dữ liệu/localStorage nghiệp vụ PickPack. Được phát hành lên **Worker Production đang chạy `inventory.supra.cc.cd`** sau khi ứng viên Web3.3.25 đạt TypeScript/Vite, Chromium app thật nhiều vai trò/viewport, regression hiện hữu, D172 isolation và exact-source Owner gate, protected merge và runtime readback. Lệnh hiện tại KHÔNG miễn giảm các gate, KHÔNG cho phép đụng D172/Agent/Android/Firebase hoặc Stable, KHÔNG có Owner FIELD PASS. Production tiếp tục 3.3.24 cho tới khi release mới được xác nhận kỹ thuật. [PR #993](https://github.com/tamnv2/supra-inventory/pull/993), `docs/D173_E291_PICKPACK_UI_INVENTORY_PRODUCTION_SCOPE_2026-11-21.md`.

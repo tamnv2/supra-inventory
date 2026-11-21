@@ -12,3 +12,10 @@
 - Rủi ro trình bày/khả dụng: loại 19 CSS cũ có thể làm vỡ bảng động, biểu đồ, modal, scanner, trạng thái và sự kiện DOM. Phải kiểm chứng nhấn thực trong app đã build, roles ROOT/ADMIN/REPORTER/PICKER, tất cả màn hình nhóm, mobile/HD/HD+, sáng/tối, scroll, theme/accent, zoom, API/RBAC/realtime, event/no extra polling. Test fixture HTML đơn thuần không đủ.
 - CI nguồn phải PASS chính SHA, bao gồm Web tsc/Vite, Chromium integrated, D172 independent regression, project/authority/security guards; sau đó code pin, owner release gate và bảo vệ PR theo 2-parent merge. Không coi PR Draft hoặc source commit là Release PASS. Sau deployment: exact SHA Worker/health/API/Web readback, ghi receipt, FIELD/OWNER vẫn PENDING tới khi Owner trực tiếp đánh giá.
 - Nếu code test, guard hoặc release gate không đạt thì **không merge/không deploy**, ghi bằng chứng và tồn đọng trên PR.
+
+## D173-E292 — source CI kết quả (21/11/2026)
+
+- Source commit: `c4490a2d0fd467e91d173b34b6366b0d075536e1`, PR #993; exact-source `web npm run build` PASS (TypeScript + Vite).
+- CI Web browser Vite thật + mock API cách ly `44893357382`: 6/6 tests PASS gồm source PickPack CSS blob SHA, Auth/RBAC/API/WS retention, 9 page groups, 390/1280/1366/1920, light/dark, ROOT/REPORTER/PICKER, modal báo Đã có hàng và Skip (hủy không ghi dữ liệu). D172 guard và node regression PASS.
+- Repo Authority `44893357601`, Project State `44893357551`, D173 D172 isolation `44893357536`: SUCCESS.
+- Release auth `ops/d173-e291-web3325-release-authorization.json`: code/CI pinned `c4490a2d0fd467e91d173b34b6366b0d075536e1`, four run IDs. **Global UI Design Guard historical FAIL due expecting CSS legacy**; not masked as PASS. Technical Production **PENDING**. No FIELD/OWNER PASS.

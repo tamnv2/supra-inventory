@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E291",
+    "checkpoint_id": "D173-E292",
     "pr": 993,
     "branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
-    "status": "OWNER_PRODUCTION_ORDER_WEB3325_PICKPACK_BASED_UI__SOURCE_PARTIAL_CI_PENDING__D172_HOLD",
+    "status": "OWNER_WEB3325_PRODUCTION_RELEASE_APPROVED__SOURCE_CI_SCOPED_4_OF_4_PASS__MERGE_AND_DEPLOY_PENDING__D172_HOLD",
     "owner_code_direction": "ACTUAL_PICKPACK_UI_SOURCE_REUSE_WITH_REAL_D173_HANDLERS",
     "owner_merge_approved": true,
     "owner_release_approved": true,
@@ -20,15 +20,23 @@
     "field_pass": false,
     "owner_pass": false,
     "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
-    "code_scoped_pass": false,
-    "ci_scoped_pass": false,
+    "code_scoped_pass": true,
+    "ci_scoped_pass": true,
     "release_technical_pass": false,
     "previous_production_release_technical_pass": true,
     "worker_technical_release_pass": true,
     "source_pr": 991,
     "previous_release_run_id": 44735679902,
     "source_reference": "tamnv2/pickpack@c9a7730b4307aa085e48e0198e859a3419d1c33e:prototype/assets/{styles.css,app.js}",
-    "candidate_status": "SOURCE_PARTIAL__INTEGRATION_NOT_YET_TESTED__PRODUCTION_UNCHANGED"
+    "candidate_status": "REAL_PICKPACK_UI_SOURCE_INTEGRATED__BUILD_BROWSER_D172_GUARDS_PASS__PRODUCTION_NOT_DEPLOYED",
+    "source_code_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+    "source_ci_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+    "source_ci_run_ids": [
+      44893357382,
+      44893357601,
+      44893357551,
+      44893357536
+    ]
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
