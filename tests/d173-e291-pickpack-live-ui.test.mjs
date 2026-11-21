@@ -92,6 +92,12 @@ async function newAppPage(browser, role, width, theme) {
   const errors=[],unhandled=[];
   page.on("pageerror",e=>errors.push(String(e)));
   page.on("console",m=>{if(m.type()==="error") errors.push("console: "+m.text())});
+  // Synthetic HTTP-only Vite preview has no WebSocket server. Fulfill a
+  // browser-native WS handshake for isolated UI checks without provider calls.
+  // This does not claim to validate real production WebSocket delivery.
+  await page.routeWebSocket("**/api/realtime/connect?*", ws => {
+    ws.onMessage(() => {});
+  });
   await page.route("**/api/**", async route=>{
     const u=new URL(route.request().url());
     if(u.pathname==="/api/picker/snapshot") {
