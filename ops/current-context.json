@@ -7,16 +7,16 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E290",
+    "checkpoint_id": "D173-E291",
     "pr": 993,
     "branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
-    "status": "OWNER_FIELD_FAIL_WEB3324__REUSE_EXISTING_PICKPACK_UI_CODE_DIRECTLY__INVENTORY_INTEGRATION_PENDING__D172_HOLD",
-    "owner_code_direction": "PORT_PICKPACK_PR2_EXISTING_PRESENTATION_SOURCE__KEEP_D173_REAL_BUSINESS",
-    "owner_merge_approved": false,
-    "owner_release_approved": false,
-    "source_doc": "docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md",
+    "status": "OWNER_PRODUCTION_ORDER_WEB3325_PICKPACK_BASED_UI__SOURCE_PARTIAL_CI_PENDING__D172_HOLD",
+    "owner_code_direction": "ACTUAL_PICKPACK_UI_SOURCE_REUSE_WITH_REAL_D173_HANDLERS",
+    "owner_merge_approved": true,
+    "owner_release_approved": true,
+    "source_doc": "docs/D173_E291_PICKPACK_UI_INVENTORY_PRODUCTION_SCOPE_2026-11-21.md",
     "production_web_version": "3.3.24",
-    "target_web_version": null,
+    "target_web_version": "3.3.25",
     "field_pass": false,
     "owner_pass": false,
     "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
@@ -27,7 +27,8 @@
     "worker_technical_release_pass": true,
     "source_pr": 991,
     "previous_release_run_id": 44735679902,
-    "source_reference": "tamnv2/pickpack@c9a7730b4307aa085e48e0198e859a3419d1c33e:prototype/assets/{styles.css,app.js}"
+    "source_reference": "tamnv2/pickpack@c9a7730b4307aa085e48e0198e859a3419d1c33e:prototype/assets/{styles.css,app.js}",
+    "candidate_status": "SOURCE_PARTIAL__INTEGRATION_NOT_YET_TESTED__PRODUCTION_UNCHANGED"
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",

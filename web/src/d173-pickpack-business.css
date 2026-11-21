@@ -171,10 +171,10 @@ body{font-size:calc(14px * var(--text-scale));overflow-x:hidden}
 #app .modal-box .form-grid{max-height:60vh;overflow:auto}
 #app .critical-box{text-align:center}
 #app .critical-sku{font-size:calc(27px * var(--text-scale));font-weight:800}
-#app .web-toast-stack{position:fixed;z-index:200;top:20px;right:20px;display:grid;gap:7px;max-width:min(420px,calc(100vw - 40px))}
-#app .web-toast{padding:12px 16px;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--primary);box-shadow:var(--shadow);border-radius:8px;color:var(--text)}
-#app .web-toast.error{border-left-color:#c94646}
-#app .web-toast.warning{border-left-color:#c99436}
+.web-toast-stack{position:fixed;z-index:200;top:20px;right:20px;display:grid;gap:7px;max-width:min(420px,calc(100vw - 40px))}
+.web-toast{padding:12px 16px;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--primary);box-shadow:var(--shadow);border-radius:8px;color:var(--text)}
+.web-toast.error{border-left-color:#c94646}
+.web-toast.warning{border-left-color:#c99436}
 #app .inventory-office .sidebar{z-index:70}
 #app .sidebar .side-top{height:80px}
 #app .sidebar .brand-logo{height:40px;width:40px;object-fit:contain;flex:none;border-radius:9px}

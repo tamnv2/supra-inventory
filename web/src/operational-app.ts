@@ -1220,6 +1220,7 @@ function syncNavigationSelection(): void {
     const selected = node.dataset.section === activeSection ||
       (node.dataset.section === "operations" && (activeSection === "overdue" || activeSection === "results"));
     node.classList.toggle("active", selected);
+    node.closest(".side-link")?.classList.toggle("selected", selected);
     if (selected) node.setAttribute("aria-current", "page");
     else node.removeAttribute("aria-current");
   });
