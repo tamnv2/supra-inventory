@@ -5,7 +5,7 @@
 - Production 3.3.24 TECHNICAL RELEASE PASS ở main `ac4b0512931cf7a72e231af0652dec9d21bbfeef` / workflow `44735679902` attempt 2, nhưng không có FIELD/OWNER PASS. [PR #991](https://github.com/tamnv2/supra-inventory/pull/991) MERGED; [PR #992](https://github.com/tamnv2/supra-inventory/pull/992) MERGED.
 - `web/src/operational-app.ts` vẫn import CSS cũ (Tabler, `styles.css`, `legacy-operational.css`, nhiều `legacy-transplant/*`, `d173-tabler.css`, `d173-overview.css`) trước `d173-inventory-preview.css`. PR #991 thêm stylesheet mới thay vì thay hệ thống UI cũ (1199 additions / 34 deletions toàn PR). Đây là bằng chứng code dùng nhiều tầng CSS cũ, không phải tái xây giao diện.
 - `tests/d173-e283-inventory-preview.test.mjs` sử dụng fixture markup/dữ liệu synthetic, kiểm tra geometry và screenshot 22 ảnh; không kiểm chứng các trang, quyền, tác vụ thật khi đăng nhập Production.
-- Tham chiếu UI duy nhất được Owner chỉ định: PickPack 1291 [Draft PR #2](https://github.com/tamnv2/pickpack/pull/2), **chỉ đọc**. Không chuyển nghiệp vụ/dữ liệu/source/runtime tài nguyên của PickPack sang Inventory.
+- Tham chiếu UI duy nhất được Owner chỉ định: PickPack 1291 [Draft PR #2](https://github.com/tamnv2/pickpack/pull/2), **chỉ đọc**. Được tái sử dụng mã nguồn **giao diện** PickPack theo quyền chỉ đọc để xây frontend Inventory; không chuyển nghiệp vụ/dữ liệu/mock login/backend/runtime tài nguyên PickPack sang Inventory.
 
 ## Lệnh Owner mới / quyết định phạm vi
 **Không tiếp tục vá, chỉnh CSS chồng lớp trên giao diện Web Báo hàng cũ. Phải thay hẳn lớp giao diện**, tham chiếu bản Web kiểm thử của dự án quản lý vận hành. Giữ nguyên tất cả logic D173 đang sử dụng (Firebase Auth, RBAC, API nghiệp vụ, WebSocket, dữ liệu thực, báo SKU, SLA, form, modal, dashboard, báo cáo, log, responsive và các chức năng thực). Không dùng dữ liệu/mock ở Production; không xây một shell đẹp nhưng bỏ thao tác thực.
@@ -25,3 +25,11 @@
 5. CODE **NOT STARTED**; CI **NOT RUN**; RELEASE **3.3.24 UNCHANGED / TECH PASS ONLY**; FIELD **OWNER NOT PASS**; OWNER PASS **FALSE**. Không merge hoặc deploy từ checkpoint này.
 
 **Nguồn**: Owner field feedback 21/11/2026 (không kèm dữ liệu cá nhân); source `main@9125244e64458b10ccbffec1744418b63b3423bd`; Production E288 receipt; PickPack PR #2 read-only.
+
+## E290 — Hiệu chỉnh cách triển khai theo Owner (21/11/2026)
+
+Web kiểm thử **đã có mã giao diện hoàn chỉnh cho bài toán kiểm thử** chứ không phải chỉ ảnh tham khảo. Nguồn trực tiếp: PickPack PR #2 HEAD `c9a7730b4307aa085e48e0198e859a3419d1c33e` — `prototype/index.html`, `prototype/assets/styles.css` (blob `f35a20e456355dbf6d7e065b856a6760cd355234`), `prototype/assets/app.js` (blob `b0ad42c9229ec123cbc726d62dc30f3d8919406e`). Source `app.js` ghi `WEB_VERSION='0.12.2'` tại HEAD; mô tả PR cũ ghi 0.11.0 là lịch sử, không phải bản mã hiện hành.
+
+**Yêu cầu kỹ thuật:** dùng chính UI CSS/layout/shell/component của PickPack, điều chỉnh chữ/nội dung/menu cho các nghiệp vụ Inventory, giữ thao tác và binding Inventory hiện có. Source JS PickPack là bản kiểm thử local với tài khoản mô phỏng và dữ liệu trình duyệt: **không được chép nguyên `app.js` vào sản phẩm Inventory**. Cần tách giao diện khỏi demo logic rồi nối trực tiếp vào D173 Auth/RBAC/API/WS. Xóa sự phụ thuộc các stylesheet legacy Inventory sau khi hoàn tất migration component và kiểm thử. Không dùng layered overrides để mô phỏng.
+
+Trạng thái xác minh: **UI nguồn đã có / Inventory integration chưa có**; không đánh tráo hai loại code. D173-E290 ghi nhận Owner hiệu chỉnh cách thực hiện trong PR #993; không deploy.

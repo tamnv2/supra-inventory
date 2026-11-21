@@ -2604,7 +2604,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E289_OWNER_FIELD_FAIL_WEB3324__REBUILD_SOURCE_PENDING__D172_HOLD",
+    "current_change_status": "D173_E290_PICKPACK_ACTUAL_UI_SOURCE_REUSE_CLARIFIED__INVENTORY_CODE_PENDING__WEB3324_FIELD_FAIL__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7662,7 +7662,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
     "pr": 993,
-    "latest_checkpoint_id": "D173-E289",
+    "latest_checkpoint_id": "D173-E290",
     "checkpoint_date_vn": "2026-11-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7671,7 +7671,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 993,
     "active_working_branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
-    "working_pr_lifecycle": "PR993_OPEN_DRAFT_CODE_NOT_STARTED__E289_OWNER_FIELD_FAIL__PRODUCTION_WEB3324_UNCHANGED"
+    "working_pr_lifecycle": "PR993_OPEN_DRAFT_E290_SOURCE_REUSE_CLARIFIED__INVENTORY_UI_CODE_NOT_YET_IMPLEMENTED__NO_NEW_RELEASE"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -15187,7 +15187,7 @@
     "date_vn": "2026-11-21",
     "owner_report": "WEB3324_FIELD_FAIL_UI_DIFFERS_FROM_PICKPACK_PROTOTYPE",
     "owner_instruction": "REBUILD_ALL_D173_WEB_PRESENTATION_FROM_SCRATCH__NOT_LEGACY_CSS_OVERRIDE",
-    "source_reference": "tamnv2/pickpack PR2 READ_ONLY_DESIGN_REFERENCE",
+    "source_reference": "tamnv2/pickpack PR2 EXISTING_UI_CODE_READ_ONLY_REUSE_AS_PRESENTATION_BASE",
     "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
     "branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
     "pr": 993,
@@ -15203,6 +15203,22 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "reference_doc": "docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md",
-    "next_gate": "REBUILD_UI_AND_INTEGRATED_REAL_ROLE_NINE_PAGE_TESTS__SOURCE_D172_CI__SEPARATE_OWNER_RELEASE_ORDER"
+    "next_gate": "PORT_REUSABLE_PICKPACK_UI_SOURCE_TO_INVENTORY_PRESENTATION_AND_BIND_REAL_HANDLER__NINE_PAGE_ROLE_TESTS__SOURCE_D172_CI__SEPARATE_OWNER_RELEASE_ORDER",
+    "last_owner_clarification": "E290_EXISTING_PICKPACK_UI_CODE_MUST_BE_REUSED_NOT_RECREATED_FROM_SCREENSHOTS",
+    "ui_source": {
+      "repository": "tamnv2/pickpack",
+      "pr": 2,
+      "head_sha": "c9a7730b4307aa085e48e0198e859a3419d1c33e",
+      "paths": [
+        "prototype/index.html",
+        "prototype/assets/styles.css",
+        "prototype/assets/app.js"
+      ],
+      "source_ui_exists": true,
+      "inventory_integration_exists": false,
+      "portable": "CSS_DESIGN_TOKENS_LAYOUT_SIDE_TOP_MODALS_NAV_FORMS_PRESENTATION_ONLY",
+      "forbidden": "PICKPACK_MOCK_LOGIN_LOCAL_BUSINESS_DATA_AND_PDA_CCDC_OPERATIONS",
+      "source_embedded_version": "0.12.2"
+    }
   }
 }

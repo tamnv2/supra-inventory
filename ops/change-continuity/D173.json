@@ -7,10 +7,10 @@
   "pr": 993,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E289",
+    "id": "D173-E290",
     "date_vn": "2026-11-21",
-    "summary": "Owner FIELD NOT PASS Web3.3.24; reject incremental CSS preview overlay and direct full D173 Web UI rebuild from PickPack prototype (read-only visual source), preserve business/auth/realtime. Draft PR993 docs-only; CODE/CI pending; Production3.3.24 unchanged; D172 HOLD.",
-    "status": "OWNER_FIELD_FAIL__NEW_UI_REBUILD_CODE_PENDING__PRODUCTION_UNCHANGED",
+    "summary": "Owner clarifies actual PickPack UI CSS/markup/code must be reused from reference source (read-only), not recreated from screenshot or overlaid on old Inventory. PickPack PR2 has existing assets; Inventory functional integration still unimplemented. Web3.3.24 Production unchanged; Owner FIELD NOT PASS.",
+    "status": "REUSE_EXISTING_PICKPACK_UI_SOURCE_APPROVED__INVENTORY_INTEGRATION_PENDING__FIELD_FAIL",
     "source": "docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md",
     "branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
     "pr": 993,
@@ -6213,6 +6213,40 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E290",
+      "date_vn": "2026-11-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "change_id": "D173",
+      "subchange": "E290",
+      "topic": "Owner corrects E289 implementation premise: existing PickPack Management UI code is the replacement UI source, not a screenshot-only inspiration or a prompt to design an unrelated new look",
+      "status": "CLARIFIED_REUSE_ACTUAL_PICKPACK_PRESENTATION_SOURCE__WEB_INTEGRATION_CODE_PENDING__PRODUCTION_UNCHANGED",
+      "next_action": "Read-only reuse of PickPack PR2 approved UI assets (CSS/layout and presentation functions), adapt its shell/components to Inventory module content and bind existing real D173 Auth/RBAC/handlers/API/realtime. Do not copy mock identity/users, browser-local business persistence or unrelated PickPack modules. Remove old Inventory visual layers only after integrated functionality checks. No new Production approval.",
+      "evidence": "Owner correction 2026-11-21; PickPack PR2 OPEN DRAFT head c9a7730b4307aa085e48e0198e859a3419d1c33e; prototype/index.html links prototype/assets/styles.css blob f35a20e456355dbf6d7e065b856a6760cd355234 and prototype/assets/app.js blob b0ad42c9229ec123cbc726d62dc30f3d8919406e; current app.js WEB_VERSION 0.12.2 despite earlier PR body mention v0.11.0; style has native PickPack .sidebar, .topbar, .app-main, modal, dark tokens; app.js side()/top()/render() plus demoSession/browser-local mock business data; Inventory PR993 HEAD e998d65a85b4fab04edc1476b6c52eaacda8aa8a; 3/3 scoped governance guards PASS.",
+      "supersedes": [
+        "D173-E289"
+      ],
+      "facts": [
+        "The tested PickPack UI already exists as working HTML/CSS/JavaScript assets in the separate PickPack repository; saying there is no UI replacement code is misleading. What is missing is a tested Inventory adaptation of those assets.",
+        "Reuse actual layout, visual CSS/tokens, icons, menus, tables/forms/dialog presentation components; preserve corresponding appearance as implemented, not restyle old Inventory with a CSS override or recreate from screenshots.",
+        "Only the PickPack UI source is read through read-only access. Its app.js includes simulated browser-local data/login and PickPack-specific business flows that must not be imported into Inventory runtime.",
+        "Current Inventory frontend requires 9 page/role/action integration with existing authenticated API, RBAC, realtime, no D172 or backend changes.",
+        "Version in PickPack source at inspected HEAD is 0.12.2; older PR description 0.11.0 should not override current file content. Use pinned code for visual baseline.",
+        "No new Inventory frontend implementation or authenticated QA is falsely claimed; Web3.3.24 Production retained and Owner FIELD/OWNER NOT PASS."
+      ],
+      "working_branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
+      "pr": 993,
+      "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
+      "source_reference": "tamnv2/pickpack@c9a7730b4307aa085e48e0198e859a3419d1c33e:prototype/assets/{styles.css,app.js}",
+      "code": "PENDING_INVENTORY_INTEGRATION__SOURCE_UI_EXISTS_IN_PICKPACK",
+      "ci": "GOVERNANCE_GUARDS_PREVIOUS_3_3_PASS__FRONTEND_BUILD_NOT_RUN",
+      "release": "UNCHANGED_WEB3_3_24_TECHNICAL_PASS_PRIOR",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -6244,7 +6278,8 @@
       "D173-E174 Owner 09/11 approves Agent176-only focus repair and conditional signed OTA; Launcher explicitly deferred backlog.",
       "D173-E239: Owner explicitly authorizes code/merge/Production release of the three Web3.3.15 UI requirements on PR961 after exact-source scoped CI and D172 isolation; no Stable/D172 mutation.",
       "D173-E278 Owner 2026-11-16 authorized Agent194 functional WMS Confirm HA, one incident mail, guarded existing Worker and Agent Production; D172 remains independent HOLD.",
-      "D173-E289 Owner 21/11/2026 explicitly rejects Web3.3.24 visual result and orders complete Web frontend UI rebuild using PickPack PR2 as read-only visual reference, not CSS overlay on legacy."
+      "D173-E289 Owner 21/11/2026 explicitly rejects Web3.3.24 visual result and orders complete Web frontend UI rebuild using PickPack PR2 as read-only visual reference, not CSS overlay on legacy.",
+      "D173-E290 Owner explicitly clarifies: reuse actual tested PickPack Management frontend UI presentation sources (not screenshots/inspiration) as the Inventory replacement foundation; keep PickPack repository read-only and all D173 business logic."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -6356,7 +6391,8 @@
       "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending.",
       "D173-E216 Owner Web339 search returns all, date-right, selected tab visibility; PR950 Web-only source candidate CI pending, Production unchanged.",
       "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization.",
-      "E289 new frontend UI rebuild plan recorded Draft PR993: actual Web source still imports 19 CSS layers; full code, nine integrated authenticated screens, CI and UAT pending, no Production change."
+      "E289 new frontend UI rebuild plan recorded Draft PR993: actual Web source still imports 19 CSS layers; full code, nine integrated authenticated screens, CI and UAT pending, no Production change.",
+      "D173-E290 confirmed PickPack PR2 source: prototype/index.html, assets/styles.css and assets/app.js with working layout/theme and mock local business. Port presentation layer ONLY to Inventory; do not port demo credentials/storage/business."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -6409,7 +6445,8 @@
       "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending.",
       "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated.",
       "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately.",
-      "E289: build separate D173 Web UI presentation and real integrated screens; verify regression/usage/security/D172; then request separate release gate and authenticated Owner field acceptance."
+      "E289: build separate D173 Web UI presentation and real integrated screens; verify regression/usage/security/D172; then request separate release gate and authenticated Owner field acceptance.",
+      "D173-E290 integrate pinned PickPack UI shell/component CSS and layout markup with real Inventory 9 pages, RBAC, API, realtime, action handlers and browser regression on PR993."
     ],
     "release_boundary": "E289 WEB_CODE_ONLY_PENDING__WEB3324_PRODUCTION_UNCHANGED_FIELD_FAIL__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
