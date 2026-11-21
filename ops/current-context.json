@@ -10,45 +10,48 @@
     "pr": 995,
     "branch": "fix/d173-e294-web3323-rollback-20261121",
     "target": "3.3.23",
-    "production_unchanged": "3.3.25",
-    "status": "SCOPED_CI_5_OF_5_PASS__NO_PRODUCTION_RELEASE",
+    "production_unchanged": null,
+    "status": "PASS_PRODUCTION_TECH_RELEASE_RUN44900247227__FIELD_PENDING",
     "d172": "HOLD",
-    "source_ci_sha": "f3f95c7dd6d89a148e9a658128a4b9b65f137c04"
+    "source_ci_sha": "f3f95c7dd6d89a148e9a658128a4b9b65f137c04",
+    "release_main_sha": "e450aef40929076706d92333848202af04f86100",
+    "release_run_id": 44900247227
   },
   "current_governance_work": {
-    "checkpoint_id": "D173-E295",
-    "pr": 995,
-    "branch": "fix/d173-e294-web3323-rollback-20261121",
-    "status": "WEB3323_ROLLBACK_PR995_SCOPED_CI_5_5_PASS__PRODUCTION_PENDING__D172_HOLD",
+    "checkpoint_id": "D173-E296",
+    "pr": null,
+    "branch": "docs/d173-e296-web3323-rollback-release-20261121",
+    "status": "D173_WEB3323_PRODUCTION_ROLLBACK_TECH_PASS__RUN44900247227__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_code_direction": "ROLLBACK_EXACT_WEB3323_TREE_ONLY__KEEP_LATEST_BACKEND",
     "owner_merge_approved": true,
     "owner_release_approved": true,
-    "source_doc": "docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md",
-    "production_web_version": "3.3.25",
+    "source_doc": "docs/D173_E296_WEB3323_ROLLBACK_PRODUCTION_RECEIPT_2026-11-21.md",
+    "production_web_version": "3.3.23",
     "target_web_version": "3.3.23",
     "field_pass": false,
     "owner_pass": false,
-    "source_main_sha": "b566f53286692d6d8bf2d8a64823c03c319ff745",
+    "source_main_sha": "e450aef40929076706d92333848202af04f86100",
     "code_scoped_pass": true,
     "ci_scoped_pass": true,
-    "release_technical_pass": false,
+    "release_technical_pass": true,
     "previous_production_release_technical_pass": true,
     "worker_technical_release_pass": true,
-    "source_pr": 993,
+    "source_pr": 995,
     "previous_release_run_id": 44735679902,
     "source_reference": "tamnv2/pickpack@c9a7730b4307aa085e48e0198e859a3419d1c33e:prototype/assets/{styles.css,app.js}",
-    "candidate_status": "PR995_EXACT_WEB3323_TREE_SCOPED_CI_PASS_PRODUCTION_PENDING",
-    "source_code_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+    "candidate_status": "WEB3323_PRODUCTION_EXACT_SOURCE_HEALTH_PASS__FIELD_OWNER_PENDING",
+    "source_code_sha": "a44f6739c4b45e15ee3529918759af8bdfbea45a",
     "source_ci_sha": "f3f95c7dd6d89a148e9a658128a4b9b65f137c04",
     "source_ci_run_ids": [
-      44893357382,
-      44893357601,
-      44893357551,
-      44893357536
+      44899898475,
+      44899898373,
+      44899898456,
+      44899898209,
+      44899898564
     ],
-    "release_run_id": 44893780330,
+    "release_run_id": 44900247227,
     "release_run_attempt": 1,
-    "release_job_id": 136814981694
+    "release_job_id": 136834437859
   },
   "web3311_release_candidate": {
     "change_id": "D173-E223",
@@ -76,16 +79,16 @@
       "host_build": 14
     },
     "web": {
-      "version": "3.3.25",
-      "worker_web_run": 44893780330,
-      "source_change_id": "D173-E291",
-      "source_main_sha": "b566f53286692d6d8bf2d8a64823c03c319ff745",
-      "ci_release": "PASS_PRODUCTION_WORKER_WEB_EXACT_SOURCE_RUN44893780330_ATTEMPT1__FIELD_OWNER_PENDING",
-      "field": "PENDING_OWNER_AUTHENTICATED_WEB3325_VISUAL_FUNCTIONAL_REVIEW",
+      "version": "3.3.23",
+      "worker_web_run": 44900247227,
+      "source_change_id": "D173-E294",
+      "source_main_sha": "e450aef40929076706d92333848202af04f86100",
+      "ci_release": "PASS_TECH_EXACT_SOURCE_RUN44900247227_ATTEMPT1__FIELD_OWNER_PENDING",
+      "field": "PENDING_OWNER_AUTHENTICATED_WEB3323_ROLLBACK_FIELD_REVIEW",
       "owner_pass": "PENDING",
       "local_user_cache": "AUTHENTICATED_RAM_ONLY_TTL120SEC__NOT_ON_DISK",
-      "runtime_readback_run": "https://github.com/tamnv2/supra-inventory/actions/runs/44893780330",
-      "deploy_push_workflow_run": "https://github.com/tamnv2/supra-inventory/actions/runs/44893780330"
+      "runtime_readback_run": "https://github.com/tamnv2/supra-inventory/actions/runs/44900247227",
+      "deploy_push_workflow_run": "https://github.com/tamnv2/supra-inventory/actions/runs/44900247227"
     },
     "android": {
       "tag": "beta-vc128",
@@ -94,7 +97,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md"
+    "receipt": "docs/D173_E296_WEB3323_ROLLBACK_PRODUCTION_RECEIPT_2026-11-21.md"
   },
   "d172": {
     "change_id": "D172",

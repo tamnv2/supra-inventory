@@ -127,7 +127,7 @@
     "target_version": "3.3.23",
     "code": "PASS_SCOPED_EXACT_WEB3323",
     "ci": "PASS_5_OF_5_SCOPED",
-    "release": "PENDING_PRODUCTION_3_3_25",
+    "release": "PASS_PRODUCTION_WORKER_WEB_TECH_RUN44900247227_ATTEMPT1",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
@@ -140,7 +140,12 @@
       44899898456,
       44899898209,
       44899898564
-    ]
+    ],
+    "release_main_sha": "e450aef40929076706d92333848202af04f86100",
+    "release_run_id": 44900247227,
+    "release_job_id": 136834437859,
+    "production_version": "3.3.23",
+    "receipt": "docs/D173_E296_WEB3323_ROLLBACK_PRODUCTION_RECEIPT_2026-11-21.md"
   },
   "display_name": "SUPRA Inventory — Báo hàng",
   "timezone": "Asia/Ho_Chi_Minh",
@@ -175,12 +180,12 @@
     "doc": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
   },
   "current_status": {
-    "beta": "D173_E288_WEB3324_PRODUCTION_EXACT_SOURCE_PASS__RUN44735679902_ATTEMPT2__FIELD_OWNER_PENDING__D172_HOLD",
+    "beta": "D173_E296_WEB3323_PRODUCTION_EXACT_SOURCE_PASS__RUN44900247227__FIELD_OWNER_PENDING__D172_HOLD",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D173_E293_WEB_3_3_25_PRODUCTION_TECH_PASS__RUN44893780330__FIELD_OWNER_PENDING__D172_HOLD",
+    "web": "D173_E296_WEB_3_3_23_PRODUCTION_ROLLBACK_TECH_PASS__RUN44900247227__FIELD_OWNER_PENDING__D172_HOLD",
     "android": "SIGNED_ANDROID_VC128_CHANNEL_RELEASE_PASS__FLEET_INSTALL_UNVERIFIED",
     "latest_beta_apk": "beta-vc128__SIGNED_APK_RELEASE_PUBLISHED__PHYSICAL_FLEET_INSTALL_UNVERIFIED",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
@@ -7689,18 +7694,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e294-web3323-rollback-20261121",
-    "pr": 995,
-    "latest_checkpoint_id": "D173-E295",
+    "working_branch": "docs/d173-e296-web3323-rollback-release-20261121",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E296",
     "checkpoint_date_vn": "2026-11-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E294_OWNER_EXPLICIT_WEB3323_ROLLBACK__SOURCE_CI_PENDING__NO_RELEASE_YET__D172_HOLD",
+    "owner_release_gate": "D173_E294_WEB3323_ROLLBACK_RELEASE_TECH_PASS_MAIN_E450AEF_RUN44900247227__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 995,
-    "active_working_branch": "fix/d173-e294-web3323-rollback-20261121",
-    "working_pr_lifecycle": "PR995_OPEN_DRAFT_EXACT_WEB3323_TREE_RESTORE__SOURCE_CI_RELEASE_PENDING"
+    "working_pr": null,
+    "active_working_branch": "docs/d173-e296-web3323-rollback-release-20261121",
+    "working_pr_lifecycle": "E296_DOCS_ONLY_PRODUCTION_RECEIPT_PR_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
