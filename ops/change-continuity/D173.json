@@ -3,28 +3,29 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e294-web3323-rollback-20261121",
-  "pr": 995,
+  "working_branch": "docs/d173-e296-web3323-rollback-release-20261121",
+  "pr": 996,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E295",
+    "id": "D173-E296",
     "date_vn": "2026-11-21",
-    "summary": "E294 exact Web3.3.23 tree restoration scoped CI 5/5 PASS: E294 browser/TS/Vite + D172 74/74, E123 backend/Auth/D172, Repo Authority, Project State, D173/D172 business isolation. PR995 source/CI pinned, Production still Web3.3.25. Legacy global UI Design Guard FAIL reported separately; Owner FIELD FAIL pending rollback.",
-    "status": "PR995_CODE_CI_SCOPED_PASS__PRODUCTION_ROLLBACK_PENDING__D172_HOLD",
-    "source": "PR995 CI runs 44899898475,44899898373,44899898456,44899898209,44899898564",
-    "branch": "fix/d173-e294-web3323-rollback-20261121",
-    "pr": 995,
-    "source_main_sha": "163f05ac7db75ee232254c811c655069ec5f0638",
+    "summary": "Owner FIELD FAIL 3.3.25; exact Web3.3.23 rollback PR995 MERGED protected main e450aef; Production run44900247227 SUCCESS; /health HTTP200 exact source, SQLite17/17, operational7/7, scoped CI PASS. FIELD/OWNER PENDING, D172 HOLD.",
+    "status": "WEB3323_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E296_WEB3323_ROLLBACK_PRODUCTION_RECEIPT_2026-11-21.md",
+    "branch": "docs/d173-e296-web3323-rollback-release-20261121",
+    "pr": 996,
+    "source_main_sha": "e450aef40929076706d92333848202af04f86100",
     "source_code_sha": "a44f6739c4b45e15ee3529918759af8bdfbea45a",
     "source_ci_sha": "f3f95c7dd6d89a148e9a658128a4b9b65f137c04",
-    "release_run_id": null,
+    "release_run_id": 44900247227,
+    "release_run_attempt": 1,
     "code_pass": true,
     "ci_scoped_pass": true,
-    "release_pass": false,
+    "release_pass": true,
     "field_pass": false,
     "owner_pass": false
   },
-  "deployment_gate": "E294_OWNER_APPROVED_PRODUCTION_ROLLBACK__PR995_CI_AND_EXACT_SOURCE_GATED__PRODUCTION_STILL_WEB3325__D172_HOLD",
+  "deployment_gate": "E294_WEB3323_EXACT_ROLLBACK_PRODUCTION_TECH_RELEASE_PASS_RUN44900247227__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -6413,6 +6414,26 @@
       "privacy_safe": true,
       "pr": 995,
       "branch": "fix/d173-e294-web3323-rollback-20261121"
+    },
+    {
+      "id": "D173-E296",
+      "date_vn": "2026-11-21",
+      "kind": "STATUS",
+      "topic": "Owner ordered Web3.3.25 FIELD FAIL rollback to exact Web3.3.23; Production release verified on official host",
+      "status": "E294_WEB3323_PRODUCTION_TECH_RELEASE_PASS__CI_SCOPED_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": null,
+      "facts": [
+        "Owner explicitly requested Production rollback to historic Web3.3.23 after Web3.3.25 FIELD FAIL",
+        "PR995 protected two-parent MERGED main e450aef40929076706d92333848202af04f86100, with exact historical Web3.3.23 tree preserved and no backend/Agent/Android/D172 source rollback",
+        "Scoped source CI 5/5 SUCCESS; Web Chromium/Vite and D172 74/74 PASS; global legacy UI Design Guard separately failed",
+        "GitHub Actions Production Worker/Web run 44900247227 attempt 1 SUCCESS; official inventory.supra.cc.cd health HTTP200 exact source e450aef; SQLite17/17 operational7/7; Auth/API/PDA/OAuth smoke PASS",
+        "No authenticated real-device Owner UI test or D173 blanket OWNER PASS is established"
+      ],
+      "evidence": "PR995 MERGED main e450aef40929076706d92333848202af04f86100; workflows 44899898475,44899898373,44899898456,44899898209,44899898564; Production Worker/Web 44900247227 attempt1 job136834437859; live health source e450aef HTTP200 and SQLite17/17,operational7/7; receipt docs/D173_E296_WEB3323_ROLLBACK_PRODUCTION_RECEIPT_2026-11-21.md.",
+      "next_action": "Owner evaluates authenticated Web3.3.23 on inventory.supra.cc.cd. D173 remains open; no further deployment or unrelated change authorized.",
+      "privacy_safe": true,
+      "branch": "docs/d173-e296-web3323-rollback-release-20261121",
+      "pr": 996
     }
   ],
   "resume": {
