@@ -1,0 +1,253 @@
+name: D173 E139 Cloudflare Billing Cycle / Hourly Read-Only
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e139-cloudflare-usage-7day.yml"
+permissions:
+  contents: read
+jobs:
+  read-provider-only:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'audit/d173-e139-cloudflare-usage-7day-20261104'
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 12
+    env:
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      CF_READ_TOKEN: ${{ secrets.D173_CF_USAGE_READONLY_TOKEN }}
+      D166_READ_SECRET: ${{ secrets.D166_CF_READ_TOKEN }}
+    steps:
+      - name: Read seven local-calendar days without disclosing token or raw provider response
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import concurrent.futures
+          import datetime as dt
+          import json
+          import os
+          import re
+          import subprocess
+          from zoneinfo import ZoneInfo
+
+          VN=ZoneInfo("Asia/Ho_Chi_Minh")
+          UTC=dt.timezone.utc
+          START=dt.date(2026,10,19)
+          END=dt.date(2026,11,4)
+          now=dt.datetime.now(UTC)
+          account=os.environ.get("CF_ACCOUNT_ID","")
+          token=os.environ.get("CF_READ_TOKEN","")
+          cutoff=min(now,dt.datetime(2026,11,5,0,0,tzinfo=VN).astimezone(UTC))
+          report={"schema":"d173-e139-billing-cycle-hourly-v2",
+                  "source":"CLOUDFLARE_READ_ONLY_ANALYTICS",
+                  "generated_at_utc":now.isoformat(),
+                  "timezone":"Asia/Ho_Chi_Minh",
+                  "cycle_window_start":"2026-10-19T00:00:00Z","cycle_window_end":"2026-11-19T00:00:00Z","days":[(START+dt.timedelta(days=i)).isoformat() for i in range((END-START).days+1)],
+                  "current_day_partial":now<dt.datetime(2026,11,5,0,0,tzinfo=VN).astimezone(UTC),
+                  "scope_note":"DO and D1 account-shared, Worker script-filtered; not Inventory-only DO billing",
+                  "token_present":len(token)>20,
+                  "account_configured":bool(re.fullmatch(r"[a-fA-F0-9]{32}",account)),
+                  "metrics":{},"billing":{"status":"NOT_QUERIED"}}
+          os.makedirs("evidence",exist_ok=True)
+          def save():
+              with open("evidence/cloudflare-7day.json","w",encoding="utf-8") as f:
+                  json.dump(report,f,ensure_ascii=False,indent=2,sort_keys=True)
+              print("CLOUDFLARE_READBACK "+json.dumps({
+                  "token_present":report["token_present"],
+                  "account_configured":report["account_configured"],
+                  "metric_statuses":{k:v.get("status") for k,v in report["metrics"].items()},
+                  "billing_status":report["billing"].get("status")
+              },sort_keys=True))
+          if not report["token_present"] or not report["account_configured"]:
+              report["status"]="MISSING_BETA_ENV_SECRET_OR_ACCOUNT_VARIABLE"
+              save()
+              raise SystemExit(0)
+          def cf(url,payload=None):
+              cmd=["curl","--silent","--show-error","--max-time","20",
+                   "--header","Authorization: Bearer "+token,
+                   "--header","Accept: application/json",
+                   "--output","-","--write-out","\n%{http_code}"]
+              if payload is not None:
+                  cmd+=["--header","Content-Type: application/json","--request","POST","--data-binary","@-"]
+              cmd.append(url)
+              try:
+                  p=subprocess.run(cmd,input=json.dumps(payload) if payload is not None else None,
+                                   capture_output=True,text=True,timeout=24)
+                  if p.returncode!=0:return 0,{}
+                  body,code=p.stdout.rsplit("\n",1)
+                  return int(code),json.loads(body)
+              except Exception:return 0,{}
+          specs={
+              "do_invocations":("durableObjectsInvocationsAdaptiveGroups","sum{requests}",["requests"],"ACCOUNT_SHARED"),
+              "do_periodic":("durableObjectsPeriodicGroups","sum{rowsRead rowsWritten duration}",["rowsRead","rowsWritten","duration"],"ACCOUNT_SHARED"),
+              "worker_invocations":("workersInvocationsAdaptive","sum{requests cpuTimeUs errors}",["requests","cpuTimeUs","errors"],"SCRIPT_SUPRA_INVENTORY_BETA"),
+              "d1_analytics":("d1AnalyticsAdaptiveGroups","sum{rowsRead rowsWritten}",["rowsRead","rowsWritten"],"ACCOUNT_SHARED")
+          }
+          def run_one(specname,day):
+              dataset,selection,fields,scope=specs[specname]
+              daystart=dt.datetime.combine(day,dt.time.min,tzinfo=VN).astimezone(UTC)
+              dayend=min(daystart+dt.timedelta(days=1),cutoff)
+              if dayend<=daystart:return (specname,day.isoformat(),{"status":"FUTURE_DAY","values":{}})
+              if specname=="worker_invocations":
+                  flt='scriptName:"supra-inventory-beta",datetime_geq:"'+daystart.isoformat().replace("+00:00","Z")+'",datetime_leq:"'+dayend.isoformat().replace("+00:00","Z")+'"'
+              else:
+                  flt='date_geq:"'+daystart.date().isoformat()+'",date_leq:"'+dayend.date().isoformat()+'"'
+              query='query {viewer{accounts(filter:{accountTag:"'+account+'"}){x:'+dataset+'(filter:{'+flt+'},limit:1000){dimensions{datetimeHour} '+selection+'}}}}'
+              status,data=cf("https://api.cloudflare.com/client/v4/graphql",{"query":query})
+              if status!=200:return (specname,day.isoformat(),{"status":"HTTP_"+str(status),"values":{}})
+              if data.get("errors"):return (specname,day.isoformat(),{"status":"SCHEMA_OR_SCOPE_FAILURE","values":{}})
+              accounts=(((data.get("data") or {}).get("viewer") or {}).get("accounts") or [])
+              if len(accounts)!=1:return (specname,day.isoformat(),{"status":"ACCOUNT_SCOPE_FAILURE","values":{}})
+              rows=accounts[0].get("x")
+              if not isinstance(rows,list):return (specname,day.isoformat(),{"status":"INVALID_PROVIDER_RESULT","values":{}})
+              if len(rows)>=1000:return (specname,day.isoformat(),{"status":"TRUNCATED_AT_1000","values":{}})
+              totals={k:0 for k in fields}
+              selected=0
+              hourly={}
+              for row in rows:
+                  stamp=str((row.get("dimensions") or {}).get("datetimeHour") or "")
+                  if not stamp:continue
+                  try: t=dt.datetime.fromisoformat(stamp.replace("Z","+00:00"))
+                  except ValueError:continue
+                  if not (daystart<=t<dayend):continue
+                  selected+=1
+                  summ=row.get("sum") or {}
+                  hourly.setdefault(stamp,{k:0 for k in fields})
+                  for key in fields:
+                      val=summ.get(key)
+                      if isinstance(val,(int,float)) and val>=0:
+                          totals[key]+=val
+                          hourly[stamp][key]+=val
+              if rows and selected==0:return (specname,day.isoformat(),{"status":"MISSING_TIME_BUCKETS","values":{}})
+              return (specname,day.isoformat(),{"status":"OK" if rows else "NO_DATA","rows":len(rows),"values":totals,"hourly_utc":hourly})
+          tasks=[]
+          day=START
+          while day<=END:
+              for name in specs:tasks.append((name,day))
+              day+=dt.timedelta(days=1)
+          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+              for name,day,value in pool.map(lambda p:run_one(*p),tasks):
+                  report["metrics"].setdefault(name,{"scope":specs[name][3],"daily":{}})
+                  report["metrics"][name]["daily"][day]=value
+          for name,obj in report["metrics"].items():
+              statuses=[v["status"] for v in obj["daily"].values()]
+              obj["status"]="OK" if all(x in ("OK","NO_DATA") for x in statuses) else "PARTIAL_OR_UNAVAILABLE"
+              obj["unit_fields"]=specs[name][2]
+          status,data=cf("https://api.cloudflare.com/client/v4/accounts/"+account+"/billable-usage")
+          if status!=200:
+              report["billing"]={"status":"HTTP_"+str(status),"scope":"ACCOUNT_SHARED"}
+          elif not isinstance(data.get("result"),list):
+              report["billing"]={"status":"SCHEMA_OR_PERMISSION","scope":"ACCOUNT_SHARED"}
+          else:
+              lines=[]
+              for e in data["result"]:
+                  if not isinstance(e,dict):continue
+                  if str(e.get("ChargePeriodStart","")) < "2026-10-19":continue
+                  label=" ".join(str(e.get(k,"")) for k in ("ServiceFamilyName","ServiceName","ChargeDescription"))
+                  if not re.search(r"worker|durable|d1",label,re.I):continue
+                  out={}
+                  for k in ("ServiceName","ChargeDescription","ConsumedUnit","ChargePeriodStart","ChargePeriodEnd"):
+                      out[k]=re.sub(r"[^A-Za-z0-9 ._:/+-]","",str(e.get(k,"")))[:120]
+                  for k in ("ConsumedQuantity","Usage","UsageAmount","ChargeAmount","Amount","BilledQuantity"):
+                      v=e.get(k)
+                      if isinstance(v,(int,float)) and v>=0:out[k]=v
+                  lines.append(out)
+              report["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_lines":len(lines),"lines":lines}
+
+          # Five-minute, account-wide DO and script-only Worker samples for peak diagnosis.
+          report["five_minute"]={}
+          def five_minutes(dataset,selection,fields,scope,day):
+              ds=dt.datetime.combine(day,dt.time.min,tzinfo=VN).astimezone(UTC)
+              de=min(ds+dt.timedelta(days=1),cutoff)
+              if de<=ds:return {"status":"FUTURE","buckets":{}}
+              flt=('scriptName:"supra-inventory-beta",datetime_geq:"'+ds.isoformat().replace("+00:00","Z")+'",datetime_leq:"'+de.isoformat().replace("+00:00","Z")+'"') if scope.startswith("SCRIPT") else ('date_geq:"'+ds.date().isoformat()+'",date_leq:"'+de.date().isoformat()+'"')
+              q='query {viewer{accounts(filter:{accountTag:"'+account+'"}){x:'+dataset+'(filter:{'+flt+'},limit:1000){dimensions{datetimeFiveMinutes} '+selection+'}}}}'
+              status,resp=cf("https://api.cloudflare.com/client/v4/graphql",{"query":q})
+              if status!=200:return {"status":"HTTP_"+str(status),"buckets":{}}
+              if resp.get("errors"):return {"status":"GRAPHQL_SCHEMA_OR_SCOPE","buckets":{}}
+              acc=(((resp.get("data") or {}).get("viewer") or {}).get("accounts") or [])
+              if len(acc)!=1:return {"status":"ACCOUNT_SCOPE","buckets":{}}
+              rows=acc[0].get("x")
+              if not isinstance(rows,list) or len(rows)>=1000:return {"status":"INVALID_OR_TRUNCATED","buckets":{}}
+              vals={}
+              for row in rows:
+                  time=str((row.get("dimensions") or {}).get("datetimeFiveMinutes") or "")
+                  if not time:continue
+                  try: ts=dt.datetime.fromisoformat(time.replace("Z","+00:00"))
+                  except ValueError:continue
+                  if not (ds<=ts<de):continue
+                  slot=vals.setdefault(time,{f:0 for f in fields})
+                  for f in fields:
+                      n=(row.get("sum") or {}).get(f)
+                      if isinstance(n,(int,float)) and n>=0:slot[f]+=n
+              return {"status":"OK" if vals else "NO_DATA","buckets":vals}
+          hot_days=[dt.date(2026,10,30),dt.date(2026,11,2),dt.date(2026,11,3),dt.date(2026,11,4)]
+          for spec in ("do_invocations","worker_invocations"):
+              dataset,selection,fields,scope=specs[spec]
+              report["five_minute"][spec]={}
+              for day in hot_days:
+                  report["five_minute"][spec][day.isoformat()]=five_minutes(dataset,selection,fields,scope,day)
+          save()
+          PY
+      - name: Read authenticated production InventoryCore SQL and route counters (aggregate only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,hmac,json,os,subprocess,time
+          out={"schema":"d173-e139-core-route-readback-v1","status":"NOT_RUN","source":"ONE_INVENTORY_CORE_ONLY__36H","route_top":[],"sql_top":[]}
+          os.makedirs("evidence",exist_ok=True)
+          def save():
+              with open("evidence/core-route-36h.json","w") as f:json.dump(out,f,indent=2,sort_keys=True)
+              print("CORE_ROUTE_READBACK "+out["status"])
+          secret=os.environ.get("D166_READ_SECRET","")
+          if len(secret)<20:
+              out["status"]="MISSING_EXISTING_D166_READ_SECRET";save();raise SystemExit(0)
+          def get(url,heads=None):
+              cmd=["curl","--silent","--show-error","--max-time","25","--output","-",
+                   "--write-out","\n%{http_code}","--header","accept: application/json"]
+              for k,v in (heads or {}).items():cmd+=["--header",k+": "+v]
+              cmd.append(url)
+              try:
+                  p=subprocess.run(cmd,capture_output=True,text=True,timeout=29)
+                  if p.returncode!=0:return 0,{}
+                  body,code=p.stdout.rsplit("\n",1)
+                  return int(code),json.loads(body)
+              except Exception:return 0,{}
+          base="https://inventory.supra.cc.cd"
+          code,health=get(base+"/health/routine")
+          out["health_http"]=code
+          out["production_source_commit"]=str(health.get("source_commit") or "")[:40]
+          if code!=200 or health.get("status")!="ok":
+              out["status"]="HEALTH_UNAVAILABLE";save();raise SystemExit(0)
+          ts=str(int(time.time()))
+          path="/api/internal/d173/sql-evidence"
+          msg=("D173_SQL_QUERY_ID_AUDIT_V1\nGET\n"+path+"\n"+ts).encode()
+          sig=hmac.new(secret.encode(),msg,hashlib.sha256).hexdigest()
+          code,body=get(base+path,{"x-d173-audit-ts":ts,"x-d173-audit-hmac":sig})
+          out["audit_http"]=code
+          if code!=200 or body.get("status")!="OK":
+              out["status"]="AUDIT_UNAVAILABLE_OR_DENIED";save();raise SystemExit(0)
+          route=body.get("d167_do_request_diagnostics") or {}
+          sql=body.get("d166_sql_diagnostics") or {}
+          def safe(rows,allow,rank,maxn):
+              return [{k:row.get(k) for k in allow if k in row}
+                 for row in sorted((x for x in (rows or []) if isinstance(x,dict)),key=lambda x:-float(x.get(rank) or 0))[:maxn]]
+          out["route_coverage"]=str(route.get("coverage") or "")[:140]
+          out["route_durable"]=route.get("durable") is True
+          out["route_buckets"]=len(route.get("rows") or [])
+          out["route_top"]=safe(route.get("rows"),("hour_utc","method","family","requests","latency_ms","max_latency_ms"),"requests",600)
+          out["sql_coverage"]=str(sql.get("coverage") or "")[:140]
+          out["sql_durable"]=sql.get("durable") is True
+          out["sql_top"]=safe(sql.get("rows"),("hour_utc","query_id","executions","rows_read","rows_written","latency_ms","max_rows_read"),"rows_read",200)
+          out["status"]="OK";save()
+          PY
+      - name: Upload sanitized aggregate evidence only
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: d173-e139-cloudflare-billing-cycle-hourly
+          path: |
+            evidence/cloudflare-7day.json
+            evidence/core-route-36h.json
+          if-no-files-found: warn
+          retention-days: 1
