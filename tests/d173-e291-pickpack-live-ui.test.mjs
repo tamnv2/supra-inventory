@@ -91,7 +91,17 @@ async function newAppPage(browser, role, width, theme) {
   const page=await browser.newPage({viewport:{width,height:900}});
   const errors=[],unhandled=[];
   page.on("pageerror",e=>errors.push(String(e)));
-  page.on("console",m=>{if(m.type()==="error") errors.push("console: "+m.text())});
+  page.on("console",m=>{
+    if(m.type()!=="error")return;
+    // Synthetic picker snapshot endpoint intentionally returns 404 to activate
+    // supported fallback GET /api/picker/reports; do not ignore other errors.
+    if(role==="PICKER" && m.text()==="Failed to load resource: the server responded with a status of 404 (Not Found)")return;
+    errors.push("console: "+m.text());
+  });
+  page.on("response",response=>{
+    if(response.status()===404 && !new URL(response.url()).pathname.startsWith("/api/picker/snapshot"))
+      errors.push("unexpected 404: "+new URL(response.url()).pathname);
+  });
   // Synthetic HTTP-only Vite preview has no WebSocket server. Fulfill a
   // browser-native WS handshake for isolated UI checks without provider calls.
   // This does not claim to validate real production WebSocket delivery.
