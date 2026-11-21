@@ -5498,3 +5498,7 @@ Owner yêu cầu sáu chỉnh sửa: thu gọn viền/khoảng cách Tổng quan
 
 ## D173-E249 — 13/11/2026: Owner ra lệnh phát hành Web 3.3.17
 Owner yêu cầu rõ **"done code hoàn chỉnh và phát hành 3.3.17"** tiếp theo E247/E248 trên PR #968. Duyệt code + source-pinned CI + protected two-parent merge + Production Worker/Web tại domain đã đăng ký. Phạm vi giới hạn Web UI/nhân sự và API + bảng `contractor_catalog` của D173; cần D172 isolation/RBAC regressions. Không chỉnh tài nguyên nghiệp vụ D172, Agent, APK, Firebase, Gateway, Stable hoặc provider ngoài Worker hiện hữu. Danh sách tài khoản tải toàn bộ/lọc tại Web; bộ nhớ cục bộ chỉ RAM phiên/quyền, **chưa** lưu định danh cá nhân dài hạn trên máy công cộng. Không gộp FIELD hoặc OWNER PASS vào CI/RELEASE. Gate: `tools/d173_e249_web3317_release_gate.py`, quyết định và scope: `docs/D173_E249_WEB3317_RELEASE_AUTHORIZATION_2026-11-13.md`.
+
+## D173-E294 — 21/11/2026: Owner yêu cầu khôi phục Web 3.3.23
+
+Owner báo Web 3.3.25 không đạt thực tế (FIELD FAIL) và **ra lệnh rollback Production Web về đúng 3.3.23**. Duyệt CODE+CI+protected merge+Production Web trên Worker hiện hữu tại inventory.supra.cc.cd, sau khi source-pinned gate/CI và D172 isolation đạt. Khôi phục **chính xác toàn bộ Web tree** từ GitHub commit 70bd1f12b142642aafba02f1c9cb71b1d3a14214; không revert toàn repo, không sửa Worker backend/DO/SQLite, Firebase Auth, Agent, Android, D172 hoặc OWNER-GATED Stable. Giữ trạng thái FIELD/OWNER PASS là FALSE đến khi thực tế xác nhận. Nhánh fix/d173-e294-web3323-rollback-20261121, PR #995.

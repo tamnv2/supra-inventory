@@ -1,0 +1,46 @@
+name: D173 E294 Restore exact Web 3.3.23 and D172 isolation
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'tests/d173-e294-*'
+      - 'ops/d173-e294-web3323-rollback-authorization.json'
+      - 'ops/change-continuity/D173.json'
+      - 'ops/project-state.json'
+      - '.github/workflows/d173-e294-web3323-rollback.yml'
+permissions:
+  contents: read
+jobs:
+  web-3323-build-regression-d172:
+    if: contains(github.head_ref, 'd173-e294-web3323-rollback')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Web and Chromium dependencies
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Exact old Web tree and release guard tests
+        run: node --test tests/d173-e294-web3323-rollback.test.mjs tests/d173-e270-web-smart-lazy.test.mjs tests/d173-e267-browser-geometry.test.mjs
+      - name: Web TypeScript/Vite production build
+        working-directory: web
+        run: npm run build
+      - name: D172 isolation and independent business regressions
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          cd service && npm install --ignore-scripts --no-audit --no-fund && cd ..
+          node --test tests/d172-*.test.mjs
+      - name: No deployment during PR
+        run: echo 'D173_E294_SOURCE_ONLY__OWNER_PRODUCTION_GATED__D172_HOLD'

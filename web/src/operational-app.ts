@@ -1,5 +1,21 @@
-import "./pickpack-office.css";
-import "./d173-pickpack-business.css";
+import "@tabler/core/dist/css/tabler.min.css";
+import "./styles.css";
+import "./legacy-operational.css";
+import "./legacy-transplant/style.css";
+import "./legacy-transplant/workflow-dashboard-v5.css";
+import "./legacy-transplant/warehouse-ui-v2.css";
+import "./legacy-transplant/ops-console.css";
+import "./legacy-transplant/workflow-v3-overrides.css";
+import "./legacy-transplant/workflow-v4-ux.css";
+import "./legacy-transplant/web-fast-ui.css";
+import "./legacy-transplant/web-unified-ui.css";
+import "./legacy-transplant/web-professional-v2.css";
+import "./legacy-transplant/d167-web-layout-density.css";
+import "./legacy-transplant/d167-sku-provenance.css";
+import "./legacy-transplant/d167-web-compact-accounts.css";
+import "./legacy-transplant/d167-web-ux-recovery.css";
+import "./d173-tabler.css";
+import "./d173-overview.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -186,8 +202,7 @@ let uiZoom = loadUiZoom();
 function applyUiZoom(): void {
   const effectiveScale = WEB_TEXT_BASE_SCALE * (uiZoom / 100);
   document.body.style.setProperty("--supra-ui-zoom-factor", effectiveScale.toFixed(3));
-  document.body.style.removeProperty("zoom");
-  document.documentElement.style.setProperty("--text-scale", (1.1 * uiZoom / 100).toFixed(2));
+  document.body.style.setProperty("zoom", effectiveScale.toFixed(3));
   document.body.dataset.logicalUiZoom = String(uiZoom);
   const label = document.querySelector<HTMLElement>("#ui-zoom-value");
   if (label) label.textContent = `${uiZoom}%`;
@@ -221,7 +236,6 @@ let themeMode: ThemeMode = loadThemeMode();
 function applyTheme(): void {
   const resolved = themeMode === "AUTO" ? (autoThemeIsDark() ? "dark" : "light") : themeMode.toLowerCase();
   document.body.dataset.theme = resolved;
-  document.documentElement.dataset.theme = resolved;
   document.documentElement.style.colorScheme = resolved;
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#0f172a" : "#087443");
 }
@@ -1220,15 +1234,10 @@ function syncNavigationSelection(): void {
     const selected = node.dataset.section === activeSection ||
       (node.dataset.section === "operations" && (activeSection === "overdue" || activeSection === "results"));
     node.classList.toggle("active", selected);
-    node.closest(".side-link")?.classList.toggle("selected", selected);
     if (selected) node.setAttribute("aria-current", "page");
     else node.removeAttribute("aria-current");
   });
   syncOperationsNavBadge();
-  const heading = document.querySelector<HTMLElement>("#inventory-current-title");
-  if (heading) heading.textContent = previewSectionTitle(activeSection);
-  document.body.dataset.inventoryMenuOpen = "false";
-  document.querySelector("#inventory-menu-toggle")?.setAttribute("aria-expanded", "false");
 }
 
 function navigateToSection(next: Section, historyMode: SectionHistoryMode = "push"): void {
@@ -1309,7 +1318,7 @@ function navButton(section: Section, label: string): string {
   const noticeCount = section === "operations" && roleOperate() ? queueBadgeCount : null;
   const notice = noticeCount == null || noticeCount <= 0 ? "" : `<b class="nav-notice-badge" data-operations-nav-count>${noticeCount > 99 ? "99+" : noticeCount}</b>`;
   const selected = section === activeSection || (section === "operations" && (activeSection === "overdue" || activeSection === "results"));
-  return `<div class="side-link ${selected ? "selected" : ""}"><button type="button" class="nav-main nav-button ${selected ? "active" : ""}" data-section="${section}"${selected ? ' aria-current="page"' : ""}>${navIcon(section)}<span class="nav-label">${esc(label)}</span>${notice}</button></div>`;
+  return `<button class="nav-button ${selected ? "active" : ""}" data-section="${section}"${selected ? ' aria-current="page"' : ""}>${navIcon(section)}<span>${esc(label)}</span>${notice}</button>`;
 }
 
 function syncOperationsNavBadge(): void {
@@ -1330,7 +1339,12 @@ function syncOperationsNavBadge(): void {
 }
 
 function navGroup(title: string, rows: Array<[Section, string]>): string {
-  return `<div class="nav-section-label" data-nav-section="${esc(title)}">${esc(title)}</div>${rows.map(([id, label]) => navButton(id, label)).join("")}`;
+  const iconKey = title === "VẬN HÀNH"
+    ? "group-operations"
+    : title === "QUẢN LÝ"
+      ? "group-management"
+      : "group-system";
+  return `<span class="nav-section-label" data-nav-section="${esc(title)}">${navIcon(iconKey)}<span>${esc(title)}</span></span>${rows.map(([id, label]) => navButton(id, label)).join("")}`;
 }
 
 function renderNav(): string {
@@ -1393,27 +1407,26 @@ function renderLogin(): void {
     return;
   }
   const rememberedUsername = localStorage.getItem(REMEMBER_LOGIN_KEY) || "";
-  app.innerHTML = `<main class="login-screen"><div class="login-panel">
-    <section class="login-left">
-      <div class="login-brand"><img class="brand-logo" src="/app-icon.png" alt="The Supra"><span class="login-corporate"><span>CÔNG TY CỔ PHẦN THE SUPRA</span><span>DC HƯNG YÊN</span></span></div>
-      <div class="login-art"><div class="art-greeting">BÁO HÀNG 1291</div><h1>Quản lý báo hàng tập trung.</h1><p>Theo dõi hàng thiếu, xử lý SKU và phản hồi Picker trong cùng một hệ thống.</p></div><small>${PRODUCT_CREDIT}</small>
-    </section>
-    <section class="login-right">
-      <span class="login-kicker">INVENTORY OFFICE</span><h2>Đăng nhập hệ thống</h2><p>Sử dụng tài khoản được cấp để truy cập nghiệp vụ.</p>
+  app.innerHTML = `<main class="login-shell"><div class="login-stage">
+    <div class="login-brand-lockup login-brand-reference"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1></div></div>
+    <section class="login-card">
+      <div class="login-card-heading"><span></span><div><h2>Đăng nhập tài khoản</h2></div></div>
       ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
-      <form id="login-form" class="login-form">
+      <form id="login-form">
         <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Nhập tài khoản" value="${esc(rememberedUsername)}" /></label>
         <label>Mật khẩu<div class="password-input-wrap"><input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" /><button id="toggle-login-password" class="password-eye" type="button" aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button></div></label>
         <div class="login-options"><label class="remember-login"><input name="rememberLogin" type="checkbox" ${rememberedUsername ? "checked" : ""}/><span>Lưu tên đăng nhập</span></label><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
-        <button class="btn primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
+        <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
       </form>
       <form id="reset-password-form" class="login-reset-form" hidden>
         <p class="muted">Nhập tài khoản và email đăng ký.</p>
         <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Mã nhân viên / tài khoản" /></label>
         <label>Email đăng ký<input name="email" type="email" required autocomplete="email" placeholder="name@company.com" /></label>
-        <button class="btn secondary wide">GỬI LINK ĐẶT LẠI MẬT KHẨU</button><div id="reset-password-result" class="tiny muted"></div>
+        <button class="secondary wide">GỬI LINK ĐẶT LẠI MẬT KHẨU</button>
+        <div id="reset-password-result" class="tiny muted"></div>
       </form>
       <div class="oauth-public-links"><a href="/about">Giới thiệu</a><a href="/privacy">Quyền riêng tư</a><a href="/terms">Điều khoản</a></div>
+      <p class="security">${PRODUCT_CREDIT}</p>
     </section>
   </div></main>`;
 
@@ -1496,98 +1509,45 @@ function renderLogin(): void {
   });
 }
 
-const INVENTORY_ACCENT_KEY = "supra_inventory_ui_accent_v1";
-const INVENTORY_ACCENTS = ["coral", "red", "orange", "yellow", "green", "blue", "indigo", "violet"];
-let inventoryClockTimer: number | null = null;
-
-function inventoryAccent(): string {
-  try {
-    const saved = localStorage.getItem(INVENTORY_ACCENT_KEY) || "coral";
-    return INVENTORY_ACCENTS.includes(saved) ? saved : "coral";
-  } catch { return "coral"; }
-}
-
-function previewSectionTitle(section: Section): string {
-  const titles: Partial<Record<Section, string>> = {
-    picker:"Báo thiếu hàng", operations:"Xử lý báo hàng", overdue:"Quá hạn", results:"Kết quả báo hàng",
-    shift:"Ca vận hành", sku:"Danh mục SKU", hr:"Nguồn nhân sự", users:"Nhân sự & tài khoản",
-    sla:"Thời gian xử lý", dashboard:"Tổng quan & báo cáo", reports:"Báo cáo chi tiết",
-    system:"Trạng thái hệ thống", devices:"Thiết bị", logs:"Nhật ký", tools:"Công cụ",
-    "system-reset":"Đặt lại hệ thống", versions:"Phiên bản", account:"Tài khoản",
-  };
-  return titles[section] || "1291 Báo hàng";
-}
-
-function tickInventoryClock(): void {
-  const node = document.querySelector<HTMLElement>("#inventory-ui-clock");
-  if (!node) {
-    if (inventoryClockTimer !== null) { window.clearInterval(inventoryClockTimer); inventoryClockTimer = null; }
-    return;
-  }
-  node.textContent = new Intl.DateTimeFormat("en-US", { timeZone:"Asia/Ho_Chi_Minh", hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:true }).format(new Date());
-}
-
-function startInventoryClock(): void {
-  tickInventoryClock();
-  if (inventoryClockTimer === null) inventoryClockTimer = window.setInterval(tickInventoryClock, 1000);
-}
 function renderShell(content: string): void {
   if (!profile) return renderLogin();
   const visualRole = profile.role === "PICKER" ? "PICKER" : profile.role === "REPORTER" ? "INVENT" : "ADMIN";
   document.body.dataset.role = visualRole;
   document.body.dataset.testRole = "";
-  document.body.dataset.inventoryAccent = inventoryAccent();
-  document.documentElement.dataset.accent = inventoryAccent();
-  app.innerHTML = `<div class="inventory-office role-${esc(profile.role.toLowerCase())}">
-    <aside id="inventory-sidebar" class="sidebar" data-shell-generation="d173-pickpack-office-ui" aria-label="Điều hướng Báo hàng">
-      <div class="side-top">
-        <img class="brand-logo" src="/app-icon.png" alt="The Supra">
-        <strong class="corporate-brand"><span>CÔNG TY CỔ PHẦN THE SUPRA</span><span>DC HƯNG YÊN</span></strong>
-      </div>
-      <div class="sidebar-scroll">
-        <div class="inventory-side-app"><strong>1291 Báo hàng</strong><small>Kho HY1</small></div>
-        <nav class="side-group nav-flat" aria-label="Nghiệp vụ Báo hàng">${renderNav()}</nav>
-      </div>
-      <div class="inventory-side-footer">
-        <div class="inventory-side-status"><span class="online-dot" aria-hidden="true"></span><div class="header-runtime">
-          <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ API: ${serviceReachable ? "Sẵn sàng" : "Không truy cập được"}</span>
-          <span id="realtime-state" data-state="${realtimeState === "connected" ? "on" : realtimeState === "offline" ? "off" : "pending"}">Dữ liệu trực tiếp: ${realtimeStatusLabel()}</span>
+  app.innerHTML = `<div class="app-shell d173-tabler-shell role-${esc(profile.role.toLowerCase())}">
+    <header class="topbar d173-tabler-navbar">
+      <div class="header-product">
+        <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
+        <h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1>
+        <div class="header-runtime">
+          <span id="service-state" title="Tình trạng kết nối Web đến API xử lý báo hàng" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ API: ${serviceReachable ? "Sẵn sàng" : "Không truy cập được"}</span>
+          <span class="header-runtime-separator">|</span>
+          <span id="realtime-state" title="Kết nối WebSocket để nhận thay đổi báo hàng ngay khi phát sinh" data-state="${realtimeState === "connected" ? "on" : realtimeState === "offline" ? "off" : "pending"}">Dữ liệu trực tiếp: ${realtimeStatusLabel()}</span>
+          <span class="header-runtime-separator">|</span>
           <span id="last-web-update">Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}</span>
-        </div></div>
-        <div class="side-bottom"><span class="web-version">${WEB_VERSION_LABEL}</span><footer id="appCopyright" class="site-footer">${PRODUCT_CREDIT}</footer></div>
+        </div>
       </div>
-    </aside>
-    <div class="app-main">
-      <header class="topbar">
-        <div class="top-left">
-          <button type="button" class="icon-button menu-button inventory-mobile-toggle" id="inventory-menu-toggle" aria-label="Mở menu" aria-expanded="false" aria-controls="inventory-sidebar">☰</button>
-          <strong class="inventory-current-title" id="inventory-current-title">${esc(previewSectionTitle(activeSection))}</strong>
+      <div class="user header-user">
+        <div class="header-user-identity">
+          <strong>${esc(profile.display_name)}</strong>
+          <span>${esc(legacyRoleLabel(profile.role))}</span>
         </div>
-        <div class="top-right">
-          <time class="inventory-clock" id="inventory-ui-clock" aria-label="Giờ Việt Nam"></time>
-          <details class="inventory-user-menu profile-area">
-            <summary class="top-profile inventory-user-trigger">
-              <span class="person-avatar">${esc((profile.display_name || "?").slice(0, 2).toUpperCase())}</span>
-              <span class="profile-name"><strong>${esc(profile.display_name)}</strong><small>${esc(legacyRoleLabel(profile.role))}</small></span><span class="caret" aria-hidden="true">⌄</span>
-            </summary>
-            <div class="profile-dropdown inventory-user-panel">
-              ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","PICKPACK_ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
-              <label class="header-control theme-control"><span>Giao diện</span><select id="theme-mode"><option value="AUTO" ${themeMode === "AUTO" ? "selected" : ""}>Tự động</option><option value="LIGHT" ${themeMode === "LIGHT" ? "selected" : ""}>Sáng</option><option value="DARK" ${themeMode === "DARK" ? "selected" : ""}>Tối</option></select></label>
-              <label class="header-control inventory-accent-control"><span>Màu giao diện</span><select id="inventory-accent-color" aria-label="Chọn màu giao diện">${INVENTORY_ACCENTS.map((color) => `<option value="${color}" ${inventoryAccent() === color ? "selected" : ""}>${({coral:"San hô",red:"Đỏ",orange:"Cam",yellow:"Vàng",green:"Lục",blue:"Lam",indigo:"Chàm",violet:"Tím"} as Record<string,string>)[color]}</option>`).join("")}</select></label>
-              <div class="header-control zoom-control"><span>Cỡ chữ</span><div class="zoom-buttons"><button type="button" class="ghost" data-ui-zoom="-10" aria-label="Giảm cỡ chữ">A−</button><button type="button" class="ghost zoom-value" data-ui-zoom="0" id="ui-zoom-value" aria-label="Đặt cỡ chữ về 100%">${uiZoom}%</button><button type="button" class="ghost" data-ui-zoom="10" aria-label="Tăng cỡ chữ">A+</button></div></div>
-              <div class="user-actions"><button type="button" class="ghost header-account-action ${activeSection === "account" ? "active" : ""}" data-section="account">Tài khoản</button><button type="button" id="logout" class="ghost">Đăng xuất</button></div>
-            </div>
-          </details>
+        <div class="header-controls">
+          ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","PICKPACK_ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
+          <label class="header-control theme-control"><span>Giao diện</span><select id="theme-mode"><option value="AUTO" ${themeMode === "AUTO" ? "selected" : ""}>Tự động</option><option value="LIGHT" ${themeMode === "LIGHT" ? "selected" : ""}>Sáng</option><option value="DARK" ${themeMode === "DARK" ? "selected" : ""}>Tối</option></select></label>
+          <div class="header-control zoom-control"><span>Cỡ chữ</span><div class="zoom-buttons"><button type="button" class="ghost" data-ui-zoom="-10" aria-label="Giảm cỡ chữ">A−</button><button type="button" class="ghost zoom-value" data-ui-zoom="0" id="ui-zoom-value" aria-label="Đặt cỡ chữ về 100%">${uiZoom}%</button><button type="button" class="ghost" data-ui-zoom="10" aria-label="Tăng cỡ chữ">A+</button></div></div>
+          <div class="user-actions"><button type="button" class="ghost header-account-action ${activeSection === "account" ? "active" : ""}" data-section="account">Tài khoản</button><button id="logout" class="ghost">Đăng xuất</button></div>
         </div>
-      </header>
-      <main id="content" class="main page-content" data-active-section="${esc(activeSection)}">${content}</main>
-    </div>
-    <button type="button" class="inventory-sidebar-backdrop" id="inventory-sidebar-backdrop" aria-label="Đóng menu"></button>
+      </div>
+    </header>
+    <nav class="tabs d173-tabler-sidebar" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
+    <main id="content" class="content main d173-page-content" data-active-section="${esc(activeSection)}">${content}</main>
+    <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>
     <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}${renderD167MealOverlay()}</div>
   </div>`;
   bindShell();
-  startInventoryClock();
 }
+
 function renderStockModal(): string {
   if (!stockConfirm) return "";
   return `<div class="modal"><div class="modal-box action-confirm-box"><h2>XÁC NHẬN ĐÃ CÓ HÀNG?</h2>
@@ -1810,23 +1770,18 @@ function renderOperations(): string {
     ${renderOperationalTabs("operations")}
     <section class="business-summary-grid queue-summary-grid">
       <button type="button" class="business-summary-card summary-filter-card primary ${queueFilter === "ALL" ? "active" : ""}" data-queue-filter="ALL"><span>SKU đang chờ xử lý</span><strong>${queueRows.length.toLocaleString("vi-VN")}</strong><small>${affected.toLocaleString("vi-VN")} Picker đang bị ảnh hưởng</small></button>
-      <button type="button" class="business-summary-card summary-filter-card danger ${queueFilter === "ESCALATED" ? "active" : ""}" data-queue-filter="ESCALATED"><span>SKU quá hạn</span><strong>${overdueCount.toLocaleString("vi-VN")}</strong><small>Ưu tiên phản hồi</small></button>
-      <article class="business-summary-card good"><span>Đã có hàng</span><strong>${resultTabBadgeCounts.HAS_STOCK.toLocaleString("vi-VN")}</strong><small>Theo bộ đếm kết quả</small></article>
-      <article class="business-summary-card warning"><span>Cho phép Skip</span><strong>${resultTabBadgeCounts.SKIP_ALLOWED.toLocaleString("vi-VN")}</strong><small>Theo bộ đếm kết quả</small></article>
+      <button type="button" class="business-summary-card summary-filter-card warning ${queueFilter === "WARNING" ? "active" : ""}" data-queue-filter="WARNING"><span>Sắp quá thời gian</span><strong>${warningCount.toLocaleString("vi-VN")}</strong></button>
+      <button type="button" class="business-summary-card summary-filter-card danger ${queueFilter === "ESCALATED" ? "active" : ""}" data-queue-filter="ESCALATED"><span>Đã quá thời gian</span><strong>${overdueCount.toLocaleString("vi-VN")}</strong></button>
     </section>
-    <div class="inventory-warning-filter"><button type="button" class="btn small secondary ${queueFilter === "WARNING" ? "active" : ""}" data-queue-filter="WARNING">Sắp quá thời gian: ${warningCount.toLocaleString("vi-VN")}</button></div>
     <div class="fast-workspace">
       <div class="fast-list" id="fastList" aria-live="polite">
-        <div class="fast-list-heading"><span>SKU</span><span>Tên sản phẩm</span><span>Picker</span><span>Thời gian báo</span><span>Trạng thái</span></div>
         ${visibleRows.length ? visibleRows.map((row) => {
           const rowTiming = liveQueueTiming(row);
           const tone = rowTiming.state === "ESCALATED" ? "danger" : rowTiming.state === "WARNING" ? "open" : "work";
           return `<button class="fast-issue-row ${selected?.batch_id === row.batch_id ? "selected" : ""}" data-select-batch="${esc(row.batch_id)}">
             <span class="fast-sku">${esc(row.sku)}</span>
             <span class="fast-product">${esc(row.product_name)}</span>
-            <span class="fast-picker-count">${Number(row.affected_picker_count)} Picker</span>
-            <time class="fast-reported-at" datetime="${esc(row.first_report_at)}">${esc(fmt(row.first_report_at))}</time>
-            <span class="fast-meta"><b class="fast-status ${tone}">${esc(slaLabel(rowTiming.state))}</b><em>Chờ ${rowTiming.waiting} phút</em></span>
+            <span class="fast-meta"><b class="fast-status ${tone}">${esc(slaLabel(rowTiming.state))}</b><em>${Number(row.affected_picker_count)} Picker</em><em>Chờ ${rowTiming.waiting} phút</em></span>
           </button>`;
         }).join("") : `<div class="fast-empty-row">${queueFilter === "ALL" ? "Hiện không có SKU chờ xử lý." : "Không có SKU trong nhóm này."}</div>`}
       </div>
@@ -4697,22 +4652,6 @@ function bindShell(): void {
   const currentProfile = profile;
   if (!currentProfile) return;
   document.body.dataset.d173Sidebar = "expanded";
-  document.body.dataset.inventoryMenuOpen = "false";
-  const menuToggle = document.querySelector<HTMLButtonElement>("#inventory-menu-toggle");
-  const closeMenu = () => { document.body.dataset.inventoryMenuOpen = "false"; if (menuToggle) menuToggle.setAttribute("aria-expanded", "false"); };
-  menuToggle?.addEventListener("click", () => {
-    const open = document.body.dataset.inventoryMenuOpen !== "true";
-    document.body.dataset.inventoryMenuOpen = String(open);
-    menuToggle.setAttribute("aria-expanded", String(open));
-  });
-  document.querySelector("#inventory-sidebar-backdrop")?.addEventListener("click", closeMenu);
-  document.querySelector<HTMLSelectElement>("#inventory-accent-color")?.addEventListener("change", (event) => {
-    const value = (event.currentTarget as HTMLSelectElement).value;
-    if (!INVENTORY_ACCENTS.includes(value)) return;
-    document.body.dataset.inventoryAccent = value;
-    document.documentElement.dataset.accent = value;
-    try { localStorage.setItem(INVENTORY_ACCENT_KEY, value); } catch { /* cosmetic preference only */ }
-  });
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.section as Section;
     if (!next || next === activeSection || !canAccessSection(next, currentProfile)) return;
