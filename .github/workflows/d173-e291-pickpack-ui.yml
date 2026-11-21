@@ -1,0 +1,65 @@
+name: D173 E291 PickPack UI Real App and D172 Isolation
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'tests/d173-e291-*'
+      - 'ops/change-continuity/D173.json'
+      - 'ops/project-state.json'
+      - '.github/workflows/d173-e291-pickpack-ui.yml'
+permissions:
+  contents: read
+jobs:
+  real-app-browser-build-d172:
+    if: contains(github.head_ref, 'd173-e289-inventory-ui-rebuild')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Web dependencies and Chromium
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Web TypeScript and Vite build
+        working-directory: web
+        run: npm run build
+      - name: Start actual Inventory Web and test real DOM with isolated API mock
+        env:
+          D173_E291_WEB_URL: http://127.0.0.1:4173
+        run: |
+          set -euo pipefail
+          (cd web && ./node_modules/.bin/vite preview --host 127.0.0.1 --port 4173 --strictPort) > /tmp/e291-vite.log 2>&1 &
+          for n in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ -o /dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4173/ -o /dev/null
+          node --test tests/d173-e291-pickpack-live-ui.test.mjs
+      - name: Store real Vite screen proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e291-real-app-browser
+          path: .artifacts/d173-e291-pickpack-ui/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: D172 isolation independent regression
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+          cd service
+          npm install --ignore-scripts --no-audit --no-fund
+          cd ..
+          node --test tests/d172-*.test.mjs
+      - name: No Production on PR
+        run: echo 'D173_E291_PR_CODE_CI_ONLY__PRODUCTION_GATED__D172_HOLD__STABLE_OWNER_GATED'
