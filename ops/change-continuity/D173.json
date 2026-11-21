@@ -3,33 +3,26 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e288-web3324-production-receipt-20261120",
-  "pr": 992,
+  "working_branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
+  "pr": 993,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E288",
-    "date_vn": "2026-11-20",
-    "summary": "Web3.3.24 Owner-directed Production technical release on existing Worker PASS, PR991 protected merge ac4b0512, run44735679902 attempt2 SUCCESS. Scoped CI 5/5; health200 source/schema/role API/Web smoke PASS. FIELD/OWNER pending, D172 isolated.",
-    "status": "CODE_CI_SCOPED_RELEASE_TECH_PASS__OWNER_FIELD_PENDING__D172_HOLD",
-    "source": "docs/D173_E288_WEB3324_PRODUCTION_RELEASE_RECEIPT_2026-11-20.md",
-    "branch": "docs/d173-e288-web3324-production-receipt-20261120",
-    "pr": 992,
-    "source_pr": 991,
-    "source_main_sha": "ac4b0512931cf7a72e231af0652dec9d21bbfeef",
-    "source_code_sha": "7fb26c151535403fdeba95bac1229459d9eaa9d7",
-    "source_ci_sha": "eac9c860336dd6016dfec973a11d0f286692d35e",
-    "source_ci_run_id": 44735415431,
-    "release_main_sha": "ac4b0512931cf7a72e231af0652dec9d21bbfeef",
-    "worker_release_run_id": 44735679902,
-    "worker_release_attempt": 2,
-    "code_pass": true,
-    "ci_scoped_pass": true,
-    "ci_global_pass": false,
-    "release_pass": true,
+    "id": "D173-E289",
+    "date_vn": "2026-11-21",
+    "summary": "Owner FIELD NOT PASS Web3.3.24; reject incremental CSS preview overlay and direct full D173 Web UI rebuild from PickPack prototype (read-only visual source), preserve business/auth/realtime. Draft PR993 docs-only; CODE/CI pending; Production3.3.24 unchanged; D172 HOLD.",
+    "status": "OWNER_FIELD_FAIL__NEW_UI_REBUILD_CODE_PENDING__PRODUCTION_UNCHANGED",
+    "source": "docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md",
+    "branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
+    "pr": 993,
+    "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
+    "code_pass": false,
+    "ci_scoped_pass": false,
+    "release_pass": false,
+    "production_previous_technical_release_pass": true,
     "field_pass": false,
     "owner_pass": false
   },
-  "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "E289_REBUILD_CODE_ONLY_PENDING__NO_NEW_RELEASE_AUTHORIZATION__E288_WEB3324_PRODUCTION_TECH_PASS_FIELD_OWNER_FAIL__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -6187,6 +6180,40 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E289",
+      "date_vn": "2026-11-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": "EXPLICIT_REBUILD_DIRECTION_CODE_SCOPE__NO_NEW_PRODUCTION_RELEASE",
+      "change_id": "D173",
+      "subchange": "E289",
+      "topic": "Owner FIELD FAIL Web3.3.24; reject accumulated legacy CSS and require entirely rebuilt Inventory Web presentation following PickPack management prototype",
+      "status": "FIELD_NOT_PASS__FULL_WEB_UI_REBUILD_REQUESTED__CODE_PENDING__CI_PENDING__RELEASE_3324_UNCHANGED",
+      "next_action": "Build new D173-only Web presentation from PickPack PR#2 visual reference without retaining legacy layered visual CSS; integrate real Inventory handlers/auth/RBAC/realtime and test nine authenticated screens/light-dark/mobile/roles. Hold release and merger until exact-source checks and Owner approval.",
+      "evidence": "Owner FIELD report 2026-11-21; main 9125244e64458b10ccbffec1744418b63b3423bd; E288 receipt Production Web3.3.24 main ac4b0512 run44735679902 attempt2 success; PR991 merged; PR992 merged; PR990 remains open draft; PickPack PR2 open draft read-only; web/src/operational-app.ts nineteen CSS imports; tests/d173-e283-inventory-preview.test.mjs synthetic fixture 22 screenshots; Draft PR#993 docs stage.",
+      "supersedes": [
+        "D173-E283 VISUAL_IMPLEMENTATION_ACCEPTANCE_CANDIDATE_ONLY",
+        "D173-E288 FIELD_PENDING_TO_OWNER_FIELD_FAIL"
+      ],
+      "facts": [
+        "Owner reports Production Web3.3.24 interface materially differs from PickPack visual test and rejects it. Technical release PASS does not equal FIELD/OWNER PASS.",
+        "Actual authenticated app still imports 19 layered stylesheets including legacy-transplant and d173-inventory-preview.css; PR991 did not remove old presentation layers.",
+        "E283 Chromium screenshots and geometry are synthetic fixtures, not authenticated integrated UAT.",
+        "Owner requests complete frontend UI replacement instead of further old UI CSS patching; existing D173 business data, handlers, permissions, API/realtime, module isolation and resource boundaries must be preserved.",
+        "PickPack PR#2 is read-only design reference only; D172 independent HOLD; Stable OWNER_GATED; no new production deploy authority.",
+        "New rebuild candidate has NO source implementation, NO CI or field verification as of this checkpoint."
+      ],
+      "working_branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
+      "pr": 993,
+      "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
+      "code": "PENDING",
+      "ci": "PENDING",
+      "release": "WEB3324_PRODUCTION_UNCHANGED__TECHNICAL_PASS_HISTORICAL",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -6217,7 +6244,8 @@
       "D173-E170 Owner 08/11 authorizes Production updates for existing Worker HMAC daily diagnostics and signed Agent175 error-only log changes after exact-head CI; Web UI/Android/Rules unchanged.",
       "D173-E174 Owner 09/11 approves Agent176-only focus repair and conditional signed OTA; Launcher explicitly deferred backlog.",
       "D173-E239: Owner explicitly authorizes code/merge/Production release of the three Web3.3.15 UI requirements on PR961 after exact-source scoped CI and D172 isolation; no Stable/D172 mutation.",
-      "D173-E278 Owner 2026-11-16 authorized Agent194 functional WMS Confirm HA, one incident mail, guarded existing Worker and Agent Production; D172 remains independent HOLD."
+      "D173-E278 Owner 2026-11-16 authorized Agent194 functional WMS Confirm HA, one incident mail, guarded existing Worker and Agent Production; D172 remains independent HOLD.",
+      "D173-E289 Owner 21/11/2026 explicitly rejects Web3.3.24 visual result and orders complete Web frontend UI rebuild using PickPack PR2 as read-only visual reference, not CSS overlay on legacy."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -6328,7 +6356,8 @@
       "D173-E207: Agent192 Owner-approved UI-only PR937; source pin b0aebb45d962283abaa17c112d352b6470f409cd; source/native/D172 CI then protected signed OTA required. No Worker/Web/APK/Firebase/D172/Stable/Host14 changes.",
       "D173-E215 Web3.3.9 Production technical release PASS, Owner field acceptance for exact search/withdrawn Picker and responsive layout remains pending.",
       "D173-E216 Owner Web339 search returns all, date-right, selected tab visibility; PR950 Web-only source candidate CI pending, Production unchanged.",
-      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization."
+      "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization.",
+      "E289 new frontend UI rebuild plan recorded Draft PR993: actual Web source still imports 19 CSS layers; full code, nine integrated authenticated screens, CI and UAT pending, no Production change."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -6352,7 +6381,8 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704.",
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry.",
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD.",
-      "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
+      "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS.",
+      "E289: no new Production authorization; no FIELD/OWNER PASS; replacing 19 CSS imports without a fully integrated/tested new UI would break live Inventory operations."
     ],
     "next_actions": [
       "D173-E251: Production technical PASS Web3317. PR969 docs-only continuity merge; FIELD authenticated browser & Owner PASS separately.",
@@ -6379,9 +6409,10 @@
       "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven.",
       "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending.",
       "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated.",
-      "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately."
+      "D173-E239: verify scoped Web3.3.15 source CI and D172; release gate exact-SHA; merge protected with marker; verify Worker Web /health and publish receipt; FIELD/OWNER PASS separately.",
+      "E289: build separate D173 Web UI presentation and real integrated screens; verify regression/usage/security/D172; then request separate release gate and authenticated Owner field acceptance."
     ],
-    "release_boundary": "D173-E288 Web3.3.24 Production technical release PASS on existing Worker (run44735679902 attempt2); authenticated FIELD/OWNER PASS pending; D172 independent HOLD; Stable OWNER_GATED; Agent194 and Android unaffected.",
+    "release_boundary": "E289 WEB_CODE_ONLY_PENDING__WEB3324_PRODUCTION_UNCHANGED_FIELD_FAIL__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {

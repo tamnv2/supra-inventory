@@ -1,3 +1,11 @@
+## D173-E289 — 21/11/2026: Web3.3.24 FIELD FAIL, xây lại hoàn toàn giao diện
+
+Owner xác nhận Web 3.3.24 đã phát hành **không đạt về giao diện**, không giống bản kiểm thử ở dự án Mô hình quản lý vận hành. **Bác bỏ cách giữ giao diện cũ rồi chồng CSS mới**; yêu cầu thay hoàn toàn lớp trình bày Inventory Web dựa theo UI PickPack PR #2 **chỉ đọc làm tham chiếu thị giác**. Không nhập dữ liệu, nghiệp vụ, quyền hoặc hạ tầng từ PickPack; D173 giữ nguyên Auth/RBAC, API, realtime, dữ liệu và mọi hành động hoạt động thực. Lớp CSS/style cũ không được tiếp tục làm nền của bản UI mới; chuyển từng màn hình và kiểm chứng tích hợp trước khi bỏ phụ thuộc CSS cũ. Quyết định E270 về giữ các CSS import **không còn áp dụng cho ứng viên giao diện E289** (nhưng vẫn là lịch sử của Production 3.3.24).
+
+**Chứng cứ**: `web/src/operational-app.ts` còn 19 CSS imports (legacy/overrides + preview), E283 Chromium 22 ảnh từ fixture synthetic, không phải UAT đăng nhập thực; Production run `44735679902` attempt 2 technical PASS nhưng Owner FIELD **NOT PASS**. Không đổi Worker/DO/SQLite, D172, Agent, Android, Firebase, Gateway, Stable; không cấp quyền Production mới từ lệnh này. **CODE/CI E289 PENDING; WEB3.3.24 Production giữ nguyên; FIELD/OWNER PASS FALSE.** [Draft PR #993](https://github.com/tamnv2/supra-inventory/pull/993); `docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md`.
+
+---
+
 ## D173-E286 — Owner yêu cầu phát hành Web Inventory UI mẫu lên Production để kiểm thử trực tiếp (20/11/2026)
 
 Owner thay đổi quyết định E283 CODE ONLY: **duyệt riêng Production Web3.3.24 frontend UI** lên `inventory.supra.cc.cd` thông qua Worker hiện hữu `supra-inventory-beta`, để Owner trực tiếp nghiệm thu trên Web thật. Không yêu cầu giả lập UAT hoặc tạo preview Worker/domain mới. Chỉ sửa UI Web D173, giữ nguyên hệ thống xác thực, nghiệp vụ, realtime, D172, Agent/Android, Firebase, Gateway và Worker service source; Stable OWNER-GATED. Bắt buộc Owner gate E286 + exact-source five scoped CI + D172 isolation + protected two-parent merge và live deployment readback. **Không được coi lệnh phát hành là FIELD/OWNER PASS**. Tài liệu: `docs/D173_E286_WEB3324_RELEASE_AUTHORIZATION_2026-11-20.md`, [PR #991](https://github.com/tamnv2/supra-inventory/pull/991).

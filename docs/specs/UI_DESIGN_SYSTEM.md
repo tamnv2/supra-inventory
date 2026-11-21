@@ -1,3 +1,11 @@
+## D173-E289 — thay toàn bộ presentation Web theo UI tham chiếu, không chồng CSS (21/11/2026)
+
+Owner FIELD NOT PASS Web3.3.24. Bản xây lại tiếp theo phải dùng PickPack PR #2 **chỉ làm tham chiếu bố cục/thị giác** và dựng một hệ thống thiết kế Web Inventory thống nhất: sidebar, topbar, trang chức năng, bảng, bộ lọc, form, modal, login, màu sáng/tối, theme accent, HD/HD+/mobile. **Không dùng lại CSS legacy-transplant làm nền và không chỉ bổ sung `!important` để đè giao diện cũ.** Tách presentation mới khỏi các handler/API/RBAC/realtime hiện có nhưng phải giữ toàn bộ nghiệp vụ thật, chức năng từng màn hình, phân vai, session và bảo mật. Chỉ sau khi chuyển đủ các thành phần và chạy test tương tác tích hợp thì mới loại import CSS cũ; không xóa mù khiến Production hỏng.
+
+**Nghiệm thu bắt buộc:** 9 nhóm màn hình có ảnh/geometry đối chiếu từ app thực với login/role dữ liệu được phép, sáng/tối, 390/1280/1366/1920px; kiểm chứng nhấn nút/form/modal/scroll/điều hướng, D172 isolation, TypeScript/Vite, Auth/RBAC, realtime và không tăng calls. Fixture synthetic không thay thế FIELD PASS. E270 về giữ 18 CSS imports chỉ là thiết kế cũ, **được thay thế cho ứng viên E289**; Web3.3.24 Production hiện hành giữ nguyên cho tới một release có kiểm soát. Nguồn: `docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md`, Draft PR #993.
+
+---
+
 ## D173-E270 — Smart Lazy: giảm lớp CSS, thống nhất 9 trang Web3.3.23 (14/11/2026)
 
 Giữ nguyên 18 CSS imports hiện hữu (Tabler + 17 CSS nội bộ); **không thêm import/stylesheet hoặc blanket `!important`**. Dùng E260 làm một nơi định nghĩa desktop page inset 4px dọc / 6px ngang / 24px đáy, tránh E267 khai báo lặp. Nguồn base `web-professional-v2.css` sở hữu panel padding 8×10px và title gap 6px; xóa bản cũ 16px/12px trong `web-unified-ui.css`. Bỏ double margin Users tabs/grid và Shift history, bỏ inline Shift grid gap 14px (dùng token shared 6px); Dashboard top inset 0 và header gap 6px. Operations tiếp tục panel 6×4px theo mật độ riêng, scroll nội bộ giữ nguyên; không ép layout bằng nhau khi khác nghiệp vụ.
