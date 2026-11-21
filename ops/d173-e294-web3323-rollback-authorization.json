@@ -26,14 +26,20 @@
   "field_pass": false,
   "owner_pass": false,
   "source_code_sha": "a44f6739c4b45e15ee3529918759af8bdfbea45a",
-  "source_ci_sha": null,
-  "source_ci_verified": false,
-  "web_build_pass": false,
-  "historical_ui_tests_pass": false,
-  "d172_isolation_pass": false,
-  "authority_guard_pass": false,
-  "continuity_guard_pass": false,
-  "required_ci_failed": null,
-  "required_ci_success": 0,
-  "required_ci_run_ids": []
+  "source_ci_sha": "f3f95c7dd6d89a148e9a658128a4b9b65f137c04",
+  "source_ci_verified": true,
+  "web_build_pass": true,
+  "historical_ui_tests_pass": true,
+  "d172_isolation_pass": true,
+  "authority_guard_pass": true,
+  "continuity_guard_pass": true,
+  "required_ci_failed": 0,
+  "required_ci_success": 5,
+  "required_ci_run_ids": [
+    44899898475,
+    44899898373,
+    44899898456,
+    44899898209,
+    44899898564
+  ]
 }
