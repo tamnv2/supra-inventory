@@ -3,28 +3,28 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e293-web3325-production-receipt-20261121",
-  "pr": 994,
+  "working_branch": "fix/d173-e294-web3323-rollback-20261121",
+  "pr": 995,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E293",
+    "id": "D173-E294",
     "date_vn": "2026-11-21",
-    "summary": "Web3.3.25 PickPack real UI Production technical release PASS: PR993 protected MERGED main b566f53286692d6d8bf2d8a64823c03c319ff745; run 44893780330 attempt1 SUCCESS live /health HTTP200 source exact, schema17/17, operational7/7, Auth/API/PDA/OAuth smoke PASS. CODE/CI scoped PASS, FIELD/OWNER NOT PASS. D172 HOLD.",
-    "status": "WEB3325_PRODUCTION_TECHNICAL_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md",
-    "branch": "docs/d173-e293-web3325-production-receipt-20261121",
-    "pr": 994,
-    "source_main_sha": "b566f53286692d6d8bf2d8a64823c03c319ff745",
-    "source_code_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
-    "release_run_id": 44893780330,
-    "release_run_attempt": 1,
-    "code_pass": true,
-    "ci_scoped_pass": true,
-    "release_pass": true,
+    "summary": "Owner FIELD FAIL Web3.3.25; explicit command restore exact Web3.3.23 on Production. PR995 draft branch fix/d173-e294-web3323-rollback-20261121; previous Production 3.3.25 remains until guarded release; no backend/Agent/Android/D172 source rollback.",
+    "status": "OWNER_ROLLBACK_AUTHORIZED__WEB3323_SOURCE_CANDIDATE_PR995__CI_RELEASE_PENDING__D172_HOLD",
+    "source": "PR995 / ops/d173-e294-web3323-rollback-authorization.json",
+    "branch": "fix/d173-e294-web3323-rollback-20261121",
+    "pr": 995,
+    "source_main_sha": "163f05ac7db75ee232254c811c655069ec5f0638",
+    "source_code_sha": "7422e76be85ffa3fb3dec318f986be7393e3f78e",
+    "release_run_id": null,
+    "release_run_attempt": null,
+    "code_pass": false,
+    "ci_scoped_pass": false,
+    "release_pass": false,
     "field_pass": false,
     "owner_pass": false
   },
-  "deployment_gate": "E289_REBUILD_CODE_ONLY_PENDING__NO_NEW_RELEASE_AUTHORIZATION__E288_WEB3324_PRODUCTION_TECH_PASS_FIELD_OWNER_FAIL__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "E294_OWNER_APPROVED_PRODUCTION_ROLLBACK__PR995_CI_AND_EXACT_SOURCE_GATED__PRODUCTION_STILL_WEB3325__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -6372,6 +6372,31 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E294",
+      "date_vn": "2026-11-21",
+      "kind": "OWNER_FIELD_FAIL_AND_ROLLBACK_COMMAND",
+      "topic": "Web3.3.25 Owner FIELD FAIL; restore exact Web3.3.23 from 14/11 release to current official Production, Web only",
+      "status": "PR995_SOURCE_CANDIDATE__CI_PENDING__PRODUCTION_3_3_25_UNCHANGED",
+      "owner_approval": {
+        "rollback_web": true,
+        "production_release": true,
+        "field_pass": false,
+        "owner_pass": false
+      },
+      "facts": [
+        "Current Web3.3.25 technical release main b566f532, run44893780330 SUCCESS, Owner now rejects UI",
+        "Historical Web3.3.23 released from main 70bd1f12, run43548451337 SUCCESS",
+        "Current PR995 branch based on main 163f05ac; Web tree restored by old Git blobs; backend current source remains"
+      ],
+      "scope": "WEB_TREE_ONLY__NO_SERVICE_AGENT_ANDROID_FIREBASE_D172_OR_STABLE",
+      "security": "EXACT_WEB_TREE_SHA_CHECK__EXACT_SOURCE_CI_AND_TWO_PARENT_RELEASE_GATE__D172_REGRESSION",
+      "pr": 995,
+      "branch": "fix/d173-e294-web3323-rollback-20261121",
+      "base_main_sha": "163f05ac7db75ee232254c811c655069ec5f0638",
+      "next_action": "Fix targeted test; source pin; Web build and D172/authority/continuity CI; protected merge only if guard PASS; Production health/readback; Owner field review. Do not infer release or Owner PASS.",
+      "privacy_safe": true
     }
   ],
   "resume": {

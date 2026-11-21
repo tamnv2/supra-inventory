@@ -14,7 +14,7 @@ const deploy = read(".github/workflows/deploy-beta.yml");
 test("E294: Web source is exactly historical 3.3.23 tree, not just a visual imitation", () => {
   assert.equal(git("diff","--name-only",old,"HEAD","--","web/"),"");
   assert.equal(JSON.parse(read("web/package.json")).version,"3.3.23");
-  assert.match(read("web/src/web-version.ts"),/WEB_VERSION = "3\\.3\\.23"/);
+  assert.ok(read("web/src/web-version.ts").includes('WEB_VERSION = "3.3.23"'));
   const app=read("web/src/operational-app.ts");
   assert.ok(app.includes('import "./d173-tabler.css";'));
   assert.ok(app.includes('import "./legacy-operational.css";'));
@@ -25,8 +25,8 @@ test("E294: Web source is exactly historical 3.3.23 tree, not just a visual imit
 test("E294: restore only Web; shared current backend and D172 stay unchanged", () => {
   const changed=git("diff","--name-only",base,"HEAD").split("\n");
   for(const path of changed) {
-    assert.ok(!/^(service|android|obpp1291|relay-agent|firebase|functions|pda-management)\\//.test(path),path);
-    assert.ok(!/^ops\\/change-continuity\\/D172\\.json$/.test(path));
+    assert.ok(!["service/","android/","obpp1291/","relay-agent/","firebase/","functions/","pda-management/"].some(prefix=>path.startsWith(prefix)),path);
+    assert.notEqual(path,"ops/change-continuity/D172.json");
   }
   assert.equal(auth.owner_code_approved,true);
   assert.equal(auth.owner_production_release_approved,true);
