@@ -56,7 +56,14 @@ function qaProfile(role) {
   };
 }
 const emptyList = { items: [], count: 0, total: 0, limit: 200, offset: 0, next_page_token: "" };
-function mockBody(path, role) {
+const QA_BATCH = Object.freeze({
+  batch_id:"qa-e291-pending-1",sku:"129100001",product_name:"SKU kiểm thử không tồn tại",
+  status:"PENDING",first_report_at:"2026-11-21T03:00:00.000Z",
+  last_report_at:"2026-11-21T03:00:00.000Z",affected_picker_count:2,
+  earliest_ticket_at:"2026-11-21T03:00:00.000Z",version:1,
+  previous_batch_id:null,sla_state:"NORMAL",waiting_minutes:0,auto_skip_enabled:false,
+});
+function mockBody(path, role, withBatch=false) {
   if(path==="/api/auth/login") return {
     id_token:"qa_e291_browser_only",refresh_token:"qa_e291_refresh_only",expires_in:3600,
     session_generation:1,session_channel:"WEB",user:qaProfile(role)
@@ -66,9 +73,9 @@ function mockBody(path, role) {
     count:0,sku_day_ready:true,sku_day_vn:"2026-11-21",sku_day_last_full:"2026-11-21",
     sku_day_warning:null,max_updated_at:null,version:"qa",items:[]
   };
-  if(path==="/api/reporter/queue") return {...emptyList,server_now:new Date().toISOString()};
+  if(path==="/api/reporter/queue") return {...emptyList,...(withBatch?{items:[QA_BATCH],count:1,total:1}:{}),server_now:new Date().toISOString()};
   if(path==="/api/reporter/counters") return {
-    queue_total:0,overdue_total:0,recent_total:0,has_stock_total:0,
+    queue_total:withBatch?1:0,overdue_total:0,recent_total:0,has_stock_total:0,
     skip_allowed_total:0,automatic_skipped_total:0,withdrawn_total:0,
     auto_skip_enabled:false,auto_skip_mode:null
   };
@@ -87,7 +94,7 @@ function mockBody(path, role) {
   return { ...emptyList, status:"ok", sla:null, data:[], sources:[], records:[], users:[] };
 }
 
-async function newAppPage(browser, role, width, theme) {
+async function newAppPage(browser, role, width, theme, withBatch=false) {
   const page=await browser.newPage({viewport:{width,height:900}});
   const errors=[],unhandled=[];
   page.on("pageerror",e=>errors.push(String(e)));
@@ -114,7 +121,7 @@ async function newAppPage(browser, role, width, theme) {
       await route.fulfill({status:404,contentType:"application/json",body:'{"status":"NOT_SUPPORTED"}'});
       return;
     }
-    const data=mockBody(u.pathname,role);
+    const data=mockBody(u.pathname,role,withBatch);
     if(data===null) {unhandled.push(u.pathname);await route.fulfill({status:404,contentType:"application/json",body:"{}"});return}
     await route.fulfill({status:200,contentType:"application/json",headers:{"cache-control":"no-store"},body:JSON.stringify(data)});
   });
@@ -207,5 +214,30 @@ test("E291 Chromium role isolation with real Inventory UI, not copied PickPack m
         assert.deepEqual(errors,[],"No runtime errors for "+role);
       }finally{await page.close()}
     }
+  }finally{await browser.close()}
+});
+
+test("E291 real Inventory operation actions: open and cancel both resolved/skip modals, without writes", {skip:!BROWSER_URL,timeout:80000},async()=>{
+  const {chromium}=createRequire(join(WEB,"package.json"))("playwright");
+  const browser=await chromium.launch({headless:true});
+  try{
+    const {page,errors}=await newAppPage(browser,"ROOT",1366,"light",true);
+    try{
+      await page.locator('[data-resolve="HAS_STOCK"]').waitFor({timeout:12000});
+      assert.equal(await page.locator('#fastDetail .fast-sku').count(),0);
+      assert.match(await page.locator("#fastDetail").innerText(),/129100001/);
+      await page.locator('[data-resolve="HAS_STOCK"]').click();
+      await page.locator("#confirm-stock").waitFor();
+      assert.equal(await page.locator(".modal .modal-box").isVisible(),true);
+      assert.match(await page.locator(".modal .modal-box").innerText(),/129100001/);
+      await page.locator("#cancel-stock").click();
+      assert.equal(await page.locator("#confirm-stock").count(),0);
+      await page.locator("[data-skip-batch]").click();
+      await page.locator("#cancel-skip").waitFor();
+      assert.equal(await page.locator(".modal .modal-box").isVisible(),true);
+      await page.locator("#cancel-skip").click();
+      assert.equal(await page.locator("#confirm-skip").count(),0);
+      assert.deepEqual(errors,[],"real DOM action wiring produced no browser runtime errors");
+    }finally{await page.close()}
   }finally{await browser.close()}
 });

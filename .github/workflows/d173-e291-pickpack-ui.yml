@@ -43,7 +43,7 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:4173/ -o /dev/null
-          node --test tests/d173-e291-pickpack-live-ui.test.mjs
+          node --test tests/d173-e291-pickpack-live-ui.test.mjs tests/d173-e291-web3325-release.test.mjs
       - name: Store real Vite screen proof
         if: always()
         uses: actions/upload-artifact@v4
