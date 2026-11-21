@@ -1,3 +1,9 @@
+## D173-E293 — Web3.3.25 Production phát hành kỹ thuật PASS, Owner FIELD chưa nghiệm thu (21/11/2026)
+
+Theo lệnh Owner E291, [PR #993](https://github.com/tamnv2/supra-inventory/pull/993) đã MERGED bảo vệ trên main `b566f53286692d6d8bf2d8a64823c03c319ff745`. [Worker/Web Production run #44893780330](https://github.com/tamnv2/supra-inventory/actions/runs/44893780330) attempt 1 **SUCCESS**; release gate chính thức chấp thuận worker/web E291, Web asset CSS/JS mới đã upload. Health trực tiếp từ GitHub Actions trên `inventory.supra.cc.cd` HTTP200, đúng SHA `b566f53286692d6d8bf2d8a64823c03c319ff745`, SQLite 17/17, nghiệp vụ 7/7; Auth/API/OAuth/PDA smoke PASS, không sửa source D172, Agent, Android, Firebase hay Stable. Web phát hành hiện tại: **3.3.25**. CODE/CI scoped PASS, **RELEASE TECHNICAL PASS**, không suy diễn Global CI PASS vì các guard di sản CSS và Agent khác còn FAIL. **FIELD/OWNER PASS chưa có**; D173 mở, D172 riêng PENDING/HOLD, Stable OWNER-GATED. Tài liệu: `docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md`; PR ghi nhận [#994](https://github.com/tamnv2/supra-inventory/pull/994) docs-only, không triển khai thêm.
+
+---
+
 ## D173-E292 — xác nhận CI nguồn Web3.3.25 trước release (21/11/2026)
 
 Theo Owner gate E291, ứng viên từ PR #993 Web3.3.25 đã hoàn tất build và 6/6 kiểm thử app thực trên Vite với HTTP mock cách ly (ROOT/REPORTER/PICKER, sáng/tối, 390–1920px, 9 nhóm màn hình, xác nhận modal Đã có hàng/Cho phép Skip không ghi dữ liệu). D172 isolation + regression, Repo Authority Guard và Project State Guard PASS. Source pin `c4490a2d0fd467e91d173b34b6366b0d075536e1`; bốn run `44893357382 / 44893357601 / 44893357551 / 44893357536`. Legacy `UI Design Guard` toàn cục còn FAIL vì kiểm tra kiến trúc CSS cũ đã bị thay theo lệnh Owner; không gọi Global CI PASS. Có thể vào bước bảo vệ merge/release theo gate riêng, **chưa deploy, chưa FIELD/OWNER PASS**.
