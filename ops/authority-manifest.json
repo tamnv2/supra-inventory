@@ -26,7 +26,7 @@
     "docs/D173_E266_WEB3321_PRODUCTION_RELEASE_RECEIPT_2026-11-13.md",
     "docs/D173_E267_WEB3321_FIELD_SPACING_FAIL_2026-11-13.md",
     "docs/D173_E268_WEB3322_RELEASE_AUTHORIZATION_2026-11-14.md",
-    "docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md"
+    "docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -122,7 +122,7 @@
     "current_d173_e185_release_authorization": "ops/d173-e185-release-authorization.json",
     "current_context_index": "ops/current-context.json",
     "ai_working_contract": "docs/AI_WORKING_CONTRACT.md",
-    "active_release_receipt": "docs/D173_E288_WEB3324_PRODUCTION_RELEASE_RECEIPT_2026-11-20.md",
+    "active_release_receipt": "docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md",
     "current_d173_e188_agent186": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
     "current_d173_e188_agent186_ota_recovery": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
     "current_d173_e195_agent188": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md",
@@ -179,7 +179,8 @@
     "current_d173_web3322_production_receipt": "docs/D173_E269_WEB3322_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md",
     "current_d173_web3323_production_receipt": "docs/D173_E273_WEB3323_PRODUCTION_RELEASE_RECEIPT_2026-11-14.md",
     "current_d173_web3324_production_receipt": "docs/D173_E288_WEB3324_PRODUCTION_RELEASE_RECEIPT_2026-11-20.md",
-    "current_d173_e289_web3324_field_fail": "docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md"
+    "current_d173_e289_web3324_field_fail": "docs/D173_E289_WEB3324_FIELD_FAIL_FULL_UI_REBUILD_2026-11-21.md",
+    "current_d173_web3325_production_receipt": "docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -266,9 +267,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 993,
-    "ref_rule": "D173_E292_WEB3325_PICKPACK_UI_SOURCE_CI_SCOPED_PASS_4_OF_4__PR993_DRAFT_PROTECTED_MERGE_AND_PRODUCTION_RELEASE_PENDING__WEB3324_FIELD_FAIL__D172_HOLD",
-    "freshness": "2026_11_21_D173_E292_WEB3325_EXACT_SOURCE_CI_PINNED_FOR_PRODUCTION_RELEASE",
+    "active_working_pr": 994,
+    "ref_rule": "D173_E293_WEB3325_PRODUCTION_TECH_PASS_MAIN_B566F532_RUN44893780330__DOCS_PR994__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_11_21_D173_E293_WEB3325_PRODUCTION_TECHNICAL_RELEASE_RECEIPT",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -398,7 +399,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
+    "active_working_branch": "docs/d173-e293-web3325-production-receipt-20261121",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,

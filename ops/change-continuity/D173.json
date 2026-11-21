@@ -3,23 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
-  "pr": 993,
+  "working_branch": "docs/d173-e293-web3325-production-receipt-20261121",
+  "pr": 994,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E292",
+    "id": "D173-E293",
     "date_vn": "2026-11-21",
-    "summary": "Inventory Web3.3.25 PickPack-based UI exact-source c4490a2d CI scoped 4/4 PASS (real Web browser/source 6 tests, build, D172 independent, authority/state). Owner release authorized E291, protected merge and Production deployment still PENDING. No Owner FIELD PASS.",
-    "status": "SOURCE_CI_4_OF_4_PASS__PRODUCTION_RELEASE_PENDING__D172_HOLD",
-    "source": "docs/D173_E291_PICKPACK_UI_INVENTORY_PRODUCTION_SCOPE_2026-11-21.md",
-    "branch": "feat/d173-e289-inventory-ui-rebuild-20261121",
-    "pr": 993,
-    "source_main_sha": "9125244e64458b10ccbffec1744418b63b3423bd",
+    "summary": "Web3.3.25 PickPack real UI Production technical release PASS: PR993 protected MERGED main b566f53286692d6d8bf2d8a64823c03c319ff745; run 44893780330 attempt1 SUCCESS live /health HTTP200 source exact, schema17/17, operational7/7, Auth/API/PDA/OAuth smoke PASS. CODE/CI scoped PASS, FIELD/OWNER NOT PASS. D172 HOLD.",
+    "status": "WEB3325_PRODUCTION_TECHNICAL_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md",
+    "branch": "docs/d173-e293-web3325-production-receipt-20261121",
+    "pr": 994,
+    "source_main_sha": "b566f53286692d6d8bf2d8a64823c03c319ff745",
     "source_code_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
-    "source_ci_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+    "release_run_id": 44893780330,
+    "release_run_attempt": 1,
     "code_pass": true,
     "ci_scoped_pass": true,
-    "release_pass": false,
+    "release_pass": true,
     "field_pass": false,
     "owner_pass": false
   },
@@ -6323,6 +6324,54 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E293",
+      "date_vn": "2026-11-21",
+      "kind": "STATUS",
+      "owner_approval": null,
+      "change_id": "D173",
+      "subchange": "E293",
+      "topic": "Owner-authorized D173 Web3.3.25 actual PickPack-based UI released on Production existing Cloudflare Worker; exact-main SHA live readback technical PASS",
+      "status": "D173_WEB3325_CODE_SCOPED_PASS__CI_SCOPED_4_4_PASS__PRODUCTION_RELEASE_TECH_PASS_RUN44893780330__FIELD_OWNER_PENDING__D172_HOLD",
+      "next_action": "Owner authenticated direct Web3.3.25 Production field review of 9 page groups, ROOT/ADMIN/REPORTER/PICKER roles, light/dark, mobile/HD, SKU action confirmation, modal, realtime and scroll. Keep D173 open until explicitly OWNER PASS; no extra production deploy approved by receipt.",
+      "evidence": "PR993 MERGED protected two-parent main b566f53286692d6d8bf2d8a64823c03c319ff745; parent base 9125244e64458b10ccbffec1744418b63b3423bd and CI-pinned docs head 3f6566d38b67caafb90c74b00b96f5c5ea372168; source pin c4490a2d0fd467e91d173b34b6366b0d075536e1 with 4 scoped CI PASS [44893357382,44893357601,44893357551,44893357536]; GitHub Actions Worker/Web Production push run 44893780330 attempt1 SUCCESS job136814981694; live GET https://inventory.supra.cc.cd/health HTTP200 source=b566f53286692d6d8bf2d8a64823c03c319ff745, SQLite schema17/17, operational7/7 and storage true; Web CSS /assets/index-CBZvNz-w.css and JS /assets/index-C30JYbsR.js uploaded; guard release worker/web PASS, D172 source isolation PASS; auth/API/PDA/OAuth smoke PASS. Receipt docs/D173_E293_WEB3325_PRODUCTION_RELEASE_RECEIPT_2026-11-21.md.",
+      "supersedes": [
+        "D173-E292"
+      ],
+      "facts": [
+        "Owner expressly instructed actual Inventory Web UI integration and Production release; PR993 has MERGED to protected main in a two-parent commit with correct scoped release marker.",
+        "Release workflow run 44893780330 attempt1 COMPLETED SUCCESS. Worker/Web assets deployed to existing supra-inventory-beta Worker attached to official Production inventory.supra.cc.cd; no Stable deployment.",
+        "GitHub-runner live production health GET 200 status ok env beta exact source b566f53286692d6d8bf2d8a64823c03c319ff745; storage true SQLite schema17/17 and operational 7/7.",
+        "Original PickPack CSS source blob f35a20e456355dbf6d7e065b856a6760cd355234 used as presentation foundation, 19 legacy CSS imports removed, real Inventory business/auth event handlers retained; mock PickPack JS not imported.",
+        "Four scoped exact-source CI runs PASS including 6/6 Chromium real Vite app with isolated HTTP mocks and independent D172 regression; global historical UI Design Guard FAIL due obsolete CSS assumptions, not claimed global PASS.",
+        "Release protected gate and existing worker/D172 nonmutation PASS; live auth API, PDA registry, Web shell, OAuth and secret-name/unauthenticated guards PASS.",
+        "Authenticated Owner field inspection of new Production interface NOT performed; FIELD PASS false and OWNER PASS false; D173 remains active, D172 independently PENDING/HOLD, Stable OWNER_GATED.",
+        "E293 is docs-only post-release receipt, no source/Worker mutation and no new deployment authority."
+      ],
+      "working_branch": "docs/d173-e293-web3325-production-receipt-20261121",
+      "pr": 994,
+      "source_pr": 993,
+      "source_main_sha": "b566f53286692d6d8bf2d8a64823c03c319ff745",
+      "source_code_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+      "source_ci_sha": "c4490a2d0fd467e91d173b34b6366b0d075536e1",
+      "source_ci_runs": [
+        44893357382,
+        44893357601,
+        44893357551,
+        44893357536
+      ],
+      "worker_release_run_id": 44893780330,
+      "worker_release_attempt": 1,
+      "worker_job_id": 136814981694,
+      "web_version": "3.3.25",
+      "code": "PASS_SCOPED",
+      "ci": "PASS_SCOPED_4_OF_4__GLOBAL_LEGACY_UI_GUARD_FAIL",
+      "release": "PASS_TECHNICAL",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -6401,7 +6450,8 @@
       "D173-E248: Web3317 PR968 scoped code/source CI PASS at 1d537ad; Worker shared DO/D172 tests PASS; no Production release.",
       "D173-E251 Web3317 Worker/Web release technical PASS main d8aa54cf run43362731384 /health200, D172 guarded; FIELD/Owner pending.",
       "D173-E291 PR993 working frontend candidate Web3.3.25: exact PickPack Office CSS source copied; all 19 Inventory legacy CSS imports removed; new sidebar/topbar/login and D173 CSS adaptation; real Inventory handlers preserved at source level.",
-      "D173-E292 exact source c4490a2d Web build + Chromium real app 6/6 + D172 isolation/regression PASS; separate authority/state guard pass; four scoped CI runs pinned in auth."
+      "D173-E292 exact source c4490a2d Web build + Chromium real app 6/6 + D172 isolation/regression PASS; separate authority/state guard pass; four scoped CI runs pinned in auth.",
+      "D173-E293 2026-11-21 Production Web3.3.25 exact main b566f532, push Worker/Web run 44893780330 attempt1 SUCCESS; live official domain GET/health HTTP200 source match, SQLite17/17 operational7/7, Auth/API/OAuth/PDA smoke PASS; FIELD/OWNER pending."
     ],
     "in_progress": [
       "D173-E186 governance-only PR910 Owner merge-approved; resolve live PR state/check runs before concluding OPEN/MERGED, do not redeploy applications.",
@@ -6472,7 +6522,8 @@
       "D173-E237: Web3.3.15 Draft PR961 CODE ONLY; remove duplicate page titles, unify compact style, sticky dashboard/users/log tabs. CI/FIELD pending; no Production authorization.",
       "E289 new frontend UI rebuild plan recorded Draft PR993: actual Web source still imports 19 CSS layers; full code, nine integrated authenticated screens, CI and UAT pending, no Production change.",
       "D173-E290 confirmed PickPack PR2 source: prototype/index.html, assets/styles.css and assets/app.js with working layout/theme and mock local business. Port presentation layer ONLY to Inventory; do not port demo credentials/storage/business.",
-      "D173-E291 FULL browser real-app role/9-route UI tests, release gate, source pinned CI and Production release NOT YET VERIFIED. DO NOT CLAIM PASS."
+      "D173-E291 FULL browser real-app role/9-route UI tests, release gate, source pinned CI and Production release NOT YET VERIFIED. DO NOT CLAIM PASS.",
+      "D173-E293 Owner direct authenticated FIELD review of actual Web3.3.25 interface pending; retain D173 open and D172 separate HOLD."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -6528,9 +6579,10 @@
       "E289: build separate D173 Web UI presentation and real integrated screens; verify regression/usage/security/D172; then request separate release gate and authenticated Owner field acceptance.",
       "D173-E290 integrate pinned PickPack UI shell/component CSS and layout markup with real Inventory 9 pages, RBAC, API, realtime, action handlers and browser regression on PR993.",
       "D173-E291 finalize CI tests/guard, repair any UI/binding regressions, then protected merge and Production only if exact-source gate succeeds and readback verifies Worker/Web; no D172 change.",
-      "D173-E292 protected PR993 two-parent merge with exact E291 release marker and Production runtime readback; no FIELD/OWNER PASS inference."
+      "D173-E292 protected PR993 two-parent merge with exact E291 release marker and Production runtime readback; no FIELD/OWNER PASS inference.",
+      "D173-E293 Owner review https://inventory.supra.cc.cd Web3.3.25 real roles/pages actions/theme/realtime and report FIELD PASS/FAIL. Docs-only receipt PR994 no Worker deployment."
     ],
-    "release_boundary": "E289 WEB_CODE_ONLY_PENDING__WEB3324_PRODUCTION_UNCHANGED_FIELD_FAIL__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "D173_E293_WEB3325_PRODUCTION_TECH_PASS__RUN44893780330_ATTEMPT1__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
